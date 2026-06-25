@@ -100,41 +100,12 @@ async function speakWithWebSpeech(text, onSentenceChange) {
   DebugLog.add('speakWithWebSpeech done');
 }
 
-function resetSpeechEngine() {
-  // Chrome speechSynthesis 祖传假死修复：
-  // cancel + pause + resume + getVoices 唤醒引擎
-  try {
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.pause();
-    window.speechSynthesis.resume();
-    window.speechSynthesis.getVoices();
-  } catch(e) {
-    DebugLog.add('resetSpeechEngine error: ' + e.message);
-  }
-}
-
-// 发一个静音 utterance 暖机，唤醒 Chrome 休眠的 speech 引擎
-function primeSpeechEngine() {
+function speakSentence(text) {
   return new Promise((resolve) => {
     try {
-      const dummy = new SpeechSynthesisUtterance('.');
-      dummy.volume = 0;
-      dummy.rate = 1;
-      let done = false;
-      const timer = setTimeout(() => { if (!done) { done = true; resolve(); } }, 1000);
-      dummy.onend = () => { if (!done) { done = true; clearTimeout(timer); resolve(); } };
-      dummy.onerror = () => { if (!done) { done = true; clearTimeout(timer); resolve(); } };
-      window.speechSynthesis.speak(dummy);
-    } catch(e) {
-      resolve();
-    }
-  });
-}
-
-// 单次尝试朗读一句话，返回是否成功（3秒内没 start 就算失败）
-function trySpeakSentence(text) {
-  return new Promise((resolve) => {
-    try {
+      // Chrome speechSynthesis 已知有假死 bug，但加太多保护反而变慢
+      // 保持简洁：点就播，假死了刷新页面就好（Edge TTS 不存在此问题）
+      window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       currentUtterance = utterance;
 
@@ -142,79 +113,26 @@ function trySpeakSentence(text) {
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
 
-      // 设置语音
       if (settings.ttsVoice) {
         const voices = window.speechSynthesis.getVoices();
         const matched = voices.find(v => v.name === settings.ttsVoice);
         if (matched) {
           utterance.voice = matched;
-          DebugLog.add('Voice set: ' + settings.ttsVoice);
         }
       }
 
-      let settled = false;
-      const startTimer = setTimeout(() => {
-        if (!settled) {
-          settled = true;
-          DebugLog.add('trySpeak: did not start within 3s, fail');
-          resolve(false);
-        }
-      }, 3000);
-
-      utterance.onstart = () => { DebugLog.add('trySpeak: started OK'); };
-
-      utterance.onend = () => {
-        if (!settled) {
-          settled = true;
-          clearTimeout(startTimer);
-          DebugLog.add('trySpeak: ended OK');
-          resolve(true);
-        }
-      };
-
+      utterance.onend = () => { resolve(); };
       utterance.onerror = (e) => {
-        if (!settled) {
-          settled = true;
-          clearTimeout(startTimer);
-          DebugLog.add('trySpeak: error ' + (e.error || 'unknown'));
-          resolve(false);
-        }
+        DebugLog.add('speak error: ' + (e.error || 'unknown'));
+        resolve();
       };
 
-      // 延时 200ms 后 speak（给引擎复位留时间）
-      setTimeout(() => {
-        if (!settled) {
-          try {
-            window.speechSynthesis.speak(utterance);
-            DebugLog.add('speak() called');
-          } catch(e) {
-            DebugLog.add('speak() exception: ' + e.message);
-            if (!settled) { settled = true; resolve(false); }
-          }
-        }
-      }, 200);
+      window.speechSynthesis.speak(utterance);
     } catch (e) {
-      DebugLog.add('trySpeak exception: ' + e.message);
-      resolve(false);
+      DebugLog.add('speakSentence exception: ' + e.message);
+      resolve();
     }
   });
-}
-
-// 朗读一句话，最多重试 3 次
-async function speakSentence(text) {
-  const MAX_RETRIES = 3;
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    DebugLog.add('speakSentence attempt ' + attempt + '/' + MAX_RETRIES);
-    resetSpeechEngine();
-    // 发一个静音 utterance 暖机再试
-    await primeSpeechEngine();
-    // 引擎复位后第二次 getVoices 确保引擎活性
-    try { window.speechSynthesis.getVoices(); } catch(e) {}
-    const ok = await trySpeakSentence(text);
-    if (ok) return;
-    DebugLog.add('speakSentence attempt ' + attempt + ' failed, ' + (attempt < MAX_RETRIES ? 'retrying...' : 'skipping'));
-  }
-  DebugLog.add('speakSentence: all ' + MAX_RETRIES + ' attempts failed, skipping');
 }
 
 // ====== Edge TTS（HTTP 请求）=====
