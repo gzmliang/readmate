@@ -65,18 +65,38 @@
     "message": "🔧 Edge TTS 配置",
     "description": "设置面板：Edge TTS配置区块标题"
   },
-  "endpointLabel": {
-    "message": "端点",
-    "description": "设置面板：端点输入框标签"
-  },
   "edgeTtsVoiceLabel": {
     "message": "语音",
-    "description": "设置面板：Edge TTS语音输入框标签"
+    "description": "设置面板：Edge TTS语音选择标签"
+  },
+  "loadingVoices": {
+    "message": "加载语音列表...",
+    "description": "Edge TTS语音加载中提示"
+  },
+  "noVoicesAvailable": {
+    "message": "无可用语音",
+    "description": "Edge TTS无可用语音提示"
+  },
+  "selectVoiceHint": {
+    "message": "-- 请选择语音 --",
+    "description": "Edge TTS语音下拉默认选项"
+  },
+  "configEndpointFirst": {
+    "message": "请先配置端点",
+    "description": "Edge TTS未配置端点提示"
+  },
+  "loadVoicesFailed": {
+    "message": "加载失败，请检查端点",
+    "description": "Edge TTS语音加载失败提示"
   },
 
   "customTtsSection": {
     "message": "🔧 自定义 TTS 配置",
     "description": "设置面板：自定义TTS配置区块标题"
+  },
+  "endpointLabel": {
+    "message": "端点",
+    "description": "设置面板：端点输入框标签"
   },
   "apiKeyLabel": {
     "message": "API Key",
@@ -103,17 +123,29 @@
     "message": "简体中文",
     "description": "设置面板：目标语言-简体中文"
   },
-  "langZhTw": {
-    "message": "繁体中文",
-    "description": "设置面板：目标语言-繁体中文"
+  "langEn": {
+    "message": "English",
+    "description": "设置面板：目标语言-English"
   },
   "langJa": {
-    "message": "日语",
+    "message": "日本語",
     "description": "设置面板：目标语言-日语"
   },
   "langKo": {
-    "message": "韩语",
+    "message": "한국어",
     "description": "设置面板：目标语言-韩语"
+  },
+  "langFr": {
+    "message": "Français",
+    "description": "设置面板：目标语言-法语"
+  },
+  "langDe": {
+    "message": "Deutsch",
+    "description": "设置面板：目标语言-德语"
+  },
+  "langEs": {
+    "message": "Español",
+    "description": "设置面板：目标语言-西班牙语"
   },
   "autoTranslateLabel": {
     "message": "朗读时自动翻译每个句子",
@@ -133,6 +165,14 @@
     "message": "💾 保存设置",
     "description": "设置面板：保存按钮"
   },
+  "testTranslateBtn": {
+    "message": "🔄 测试翻译",
+    "description": "设置面板：测试翻译按钮"
+  },
+  "savingStatus": {
+    "message": "⏳ 保存中...",
+    "description": "设置面板：保存中状态"
+  },
   "savedStatus": {
     "message": "✅ 已保存",
     "description": "设置面板：保存成功状态"
@@ -140,6 +180,14 @@
   "saveFailedStatus": {
     "message": "❌ 保存失败",
     "description": "设置面板：保存失败状态"
+  },
+  "fillEndpointKeyWarning": {
+    "message": "⚠️ 请先填写端点和 API Key",
+    "description": "设置面板：填写端点和API Key提示"
+  },
+  "testingStatus": {
+    "message": "⏳ 测试中...",
+    "description": "设置面板：测试翻译进行中"
   },
 
   "uiLanguageLabel": {

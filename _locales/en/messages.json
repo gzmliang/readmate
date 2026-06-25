@@ -65,18 +65,38 @@
     "message": "🔧 Edge TTS Config",
     "description": "Settings panel: Edge TTS section heading"
   },
-  "endpointLabel": {
-    "message": "Endpoint",
-    "description": "Settings panel: endpoint input label"
-  },
   "edgeTtsVoiceLabel": {
     "message": "Voice",
-    "description": "Settings panel: Edge TTS voice input label"
+    "description": "Settings panel: Edge TTS voice select label"
+  },
+  "loadingVoices": {
+    "message": "Loading voices...",
+    "description": "Edge TTS voices loading hint"
+  },
+  "noVoicesAvailable": {
+    "message": "No voices available",
+    "description": "Edge TTS no voices available"
+  },
+  "selectVoiceHint": {
+    "message": "-- Select a voice --",
+    "description": "Edge TTS voice dropdown default option"
+  },
+  "configEndpointFirst": {
+    "message": "Configure endpoint first",
+    "description": "Edge TTS no endpoint hint"
+  },
+  "loadVoicesFailed": {
+    "message": "Load failed, check endpoint",
+    "description": "Edge TTS voice loading failed"
   },
 
   "customTtsSection": {
     "message": "🔧 Custom TTS Config",
     "description": "Settings panel: Custom TTS section heading"
+  },
+  "endpointLabel": {
+    "message": "Endpoint",
+    "description": "Settings panel: endpoint input label"
   },
   "apiKeyLabel": {
     "message": "API Key",
@@ -103,9 +123,9 @@
     "message": "Simplified Chinese",
     "description": "Settings panel: target language - Simplified Chinese"
   },
-  "langZhTw": {
-    "message": "Traditional Chinese",
-    "description": "Settings panel: target language - Traditional Chinese"
+  "langEn": {
+    "message": "English",
+    "description": "Settings panel: target language - English"
   },
   "langJa": {
     "message": "Japanese",
@@ -114,6 +134,18 @@
   "langKo": {
     "message": "Korean",
     "description": "Settings panel: target language - Korean"
+  },
+  "langFr": {
+    "message": "French",
+    "description": "Settings panel: target language - French"
+  },
+  "langDe": {
+    "message": "German",
+    "description": "Settings panel: target language - German"
+  },
+  "langEs": {
+    "message": "Spanish",
+    "description": "Settings panel: target language - Spanish"
   },
   "autoTranslateLabel": {
     "message": "Auto-translate each sentence while reading",
@@ -133,6 +165,14 @@
     "message": "💾 Save Settings",
     "description": "Settings panel: save button"
   },
+  "testTranslateBtn": {
+    "message": "🔄 Test Translation",
+    "description": "Settings panel: test translation button"
+  },
+  "savingStatus": {
+    "message": "⏳ Saving...",
+    "description": "Settings panel: saving status"
+  },
   "savedStatus": {
     "message": "✅ Saved",
     "description": "Settings panel: save success status"
@@ -140,6 +180,14 @@
   "saveFailedStatus": {
     "message": "❌ Save Failed",
     "description": "Settings panel: save failure status"
+  },
+  "fillEndpointKeyWarning": {
+    "message": "⚠️ Please fill in endpoint and API Key",
+    "description": "Settings panel: fill endpoint and API Key warning"
+  },
+  "testingStatus": {
+    "message": "⏳ Testing...",
+    "description": "Settings panel: testing translation in progress"
   },
 
   "uiLanguageLabel": {

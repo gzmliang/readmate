@@ -1,121 +1,128 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ReadMate / 读伴 — 设置</title>
+  <title>ReadMate / 读伴 — __MSG_appDesc__</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div class="popup-container">
-    <h1>ReadMate 读伴</h1>
+    <h1>__MSG_appName__</h1>
 
-    <!-- TTS 引擎 -->
+    <!-- TTS Engine -->
     <section>
-      <h2>🗣️ 朗读引擎</h2>
+      <h2>__MSG_ttsEngineSection__</h2>
       <div class="field">
-        <label>引擎</label>
+        <label>__MSG_engineLabel__</label>
         <select id="ttsEngine">
-          <option value="web-speech">浏览器原生语音 (Web Speech)</option>
-          <option value="edge-tts">Edge TTS (本地服务器)</option>
-          <option value="custom">自定义 TTS (OpenAI 兼容)</option>
+          <option value="web-speech">__MSG_engineWebSpeech__</option>
+          <option value="edge-tts">__MSG_engineEdgeTts__</option>
+          <option value="custom">__MSG_engineCustom__</option>
         </select>
       </div>
       <div class="field">
-        <label>语速</label>
+        <label>__MSG_speedLabel__</label>
         <input type="range" id="ttsSpeed" min="0.3" max="2.0" step="0.1" value="1.0">
         <span id="ttsSpeedLabel">1.0x</span>
       </div>
       <div class="field" id="voiceField">
-        <label>语音</label>
-        <select id="ttsVoice">
-          <option value="">自动检测</option>
-        </select>
+        <label>__MSG_voiceLabel__</label>
+        <select id="ttsVoice"></select>
       </div>
     </section>
 
-    <!-- Edge TTS 配置 -->
+    <!-- Edge TTS Config -->
     <section id="edgeTtsSection" style="display:none">
-      <h2>🔧 Edge TTS 配置</h2>
+      <h2>__MSG_edgeTtsSection__</h2>
       <div class="field">
-        <label>端点</label>
+        <label>__MSG_endpointLabel__</label>
         <input type="text" id="edgeTtsEndpoint" placeholder="http://192.168.199.159:5001">
       </div>
       <div class="field">
-        <label>语音</label>
-        <select id="edgeTtsVoice">
-          <option value="">加载中...</option>
-        </select>
+        <label>__MSG_edgeTtsVoiceLabel__</label>
+        <select id="edgeTtsVoice"></select>
       </div>
     </section>
 
-    <!-- 自定义 TTS -->
+    <!-- Custom TTS -->
     <section id="customTtsSection" style="display:none">
-      <h2>🔧 自定义 TTS 配置</h2>
+      <h2>__MSG_customTtsSection__</h2>
       <div class="field">
-        <label>端点</label>
+        <label>__MSG_endpointLabel__</label>
         <input type="text" id="customTtsEndpoint" placeholder="http://192.168.199.159:8880/v1">
       </div>
       <div class="field">
-        <label>API Key</label>
-        <input type="password" id="customTtsApiKey" placeholder="dummy">
+        <label>__MSG_apiKeyLabel__</label>
+        <input type="password" id="customTtsApiKey" placeholder="sk-...">
       </div>
       <div class="field">
-        <label>模型</label>
+        <label>__MSG_modelLabel__</label>
         <input type="text" id="customTtsModel" placeholder="kokoro">
       </div>
       <div class="field">
-        <label>语音</label>
+        <label>__MSG_customTtsVoiceLabel__</label>
         <input type="text" id="customTtsVoice" placeholder="af_bella">
       </div>
     </section>
 
-    <!-- AI 翻译 -->
+    <!-- AI Translation -->
     <section>
-      <h2>🌐 AI 翻译</h2>
+      <h2>__MSG_aiTranslateSection__</h2>
       <div class="field">
-        <label>端点</label>
+        <label>__MSG_endpointLabel__</label>
         <input type="text" id="aiEndpoint" placeholder="https://api.deepseek.com/v1">
       </div>
       <div class="field">
-        <label>API Key</label>
+        <label>__MSG_apiKeyLabel__</label>
         <input type="password" id="aiApiKey" placeholder="sk-...">
       </div>
       <div class="field">
-        <label>模型</label>
+        <label>__MSG_modelLabel__</label>
         <input type="text" id="aiModel" placeholder="deepseek-chat">
       </div>
       <div class="field">
-        <label>目标语言</label>
+        <label>__MSG_targetLanguageLabel__</label>
         <select id="translateTarget">
-          <option value="zh-CN">简体中文</option>
-          <option value="zh-TW">繁体中文</option>
-          <option value="ja">日语</option>
-          <option value="ko">韩语</option>
+          <option value="Simplified Chinese">__MSG_langZhCn__</option>
+          <option value="English">__MSG_langEn__</option>
+          <option value="Japanese">__MSG_langJa__</option>
+          <option value="Korean">__MSG_langKo__</option>
+          <option value="French">__MSG_langFr__</option>
+          <option value="German">__MSG_langDe__</option>
+          <option value="Spanish">__MSG_langEs__</option>
         </select>
       </div>
       <div class="field checkbox">
         <label>
           <input type="checkbox" id="autoTranslate">
-          朗读时自动翻译每个句子
+          __MSG_autoTranslateLabel__
         </label>
       </div>
     </section>
 
-    <!-- 其他设置 -->
+    <!-- Other Settings + UI Language -->
     <section>
-      <h2>⚙️ 其他</h2>
+      <h2>__MSG_otherSection__</h2>
       <div class="field checkbox">
         <label>
           <input type="checkbox" id="highlightEnabled" checked>
-          朗读时高亮当前句子
+          __MSG_highlightLabel__
         </label>
+      </div>
+      <div class="field">
+        <label>__MSG_uiLanguageLabel__</label>
+        <select id="uiLanguage">
+          <option value="auto">__MSG_langAuto__</option>
+          <option value="en">__MSG_langEnglish__</option>
+          <option value="zh_CN">__MSG_langChinese__</option>
+        </select>
       </div>
     </section>
 
     <div class="actions">
-      <button id="saveBtn">💾 保存设置</button>
-      <button id="testBtn" style="margin-left:8px;padding:6px 12px;border:1px solid #888;border-radius:6px;background:none;color:#888;font-size:12px;cursor:pointer">🔄 测试翻译</button>
+      <button id="saveBtn">__MSG_saveButton__</button>
+      <button id="testBtn">__MSG_testTranslateBtn__</button>
       <span id="saveStatus"></span>
     </div>
   </div>

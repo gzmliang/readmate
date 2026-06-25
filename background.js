@@ -73,9 +73,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         aiApiKey: '',
         aiModel: 'deepseek-chat',
         translateEnabled: true,
-        translateTarget: 'zh-CN',
+        translateTarget: 'Simplified Chinese',
         highlightEnabled: true,
         autoTranslate: false,
+        uiLanguage: 'auto',
       }, (settings) => sendResponse(settings));
       return true;
 

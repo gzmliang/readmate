@@ -1,5 +1,8 @@
 // ReadMate / 读伴 — 设置弹窗
 
+// i18n 快捷函数
+function _(key) { return chrome.i18n.getMessage(key) || key; }
+
 // 加载设置
 document.addEventListener('DOMContentLoaded', async () => {
   chrome.runtime.sendMessage({ action: 'getSettings' }, (settings) => {
@@ -9,7 +12,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Edge TTS
     document.getElementById('edgeTtsEndpoint').value = settings.edgeTtsEndpoint;
-    // Edge TTS voice 会异步加载，加载后再设值
     loadEdgeTtsVoices(settings.edgeTtsEndpoint, settings.edgeTtsVoice);
 
     // Custom TTS
@@ -26,7 +28,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('autoTranslate').checked = settings.autoTranslate;
     document.getElementById('highlightEnabled').checked = settings.highlightEnabled;
 
-    // 加载可用语音（settings 加载后再加载 voices，避免被覆盖）
+    // 界面语言
+    document.getElementById('uiLanguage').value = settings.uiLanguage || 'auto';
+
+    // 加载可用语音
     loadVoices(settings.ttsVoice);
 
     // Edge TTS 端点变更时重新加载语音列表
@@ -47,10 +52,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 保存
   document.getElementById('saveBtn').addEventListener('click', saveSettings);
-  
+
   // 测试翻译
   document.getElementById('testBtn').addEventListener('click', testTranslation);
-  
+
   // 所有输入变化自动保存
   document.querySelectorAll('input, select').forEach(el => {
     el.addEventListener('change', autoSave);
@@ -73,11 +78,9 @@ function loadVoices(savedVoice) {
 
   function populateVoices() {
     const voices = window.speechSynthesis.getVoices();
-    if (voices.length === 0) {
-      return;
-    }
+    if (voices.length === 0) return;
 
-    voiceSelect.innerHTML = '<option value="">自动检测（按页面语言）</option>';
+    voiceSelect.innerHTML = '<option value="">' + _('voiceAutoLang') + '</option>';
 
     const groups = {};
     for (const v of voices) {
@@ -92,15 +95,13 @@ function loadVoices(savedVoice) {
       for (const v of list) {
         const opt = document.createElement('option');
         opt.value = v.name;
-        opt.textContent = `${v.name}${v.localService ? ' (本地)' : ''}`;
+        opt.textContent = v.name + (v.localService ? _('localVoiceSuffix') : '');
         optgroup.appendChild(opt);
       }
       voiceSelect.appendChild(optgroup);
     }
 
-    if (savedVoice) {
-      voiceSelect.value = savedVoice;
-    }
+    if (savedVoice) voiceSelect.value = savedVoice;
   }
 
   populateVoices();
@@ -111,30 +112,28 @@ function loadVoices(savedVoice) {
 function loadEdgeTtsVoices(endpoint, savedVoice) {
   const select = document.getElementById('edgeTtsVoice');
   if (!endpoint) {
-    select.innerHTML = '<option value="">请先配置端点</option>';
+    select.innerHTML = '<option value="">' + _('configEndpointFirst') + '</option>';
     return;
   }
 
   const voicesUrl = endpoint.replace(/\/+$/, '') + '/voices';
-  select.innerHTML = '<option value="">加载语音列表...</option>';
+  select.innerHTML = '<option value="">' + _('loadingVoices') + '</option>';
 
   fetch(voicesUrl)
     .then(r => r.json())
     .then(voices => {
       if (!voices || voices.length === 0) {
-        select.innerHTML = '<option value="">无可用语音</option>';
+        select.innerHTML = '<option value="">' + _('noVoicesAvailable') + '</option>';
         return;
       }
 
       select.innerHTML = '';
 
-      // 添加默认选项
       const defaultOpt = document.createElement('option');
       defaultOpt.value = '';
-      defaultOpt.textContent = '-- 请选择语音 --';
+      defaultOpt.textContent = _('selectVoiceHint');
       select.appendChild(defaultOpt);
 
-      // 按 Locale 分组
       const groups = {};
       for (const v of voices) {
         const locale = v.Locale || 'unknown';
@@ -148,7 +147,7 @@ function loadEdgeTtsVoices(endpoint, savedVoice) {
         for (const v of list) {
           const opt = document.createElement('option');
           opt.value = v.ShortName;
-          opt.textContent = `${v.FriendlyName} (${v.Gender})`;
+          opt.textContent = v.FriendlyName + ' (' + v.Gender + ')';
           optgroup.appendChild(opt);
         }
         select.appendChild(optgroup);
@@ -157,7 +156,7 @@ function loadEdgeTtsVoices(endpoint, savedVoice) {
       if (savedVoice) select.value = savedVoice;
     })
     .catch(err => {
-      select.innerHTML = '<option value="">加载失败，请检查端点</option>';
+      select.innerHTML = '<option value="">' + _('loadVoicesFailed') + '</option>';
       console.warn('[ReadMate] Failed to load Edge TTS voices:', err);
     });
 }
@@ -174,7 +173,7 @@ function debounce(fn, delay) {
 // 自动保存
 function autoSave() {
   const status = document.getElementById('saveStatus');
-  status.textContent = '⏳ 保存中...';
+  status.textContent = _('savingStatus');
   status.style.color = '#888';
   saveSettings();
 }
@@ -187,12 +186,12 @@ function testTranslation() {
   const model = document.getElementById('aiModel').value;
 
   if (!endpoint || !apiKey) {
-    status.textContent = '⚠️ 请先填写端点和 API Key';
+    status.textContent = _('fillEndpointKeyWarning');
     status.style.color = '#f44336';
     return;
   }
 
-  status.textContent = '⏳ 测试中...';
+  status.textContent = _('testingStatus');
   status.style.color = '#888';
 
   chrome.runtime.sendMessage({
@@ -204,10 +203,10 @@ function testTranslation() {
     targetLang: 'Simplified Chinese',
   }, (resp) => {
     if (resp?.ok && resp.text) {
-      status.textContent = '✅ 翻译成功: ' + resp.text;
+      status.textContent = '✅ ' + resp.text;
       status.style.color = '#4caf50';
     } else {
-      status.textContent = '❌ 测试失败: ' + (resp?.error || '无响应');
+      status.textContent = '❌ ' + _('saveFailedStatus').replace('❌ ', '') + ': ' + (resp?.error || 'no response');
       status.style.color = '#f44336';
     }
     setTimeout(() => { status.textContent = ''; }, 5000);
@@ -235,15 +234,17 @@ function saveSettings() {
     translateTarget: document.getElementById('translateTarget').value,
     autoTranslate: document.getElementById('autoTranslate').checked,
     highlightEnabled: document.getElementById('highlightEnabled').checked,
+    // UI 语言
+    uiLanguage: document.getElementById('uiLanguage').value,
   };
 
   chrome.runtime.sendMessage({ action: 'saveSettings', settings }, (resp) => {
     const status = document.getElementById('saveStatus');
     if (resp?.ok) {
-      status.textContent = '✅ 已保存';
+      status.textContent = _('savedStatus');
       status.style.color = '#4caf50';
     } else {
-      status.textContent = '❌ 保存失败';
+      status.textContent = _('saveFailedStatus');
       status.style.color = '#f44336';
     }
     setTimeout(() => { status.textContent = ''; }, 2000);
