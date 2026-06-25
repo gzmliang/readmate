@@ -1,10 +1,55 @@
 // ReadMate / 读伴 — 设置弹窗
 
-// i18n 快捷函数
+// i18n: 通过 JS 设置所有文本（不依赖 Chrome 的 __MSG_*__ HTML 替换）
 function _(key) { return chrome.i18n.getMessage(key) || key; }
+
+function localize() {
+  document.title = _('appDesc');
+  setText('lblAppName', _('appName'));
+  setText('lblTtsEngineSection', _('ttsEngineSection'));
+  setText('lblEngine', _('engineLabel'));
+  setText('optEngineWebSpeech', _('engineWebSpeech'));
+  setText('optEngineEdgeTts', _('engineEdgeTts'));
+  setText('optEngineCustom', _('engineCustom'));
+  setText('lblSpeed', _('speedLabel'));
+  setText('lblVoice', _('voiceLabel'));
+  setText('lblEdgeTtsSection', _('edgeTtsSection'));
+  setText('lblEndpoint', _('endpointLabel'));
+  setText('lblEdgeTtsVoice', _('edgeTtsVoiceLabel'));
+  setText('lblCustomTtsSection', _('customTtsSection'));
+  setText('lblApiKey', _('apiKeyLabel'));
+  setText('lblModel', _('modelLabel'));
+  setText('lblCustomTtsVoice', _('customTtsVoiceLabel'));
+  setText('lblAiTranslateSection', _('aiTranslateSection'));
+  setText('lblTargetLanguage', _('targetLanguageLabel'));
+  setText('optLangZhCn', _('langZhCn'));
+  setText('optLangEn', _('langEn'));
+  setText('optLangJa', _('langJa'));
+  setText('optLangKo', _('langKo'));
+  setText('optLangFr', _('langFr'));
+  setText('optLangDe', _('langDe'));
+  setText('optLangEs', _('langEs'));
+  setText('lblAutoTranslate', _('autoTranslateLabel'));
+  setText('lblOtherSection', _('otherSection'));
+  setText('lblHighlight', _('highlightLabel'));
+  setText('lblUiLanguage', _('uiLanguageLabel'));
+  setText('optLangAuto', _('langAuto'));
+  setText('optLangEnglish', _('langEnglish'));
+  setText('optLangChinese', _('langChinese'));
+  setText('saveBtn', _('saveButton'));
+  setText('testBtn', _('testTranslateBtn'));
+}
+
+function setText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
 
 // 加载设置
 document.addEventListener('DOMContentLoaded', async () => {
+  // 先本地化所有文本（不依赖 Chrome 的 __MSG_*__ 内建替换）
+  localize();
+
   chrome.runtime.sendMessage({ action: 'getSettings' }, (settings) => {
     document.getElementById('ttsEngine').value = settings.ttsEngine;
     document.getElementById('ttsSpeed').value = settings.ttsSpeed;
