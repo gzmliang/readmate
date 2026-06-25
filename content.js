@@ -49,7 +49,7 @@ async function speakWithWebSpeech(text, onSentenceChange) {
   DebugLog.add('speakWithWebSpeech: text length=' + text.length);
 
   const sentences = text
-    .split(/(?<=[.!?。！？；;])\s*/)
+    .split(/(?<=[!?。！？；;]|(?<!\d)\.(?=\s|$))\s*/)
     .map(s => s.trim())
     .filter(s => s.length > 0);
 
@@ -140,7 +140,7 @@ async function speakWithEdgeTTS(text, onSentenceChange) {
   const endpoint = (settings.edgeTtsEndpoint || 'http://192.168.199.159:5001').replace(/\/+$/, '') + '/tts';
   DebugLog.add('speakWithEdgeTTS: endpoint=' + endpoint + ' voice=' + (settings.edgeTtsVoice || 'default'));
 
-  const sentences = text.split(/(?<=[.!?。！？；;])\s*/).map(s => s.trim()).filter(s => s.length > 0);
+  const sentences = text.split(/(?<=[!?。！？；;]|(?<!\d)\.(?=\s|$))\s*/).map(s => s.trim()).filter(s => s.length > 0);
   if (sentences.length === 0) { DebugLog.add('No sentences for Edge TTS'); return; }
   currentSentences = sentences;
   currentSentenceIndex = 0;
@@ -253,7 +253,7 @@ async function speakWithCustomTTS(text, onSentenceChange) {
   const endpoint = settings.customTtsEndpoint.replace(/\/+$/, '') + '/audio/speech';
   DebugLog.add('speakWithCustomTTS');
 
-  const sentences = text.split(/(?<=[.!?。！？；;])\s*/).map(s => s.trim()).filter(s => s.length > 0);
+  const sentences = text.split(/(?<=[!?。！？；;]|(?<!\d)\.(?=\s|$))\s*/).map(s => s.trim()).filter(s => s.length > 0);
   currentSentences = sentences;
   currentSentenceIndex = 0;
   isPlaying = true;
