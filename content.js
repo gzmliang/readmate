@@ -103,6 +103,10 @@ async function speakWithWebSpeech(text, onSentenceChange) {
 function speakSentence(text) {
   return new Promise((resolve) => {
     try {
+      // Chrome speechSynthesis 有已知 bug：连续使用后假死
+      // 每次先 cancel 再 speak，加延时确保状态重置
+      window.speechSynthesis.cancel();
+      
       const utterance = new SpeechSynthesisUtterance(text);
       currentUtterance = utterance;
 
@@ -120,31 +124,80 @@ function speakSentence(text) {
         }
       }
 
-      // 超时兜底
+      // 超时兜底（30秒无响应视为假死）
+      let resolved = false;
       const timeout = setTimeout(() => {
-        DebugLog.add('Speech timeout after 30s, skipping');
-        window.speechSynthesis.cancel();
-        resolve();
+        if (!resolved) {
+          resolved = true;
+          DebugLog.add('Speech timeout after 30s - Chrome speechSynthesis可能假死');
+          window.speechSynthesis.cancel();
+          resolve();
+        }
       }, 30000);
 
+      // 语音开始检测（5秒内没 start 也视为假死）
+      const startTimeout = setTimeout(() => {
+        if (!resolved) {
+          DebugLog.add('Speech did not start within 5s - 重试');
+          window.speechSynthesis.cancel();
+          setTimeout(() => {
+            if (!resolved) {
+              try {
+                window.speechSynthesis.speak(utterance);
+                DebugLog.add('Retry speak() called');
+              } catch(e) {
+                DebugLog.add('Retry failed: ' + e.message);
+                resolved = true;
+                clearTimeout(timeout);
+                resolve();
+              }
+            }
+          }, 200);
+        }
+      }, 5000);
+
       utterance.onstart = () => {
-        DebugLog.add('Utterance started');
+        clearTimeout(startTimeout);
+        if (!resolved) {
+          DebugLog.add('Utterance started OK');
+        }
       };
 
       utterance.onend = () => {
-        clearTimeout(timeout);
-        DebugLog.add('Utterance ended OK');
-        resolve();
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(timeout);
+          clearTimeout(startTimeout);
+          DebugLog.add('Utterance ended OK');
+          resolve();
+        }
       };
 
       utterance.onerror = (e) => {
-        clearTimeout(timeout);
-        DebugLog.add('Utterance ERROR: ' + (e.error || 'unknown'));
-        resolve();
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(timeout);
+          clearTimeout(startTimeout);
+          DebugLog.add('Utterance ERROR: ' + (e.error || 'unknown'));
+          resolve();
+        }
       };
 
-      window.speechSynthesis.speak(utterance);
-      DebugLog.add('speak() called');
+      // 延时 100ms 后 speak（Chrome 需要 cancel 后冷却）
+      setTimeout(() => {
+        if (!resolved) {
+          try {
+            window.speechSynthesis.speak(utterance);
+            DebugLog.add('speak() called');
+          } catch(e) {
+            DebugLog.add('speak() exception: ' + e.message);
+            resolved = true;
+            clearTimeout(timeout);
+            clearTimeout(startTimeout);
+            resolve();
+          }
+        }
+      }, 100);
     } catch (e) {
       DebugLog.add('speakSentence exception: ' + e.message);
       resolve();
