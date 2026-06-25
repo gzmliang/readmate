@@ -100,12 +100,27 @@ async function speakWithWebSpeech(text, onSentenceChange) {
   DebugLog.add('speakWithWebSpeech done');
 }
 
-function speakSentence(text) {
+function resetSpeechEngine() {
+  // Chrome speechSynthesis 祖传假死修复：
+  // cancel + pause + resume + getVoices 这一套复位舞唤醒引擎
+  try {
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.pause();
+    window.speechSynthesis.resume();
+    window.speechSynthesis.getVoices(); // 强制引擎重新初始化
+  } catch(e) {
+    DebugLog.add('resetSpeechEngine error: ' + e.message);
+  }
+}
+
+function speakSentence(text, retryCount) {
+  if (retryCount === undefined) retryCount = 0;
+  const MAX_RETRIES = 3;
   return new Promise((resolve) => {
     try {
       // Chrome speechSynthesis 有已知 bug：连续使用后假死
-      // 每次先 cancel 再 speak，加延时确保状态重置
-      window.speechSynthesis.cancel();
+      // 先做全套引擎复位
+      resetSpeechEngine();
       
       const utterance = new SpeechSynthesisUtterance(text);
       currentUtterance = utterance;
@@ -135,31 +150,33 @@ function speakSentence(text) {
         }
       }, 30000);
 
-      // 语音开始检测（5秒内没 start 也视为假死）
+      // 语音开始检测（3秒内没 start，重试最多3次）
+      let retryTimer = null;
       const startTimeout = setTimeout(() => {
-        if (!resolved) {
-          DebugLog.add('Speech did not start within 5s - 重试');
+        if (!resolved && retryCount < MAX_RETRIES) {
+          DebugLog.add('Speech did not start within 3s (attempt ' + (retryCount + 1) + '/' + MAX_RETRIES + ') - 重试');
           window.speechSynthesis.cancel();
-          setTimeout(() => {
+          const delay = (retryCount + 1) * 300; // 300ms, 600ms, 900ms
+          retryTimer = setTimeout(() => {
             if (!resolved) {
-              try {
-                window.speechSynthesis.speak(utterance);
-                DebugLog.add('Retry speak() called');
-              } catch(e) {
-                DebugLog.add('Retry failed: ' + e.message);
-                resolved = true;
-                clearTimeout(timeout);
-                resolve();
-              }
+              // 递归重试（retryCount+1）
+              speakSentence(text, retryCount + 1).then(resolve);
             }
-          }, 200);
+          }, delay);
+        } else if (!resolved) {
+          // 超过最大重试次数，放弃这个句子继续
+          DebugLog.add('Max retries reached, skipping sentence');
+          resolved = true;
+          clearTimeout(timeout);
+          resolve();
         }
-      }, 5000);
+      }, 3000);
 
       utterance.onstart = () => {
         clearTimeout(startTimeout);
+        if (retryTimer) clearTimeout(retryTimer);
         if (!resolved) {
-          DebugLog.add('Utterance started OK');
+          DebugLog.add('Utterance started OK (attempt ' + (retryCount + 1) + ')');
         }
       };
 
@@ -168,6 +185,7 @@ function speakSentence(text) {
           resolved = true;
           clearTimeout(timeout);
           clearTimeout(startTimeout);
+          if (retryTimer) clearTimeout(retryTimer);
           DebugLog.add('Utterance ended OK');
           resolve();
         }
@@ -178,17 +196,18 @@ function speakSentence(text) {
           resolved = true;
           clearTimeout(timeout);
           clearTimeout(startTimeout);
+          if (retryTimer) clearTimeout(retryTimer);
           DebugLog.add('Utterance ERROR: ' + (e.error || 'unknown'));
           resolve();
         }
       };
 
-      // 延时 100ms 后 speak（Chrome 需要 cancel 后冷却）
+      // 延时 200ms 后 speak（给引擎复位留时间）
       setTimeout(() => {
         if (!resolved) {
           try {
             window.speechSynthesis.speak(utterance);
-            DebugLog.add('speak() called');
+            DebugLog.add('speak() called (attempt ' + (retryCount + 1) + ')');
           } catch(e) {
             DebugLog.add('speak() exception: ' + e.message);
             resolved = true;
@@ -197,7 +216,7 @@ function speakSentence(text) {
             resolve();
           }
         }
-      }, 100);
+      }, 200);
     } catch (e) {
       DebugLog.add('speakSentence exception: ' + e.message);
       resolve();
