@@ -102,15 +102,33 @@ async function speakWithWebSpeech(text, onSentenceChange) {
 
 function resetSpeechEngine() {
   // Chrome speechSynthesis 祖传假死修复：
-  // cancel + pause + resume + getVoices 这一套复位舞唤醒引擎
+  // cancel + pause + resume + getVoices 唤醒引擎
   try {
     window.speechSynthesis.cancel();
     window.speechSynthesis.pause();
     window.speechSynthesis.resume();
-    window.speechSynthesis.getVoices(); // 强制引擎重新初始化
+    window.speechSynthesis.getVoices();
   } catch(e) {
     DebugLog.add('resetSpeechEngine error: ' + e.message);
   }
+}
+
+// 发一个静音 utterance 暖机，唤醒 Chrome 休眠的 speech 引擎
+function primeSpeechEngine() {
+  return new Promise((resolve) => {
+    try {
+      const dummy = new SpeechSynthesisUtterance('.');
+      dummy.volume = 0;
+      dummy.rate = 1;
+      let done = false;
+      const timer = setTimeout(() => { if (!done) { done = true; resolve(); } }, 1000);
+      dummy.onend = () => { if (!done) { done = true; clearTimeout(timer); resolve(); } };
+      dummy.onerror = () => { if (!done) { done = true; clearTimeout(timer); resolve(); } };
+      window.speechSynthesis.speak(dummy);
+    } catch(e) {
+      resolve();
+    }
+  });
 }
 
 // 单次尝试朗读一句话，返回是否成功（3秒内没 start 就算失败）
@@ -188,6 +206,10 @@ async function speakSentence(text) {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     DebugLog.add('speakSentence attempt ' + attempt + '/' + MAX_RETRIES);
     resetSpeechEngine();
+    // 发一个静音 utterance 暖机再试
+    await primeSpeechEngine();
+    // 引擎复位后第二次 getVoices 确保引擎活性
+    try { window.speechSynthesis.getVoices(); } catch(e) {}
     const ok = await trySpeakSentence(text);
     if (ok) return;
     DebugLog.add('speakSentence attempt ' + attempt + ' failed, ' + (attempt < MAX_RETRIES ? 'retrying...' : 'skipping'));
