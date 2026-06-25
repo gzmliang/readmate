@@ -113,15 +113,10 @@ function resetSpeechEngine() {
   }
 }
 
-function speakSentence(text, retryCount) {
-  if (retryCount === undefined) retryCount = 0;
-  const MAX_RETRIES = 3;
+// 单次尝试朗读一句话，返回是否成功（3秒内没 start 就算失败）
+function trySpeakSentence(text) {
   return new Promise((resolve) => {
     try {
-      // Chrome speechSynthesis 有已知 bug：连续使用后假死
-      // 先做全套引擎复位
-      resetSpeechEngine();
-      
       const utterance = new SpeechSynthesisUtterance(text);
       currentUtterance = utterance;
 
@@ -139,89 +134,65 @@ function speakSentence(text, retryCount) {
         }
       }
 
-      // 超时兜底（30秒无响应视为假死）
-      let resolved = false;
-      const timeout = setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          DebugLog.add('Speech timeout after 30s - Chrome speechSynthesis可能假死');
-          window.speechSynthesis.cancel();
-          resolve();
-        }
-      }, 30000);
-
-      // 语音开始检测（3秒内没 start，重试最多3次）
-      let retryTimer = null;
-      const startTimeout = setTimeout(() => {
-        if (!resolved && retryCount < MAX_RETRIES) {
-          DebugLog.add('Speech did not start within 3s (attempt ' + (retryCount + 1) + '/' + MAX_RETRIES + ') - 重试');
-          window.speechSynthesis.cancel();
-          const delay = (retryCount + 1) * 300; // 300ms, 600ms, 900ms
-          retryTimer = setTimeout(() => {
-            if (!resolved) {
-              // 递归重试（retryCount+1）
-              speakSentence(text, retryCount + 1).then(resolve);
-            }
-          }, delay);
-        } else if (!resolved) {
-          // 超过最大重试次数，放弃这个句子继续
-          DebugLog.add('Max retries reached, skipping sentence');
-          resolved = true;
-          clearTimeout(timeout);
-          resolve();
+      let settled = false;
+      const startTimer = setTimeout(() => {
+        if (!settled) {
+          settled = true;
+          DebugLog.add('trySpeak: did not start within 3s, fail');
+          resolve(false);
         }
       }, 3000);
 
-      utterance.onstart = () => {
-        clearTimeout(startTimeout);
-        if (retryTimer) clearTimeout(retryTimer);
-        if (!resolved) {
-          DebugLog.add('Utterance started OK (attempt ' + (retryCount + 1) + ')');
-        }
-      };
+      utterance.onstart = () => { DebugLog.add('trySpeak: started OK'); };
 
       utterance.onend = () => {
-        if (!resolved) {
-          resolved = true;
-          clearTimeout(timeout);
-          clearTimeout(startTimeout);
-          if (retryTimer) clearTimeout(retryTimer);
-          DebugLog.add('Utterance ended OK');
-          resolve();
+        if (!settled) {
+          settled = true;
+          clearTimeout(startTimer);
+          DebugLog.add('trySpeak: ended OK');
+          resolve(true);
         }
       };
 
       utterance.onerror = (e) => {
-        if (!resolved) {
-          resolved = true;
-          clearTimeout(timeout);
-          clearTimeout(startTimeout);
-          if (retryTimer) clearTimeout(retryTimer);
-          DebugLog.add('Utterance ERROR: ' + (e.error || 'unknown'));
-          resolve();
+        if (!settled) {
+          settled = true;
+          clearTimeout(startTimer);
+          DebugLog.add('trySpeak: error ' + (e.error || 'unknown'));
+          resolve(false);
         }
       };
 
       // 延时 200ms 后 speak（给引擎复位留时间）
       setTimeout(() => {
-        if (!resolved) {
+        if (!settled) {
           try {
             window.speechSynthesis.speak(utterance);
-            DebugLog.add('speak() called (attempt ' + (retryCount + 1) + ')');
+            DebugLog.add('speak() called');
           } catch(e) {
             DebugLog.add('speak() exception: ' + e.message);
-            resolved = true;
-            clearTimeout(timeout);
-            clearTimeout(startTimeout);
-            resolve();
+            if (!settled) { settled = true; resolve(false); }
           }
         }
       }, 200);
     } catch (e) {
-      DebugLog.add('speakSentence exception: ' + e.message);
-      resolve();
+      DebugLog.add('trySpeak exception: ' + e.message);
+      resolve(false);
     }
   });
+}
+
+// 朗读一句话，最多重试 3 次
+async function speakSentence(text) {
+  const MAX_RETRIES = 3;
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    DebugLog.add('speakSentence attempt ' + attempt + '/' + MAX_RETRIES);
+    resetSpeechEngine();
+    const ok = await trySpeakSentence(text);
+    if (ok) return;
+    DebugLog.add('speakSentence attempt ' + attempt + ' failed, ' + (attempt < MAX_RETRIES ? 'retrying...' : 'skipping'));
+  }
+  DebugLog.add('speakSentence: all ' + MAX_RETRIES + ' attempts failed, skipping');
 }
 
 // ====== Edge TTS（HTTP 请求）=====

@@ -1,8 +1,40 @@
 // ReadMate / 读伴 — 设置弹窗
 
-// i18n: 通过 JS 设置所有文本（不依赖 Chrome 的 __MSG_*__ HTML 替换）
-function _(key) { return chrome.i18n.getMessage(key) || key; }
+// ====== i18n（支持手动语言切换）======
+let messages = {};
 
+// 获取浏览器语言（取前5字符匹配 _locales 目录名）
+function getBrowserLang() {
+  const lang = (navigator.language || 'en').replace('-', '_');
+  if (lang === 'zh_CN' || lang === 'zh_TW' || lang === 'zh') return 'zh_CN';
+  return 'en';
+}
+
+// 从 locale 文件加载消息
+async function loadMessages(lang) {
+  try {
+    const url = chrome.runtime.getURL('_locales/' + lang + '/messages.json');
+    const resp = await fetch(url);
+    const data = await resp.json();
+    messages = {};
+    for (const [key, val] of Object.entries(data)) {
+      messages[key] = val.message;
+    }
+  } catch(e) {
+    messages = {};
+  }
+}
+
+function _(key) {
+  return messages[key] || chrome.i18n.getMessage(key) || key;
+}
+
+function setText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+
+// 本地化所有 UI 文本
 function localize() {
   document.title = _('appDesc');
   setText('lblAppName', _('appName'));
@@ -40,17 +72,20 @@ function localize() {
   setText('testBtn', _('testTranslateBtn'));
 }
 
-function setText(id, text) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = text;
-}
-
-// 加载设置
+// 初始化
 document.addEventListener('DOMContentLoaded', async () => {
-  // 先本地化所有文本（不依赖 Chrome 的 __MSG_*__ 内建替换）
-  localize();
+  // 先获取设置，确定界面语言
+  chrome.runtime.sendMessage({ action: 'getSettings' }, async (settings) => {
+    // 确定有效界面语言
+    const uiLang = settings.uiLanguage || 'auto';
+    const effectiveLang = uiLang === 'auto' ? getBrowserLang() : uiLang;
 
-  chrome.runtime.sendMessage({ action: 'getSettings' }, (settings) => {
+    // 加载对应语言的消息
+    await loadMessages(effectiveLang);
+    // 本地化 UI
+    localize();
+
+    // 现在填充设置值
     document.getElementById('ttsEngine').value = settings.ttsEngine;
     document.getElementById('ttsSpeed').value = settings.ttsSpeed;
     document.getElementById('ttsSpeedLabel').textContent = settings.ttsSpeed + 'x';
@@ -73,7 +108,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('autoTranslate').checked = settings.autoTranslate;
     document.getElementById('highlightEnabled').checked = settings.highlightEnabled;
 
-    // 界面语言
+    // 界面语言下拉
     document.getElementById('uiLanguage').value = settings.uiLanguage || 'auto';
 
     // 加载可用语音
