@@ -1,0 +1,178 @@
+{
+  "appName": {
+    "message": "ReadMate / 读伴",
+    "description": "应用名称"
+  },
+  "appDesc": {
+    "message": "网页朗读助手 — 浏览器原生语音朗读+AI翻译",
+    "description": "应用描述"
+  },
+  "menuReadSelection": {
+    "message": "朗读选中文本",
+    "description": "右键菜单：朗读选中文本"
+  },
+  "menuReadPage": {
+    "message": "朗读页面",
+    "description": "右键菜单：朗读页面"
+  },
+  "menuTranslateSelection": {
+    "message": "翻译选中文本",
+    "description": "右键菜单：翻译选中文本"
+  },
+
+  "ttsEngineSection": {
+    "message": "🗣️ 朗读引擎",
+    "description": "设置面板：朗读引擎区块标题"
+  },
+  "engineLabel": {
+    "message": "引擎",
+    "description": "设置面板：引擎下拉框标签"
+  },
+  "engineWebSpeech": {
+    "message": "浏览器原生语音 (Web Speech)",
+    "description": "设置面板：引擎选项-浏览器原生语音"
+  },
+  "engineEdgeTts": {
+    "message": "Edge TTS (本地服务器)",
+    "description": "设置面板：引擎选项-Edge TTS"
+  },
+  "engineCustom": {
+    "message": "自定义 TTS (OpenAI 兼容)",
+    "description": "设置面板：引擎选项-自定义TTS"
+  },
+  "speedLabel": {
+    "message": "语速",
+    "description": "设置面板：语速滑块标签"
+  },
+  "voiceLabel": {
+    "message": "语音",
+    "description": "设置面板：语音选择标签"
+  },
+  "voiceAuto": {
+    "message": "自动检测",
+    "description": "设置面板：语音下拉-自动检测"
+  },
+  "voiceAutoLang": {
+    "message": "自动检测（按页面语言）",
+    "description": "设置面板：语音下拉完整选项"
+  },
+  "localVoiceSuffix": {
+    "message": " (本地)",
+    "description": "语音选项后缀-本地语音"
+  },
+
+  "edgeTtsSection": {
+    "message": "🔧 Edge TTS 配置",
+    "description": "设置面板：Edge TTS配置区块标题"
+  },
+  "endpointLabel": {
+    "message": "端点",
+    "description": "设置面板：端点输入框标签"
+  },
+  "edgeTtsVoiceLabel": {
+    "message": "语音",
+    "description": "设置面板：Edge TTS语音输入框标签"
+  },
+
+  "customTtsSection": {
+    "message": "🔧 自定义 TTS 配置",
+    "description": "设置面板：自定义TTS配置区块标题"
+  },
+  "apiKeyLabel": {
+    "message": "API Key",
+    "description": "设置面板：API Key输入框标签"
+  },
+  "modelLabel": {
+    "message": "模型",
+    "description": "设置面板：模型输入框标签"
+  },
+  "customTtsVoiceLabel": {
+    "message": "语音",
+    "description": "设置面板：自定义TTS语音输入框标签"
+  },
+
+  "aiTranslateSection": {
+    "message": "🌐 AI 翻译",
+    "description": "设置面板：AI翻译区块标题"
+  },
+  "targetLanguageLabel": {
+    "message": "目标语言",
+    "description": "设置面板：目标语言下拉标签"
+  },
+  "langZhCn": {
+    "message": "简体中文",
+    "description": "设置面板：目标语言-简体中文"
+  },
+  "langZhTw": {
+    "message": "繁体中文",
+    "description": "设置面板：目标语言-繁体中文"
+  },
+  "langJa": {
+    "message": "日语",
+    "description": "设置面板：目标语言-日语"
+  },
+  "langKo": {
+    "message": "韩语",
+    "description": "设置面板：目标语言-韩语"
+  },
+  "autoTranslateLabel": {
+    "message": "朗读时自动翻译每个句子",
+    "description": "设置面板：自动翻译复选框标签"
+  },
+
+  "otherSection": {
+    "message": "⚙️ 其他",
+    "description": "设置面板：其他设置区块标题"
+  },
+  "highlightLabel": {
+    "message": "朗读时高亮当前句子",
+    "description": "设置面板：句子高亮复选框标签"
+  },
+
+  "saveButton": {
+    "message": "💾 保存设置",
+    "description": "设置面板：保存按钮"
+  },
+  "savedStatus": {
+    "message": "✅ 已保存",
+    "description": "设置面板：保存成功状态"
+  },
+  "saveFailedStatus": {
+    "message": "❌ 保存失败",
+    "description": "设置面板：保存失败状态"
+  },
+
+  "uiLanguageLabel": {
+    "message": "界面语言",
+    "description": "设置面板：界面语言下拉标签"
+  },
+  "langAuto": {
+    "message": "自动（跟随浏览器）",
+    "description": "设置面板：界面语言-自动"
+  },
+  "langEnglish": {
+    "message": "English",
+    "description": "设置面板：界面语言-English"
+  },
+  "langChinese": {
+    "message": "中文",
+    "description": "设置面板：界面语言-中文"
+  },
+
+  "playPauseTitle": {
+    "message": "播放/暂停",
+    "description": "浮动朗读条：播放暂停按钮提示"
+  },
+  "stopTitle": {
+    "message": "停止",
+    "description": "浮动朗读条：停止按钮提示"
+  },
+  "translateTitle": {
+    "message": "翻译当前句",
+    "description": "浮动朗读条：翻译按钮提示"
+  },
+  "closeTitle": {
+    "message": "关闭",
+    "description": "浮动朗读条：关闭按钮提示"
+  }
+}

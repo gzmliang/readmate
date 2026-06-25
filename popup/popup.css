@@ -1,0 +1,132 @@
+/* ReadMate / 读伴 — 设置弹窗样式 */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 380px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-size: 13px;
+}
+
+.popup-container {
+  padding: 16px;
+}
+
+h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #e0e0e0;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #2a2a3e;
+}
+
+h2 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #a0a0b8;
+  margin-bottom: 8px;
+  margin-top: 12px;
+}
+
+section {
+  margin-bottom: 8px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid #2a2a3e;
+}
+
+section:last-of-type {
+  border-bottom: none;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.field label {
+  min-width: 70px;
+  color: #8b8b9e;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.field input[type="text"],
+.field input[type="password"],
+.field select {
+  flex: 1;
+  background: #16213e;
+  color: #e0e0e0;
+  border: 1px solid #2a2a3e;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: #4a6cf7;
+}
+
+.field input[type="range"] {
+  flex: 1;
+  accent-color: #4a6cf7;
+}
+
+.field.checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #e0e0e0;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.field.checkbox input[type="checkbox"] {
+  accent-color: #4a6cf7;
+}
+
+#ttsSpeedLabel {
+  min-width: 36px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #2a2a3e;
+}
+
+#saveBtn {
+  background: #4a6cf7;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+#saveBtn:hover {
+  background: #3b5de7;
+}
+
+#saveStatus {
+  font-size: 13px;
+}

@@ -1,0 +1,178 @@
+{
+  "appName": {
+    "message": "ReadMate / 读伴",
+    "description": "Extension name"
+  },
+  "appDesc": {
+    "message": "Web page reading assistant — browser native TTS + AI translation",
+    "description": "Extension description"
+  },
+  "menuReadSelection": {
+    "message": "Read Selection",
+    "description": "Context menu: read selected text"
+  },
+  "menuReadPage": {
+    "message": "Read Page",
+    "description": "Context menu: read entire page"
+  },
+  "menuTranslateSelection": {
+    "message": "Translate Selection",
+    "description": "Context menu: translate selected text"
+  },
+
+  "ttsEngineSection": {
+    "message": "🗣️ TTS Engine",
+    "description": "Settings panel: TTS engine section heading"
+  },
+  "engineLabel": {
+    "message": "Engine",
+    "description": "Settings panel: engine dropdown label"
+  },
+  "engineWebSpeech": {
+    "message": "Browser Native Voice (Web Speech)",
+    "description": "Settings panel: engine option - Web Speech"
+  },
+  "engineEdgeTts": {
+    "message": "Edge TTS (Local Server)",
+    "description": "Settings panel: engine option - Edge TTS"
+  },
+  "engineCustom": {
+    "message": "Custom TTS (OpenAI Compatible)",
+    "description": "Settings panel: engine option - Custom TTS"
+  },
+  "speedLabel": {
+    "message": "Speed",
+    "description": "Settings panel: speed slider label"
+  },
+  "voiceLabel": {
+    "message": "Voice",
+    "description": "Settings panel: voice selector label"
+  },
+  "voiceAuto": {
+    "message": "Auto Detect",
+    "description": "Settings panel: voice dropdown - auto detect"
+  },
+  "voiceAutoLang": {
+    "message": "Auto Detect (By Page Language)",
+    "description": "Settings panel: full voice auto-detect option"
+  },
+  "localVoiceSuffix": {
+    "message": " (Local)",
+    "description": "Voice option suffix - local"
+  },
+
+  "edgeTtsSection": {
+    "message": "🔧 Edge TTS Config",
+    "description": "Settings panel: Edge TTS section heading"
+  },
+  "endpointLabel": {
+    "message": "Endpoint",
+    "description": "Settings panel: endpoint input label"
+  },
+  "edgeTtsVoiceLabel": {
+    "message": "Voice",
+    "description": "Settings panel: Edge TTS voice input label"
+  },
+
+  "customTtsSection": {
+    "message": "🔧 Custom TTS Config",
+    "description": "Settings panel: Custom TTS section heading"
+  },
+  "apiKeyLabel": {
+    "message": "API Key",
+    "description": "Settings panel: API Key input label"
+  },
+  "modelLabel": {
+    "message": "Model",
+    "description": "Settings panel: model input label"
+  },
+  "customTtsVoiceLabel": {
+    "message": "Voice",
+    "description": "Settings panel: Custom TTS voice input label"
+  },
+
+  "aiTranslateSection": {
+    "message": "🌐 AI Translation",
+    "description": "Settings panel: AI translation section heading"
+  },
+  "targetLanguageLabel": {
+    "message": "Target Language",
+    "description": "Settings panel: target language dropdown label"
+  },
+  "langZhCn": {
+    "message": "Simplified Chinese",
+    "description": "Settings panel: target language - Simplified Chinese"
+  },
+  "langZhTw": {
+    "message": "Traditional Chinese",
+    "description": "Settings panel: target language - Traditional Chinese"
+  },
+  "langJa": {
+    "message": "Japanese",
+    "description": "Settings panel: target language - Japanese"
+  },
+  "langKo": {
+    "message": "Korean",
+    "description": "Settings panel: target language - Korean"
+  },
+  "autoTranslateLabel": {
+    "message": "Auto-translate each sentence while reading",
+    "description": "Settings panel: auto translate checkbox label"
+  },
+
+  "otherSection": {
+    "message": "⚙️ Other",
+    "description": "Settings panel: other settings section heading"
+  },
+  "highlightLabel": {
+    "message": "Highlight current sentence while reading",
+    "description": "Settings panel: highlight checkbox label"
+  },
+
+  "saveButton": {
+    "message": "💾 Save Settings",
+    "description": "Settings panel: save button"
+  },
+  "savedStatus": {
+    "message": "✅ Saved",
+    "description": "Settings panel: save success status"
+  },
+  "saveFailedStatus": {
+    "message": "❌ Save Failed",
+    "description": "Settings panel: save failure status"
+  },
+
+  "uiLanguageLabel": {
+    "message": "UI Language",
+    "description": "Settings panel: UI language dropdown label"
+  },
+  "langAuto": {
+    "message": "Auto (Follow Browser)",
+    "description": "Settings panel: UI language - auto"
+  },
+  "langEnglish": {
+    "message": "English",
+    "description": "Settings panel: UI language - English"
+  },
+  "langChinese": {
+    "message": "中文",
+    "description": "Settings panel: UI language - Chinese"
+  },
+
+  "playPauseTitle": {
+    "message": "Play/Pause",
+    "description": "Floating bar: play/pause button tooltip"
+  },
+  "stopTitle": {
+    "message": "Stop",
+    "description": "Floating bar: stop button tooltip"
+  },
+  "translateTitle": {
+    "message": "Translate",
+    "description": "Floating bar: translate button tooltip"
+  },
+  "closeTitle": {
+    "message": "Close",
+    "description": "Floating bar: close button tooltip"
+  }
+}

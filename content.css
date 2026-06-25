@@ -1,0 +1,158 @@
+/* ReadMate / 读伴 — 浮动朗读条样式 */
+
+#readmate-bar {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2147483647;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  min-width: 300px;
+  max-width: 500px;
+  cursor: default;
+  user-select: none;
+  transition: opacity 0.2s ease;
+}
+
+#readmate-bar.readmate-active {
+  display: block;
+}
+
+.readmate-bar-inner {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: move;
+  gap: 8px;
+}
+
+.readmate-bar-left {
+  display: flex;
+  align-items: center;
+  min-width: 50px;
+}
+
+.readmate-progress {
+  font-size: 12px;
+  color: #8b8b9e;
+  font-variant-numeric: tabular-nums;
+}
+
+.readmate-bar-center {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+
+.readmate-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.readmate-btn {
+  background: none;
+  border: none;
+  color: #e0e0e0;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: background 0.15s;
+}
+
+.readmate-btn:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.readmate-btn:active {
+  background: rgba(255,255,255,0.2);
+}
+
+#readmate-close-btn {
+  font-size: 14px;
+  opacity: 0.6;
+}
+
+#readmate-close-btn:hover {
+  opacity: 1;
+}
+
+/* 调试按钮 */
+#readmate-debug-btn {
+  font-size: 12px;
+  opacity: 0.4;
+}
+#readmate-debug-btn:hover {
+  opacity: 0.8;
+}
+
+.readmate-current-text {
+  padding: 0 12px 8px;
+  font-size: 13px;
+  color: #a0a0b8;
+  line-height: 1.4;
+  max-height: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 句子高亮 */
+.readmate-highlight {
+  background: rgba(255, 193, 7, 0.3) !important;
+  border-radius: 2px !important;
+  padding: 0 1px !important;
+}
+
+/* 翻译面板 */
+#readmate-translation-panel {
+  display: none;
+  position: fixed;
+  z-index: 2147483646;
+  background: #16213e;
+  color: #e0e0e0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  max-width: 400px;
+  min-width: 150px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.08);
+  word-break: break-word;
+  cursor: grab;
+  user-select: none;
+}
+
+#readmate-translation-panel:active {
+  cursor: grabbing;
+}
+
+#readmate-translation-text {
+  flex: 1;
+  user-select: text;
+}
+
+#readmate-translation-close {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+#readmate-translation-close:hover {
+  color: #e0e0e0 !important;
+}
+
+#readmate-translation-panel.readmate-translation-info {
+  color: #8b8b9e;
+  font-style: italic;
+}
