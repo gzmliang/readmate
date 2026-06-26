@@ -33,6 +33,75 @@ let currentSentenceIndex = 0;
 let currentMode = null;
 let selectionText = '';
 
+// ====== 选中文字浮动播放按钮 ======
+let selectionPlayBtn = null;
+
+function createSelectionPlayBtn() {
+  if (selectionPlayBtn) return;
+  selectionPlayBtn = document.createElement('button');
+  selectionPlayBtn.id = 'readmate-selection-play';
+  selectionPlayBtn.textContent = '▶';
+  selectionPlayBtn.title = '朗读选中文字';
+  selectionPlayBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const sel = window.getSelection().toString().trim();
+    if (sel) {
+      selectionText = sel;
+      currentMode = 'selection';
+      hideSelectionPlayBtn();
+      loadSettings().then(() => startReading(sel));
+    }
+  });
+  document.body.appendChild(selectionPlayBtn);
+}
+
+function showSelectionPlayBtn(x, y) {
+  if (!selectionPlayBtn) createSelectionPlayBtn();
+  const btn = selectionPlayBtn;
+  btn.style.display = 'flex';
+  btn.style.left = Math.min(x, window.innerWidth - 50) + 'px';
+  btn.style.top = Math.min(y, window.innerHeight - 50) + 'px';
+  DebugLog.add('Selection play btn shown at (' + x + ', ' + y + ')');
+}
+
+function hideSelectionPlayBtn() {
+  if (selectionPlayBtn) selectionPlayBtn.style.display = 'none';
+}
+
+// 监听鼠标松开，检测是否有选中文字
+document.addEventListener('mouseup', (e) => {
+  // 点击按钮本身时不处理
+  if (e.target && e.target.id === 'readmate-selection-play') return;
+  
+  // 点击翻译面板内部时不处理
+  if (e.target && e.target.closest && e.target.closest('#readmate-translation-panel')) return;
+  
+  // 点击浮动朗读条时不处理
+  if (e.target && e.target.closest && e.target.closest('#readmate-bar')) return;
+  
+  // 延时等待 selection 稳定（处理双击选择等）
+  setTimeout(() => {
+    const sel = window.getSelection();
+    const text = sel ? sel.toString().trim() : '';
+    if (text && text.length > 0 && text.length < 5000) {
+      const range = sel.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      if (rect && rect.width > 0) {
+        showSelectionPlayBtn(rect.right + 5, rect.top - 10);
+      }
+    } else {
+      hideSelectionPlayBtn();
+    }
+  }, 200);
+});
+
+// 点击其他地方隐藏按钮
+document.addEventListener('mousedown', (e) => {
+  if (e.target && e.target.id !== 'readmate-selection-play') {
+    hideSelectionPlayBtn();
+  }
+});
+
 // ====== 初始化 ======
 function loadSettings() {
   return new Promise((resolve) => {

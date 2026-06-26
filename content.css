@@ -156,3 +156,27 @@
   color: #8b8b9e;
   font-style: italic;
 }
+
+/* ====== 选中文字浮动播放按钮 ====== */
+#readmate-selection-play {
+  display: none;
+  position: fixed;
+  z-index: 2147483646;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #FF6B6B;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, box-shadow 0.15s;
+  line-height: 1;
+}
+#readmate-selection-play:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 16px rgba(255,107,107,0.4);
+}
