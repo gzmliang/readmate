@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ReadMate 读伴 — 选项</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>ReadMate / 读伴</h1>
+      <p class="subtitle">网页朗读助手 — 扩展选项</p>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="general">基本设置</button>
+      <button class="tab" data-tab="tts">语音引擎</button>
+      <button class="tab" data-tab="translation">翻译</button>
+      <button class="tab" data-tab="shortcuts">快捷键</button>
+      <button class="tab" data-tab="stats">阅读统计</button>
+      <button class="tab" data-tab="about">关于</button>
+    </nav>
+
+    <!-- 基本设置 -->
+    <section id="tab-general" class="tab-content active">
+      <h2>基本设置</h2>
+      <div class="setting-row">
+        <label for="uiLanguage">界面语言</label>
+        <select id="uiLanguage">
+          <option value="auto">自动检测</option>
+          <option value="zh_CN">中文</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label for="highlightEnabled">朗读高亮</label>
+        <input type="checkbox" id="highlightEnabled">
+      </div>
+    </section>
+
+    <!-- 语音引擎 -->
+    <section id="tab-tts" class="tab-content">
+      <h2>语音引擎</h2>
+
+      <!-- ===== 引擎切换 ===== -->
+      <div class="engine-switch">
+        <label class="engine-option">
+          <input type="radio" name="ttsEngine" value="browser" checked>
+          <span class="engine-label">🔊 浏览器原生语音</span>
+          <span class="engine-desc">Web Speech API，无需配置</span>
+        </label>
+        <label class="engine-option">
+          <input type="radio" name="ttsEngine" value="cloud">
+          <span class="engine-label">☁️ 云端 Edge TTS</span>
+          <span class="engine-desc">高品质，需内网服务器</span>
+        </label>
+      </div>
+
+      <!-- ===== 浏览器原生语音 ===== -->
+      <div class="engine-section" id="browserTtsSection">
+        <div class="engine-title">
+          <span>🔊 浏览器原生语音</span>
+          <span class="engine-badge">Web Speech API</span>
+        </div>
+
+        <div class="setting-row">
+          <label for="ttsVoiceSelect">选择语音</label>
+          <select id="ttsVoiceSelect">
+            <option value="">自动匹配（浏览器默认）</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <label for="ttsSpeedRange">语速</label>
+          <div class="speed-group">
+            <input type="range" id="ttsSpeedRange" min="0.3" max="3.0" step="0.1" value="1.0">
+            <span id="ttsSpeedDisplay" class="speed-value">1.0x</span>
+          </div>
+        </div>
+
+        <div class="test-row">
+          <button id="testBrowserTtsBtn" class="btn-test-voice">▶ 测试浏览器语音</button>
+          <span id="testBrowserResult" class="test-result"></span>
+        </div>
+      </div>
+
+      <!-- ===== 云端 Edge TTS ===== -->
+      <div class="engine-section" id="cloudTtsSection" style="display:none">
+        <div class="engine-title">
+          <span>☁️ 云端语音 (Edge TTS)</span>
+          <span class="engine-badge">高品质离线</span>
+        </div>
+        <p class="note">需要连接内网 TTS 服务器。无需 CA 证书。</p>
+
+        <div class="setting-row">
+          <label for="cloudEndpoint">服务器地址</label>
+          <input type="text" id="cloudEndpoint" placeholder="http://powerplus.blogsyte.com:5001">
+        </div>
+
+        <div class="setting-row">
+          <label for="cloudVoiceSelect">云端语音</label>
+          <select id="cloudVoiceSelect">
+            <option value="">加载语音列表中...</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <label for="ttsBuffer">预读句数</label>
+          <div class="buffer-group">
+            <input type="range" id="ttsBuffer" min="0" max="5" step="1" value="1">
+            <span id="ttsBufferDisplay" class="buffer-value">1 句</span>
+          </div>
+        </div>
+
+        <div class="test-row">
+          <button id="testCloudTtsBtn" class="btn-test-voice btn-cloud">▶ 测试云端语音</button>
+          <span id="testCloudResult" class="test-result"></span>
+        </div>
+
+        <div class="engine-status" id="cloudStatus"></div>
+      </div>
+
+      <!-- ===== 诊断信息 ===== -->
+      <div class="engine-section">
+        <div class="engine-title">
+          <span>🔍 诊断信息</span>
+          <span class="engine-badge">排查问题</span>
+        </div>
+        <div class="diag-grid">
+          <div class="diag-row">
+            <span class="diag-label">speechSynthesis 可用</span>
+            <span id="diagSpeechAvail" class="diag-value diag-unknown">检测中...</span>
+          </div>
+          <div class="diag-row">
+            <span class="diag-label">可用语音数</span>
+            <span id="diagVoiceCount" class="diag-value">-</span>
+          </div>
+          <div class="diag-row">
+            <span class="diag-label">中文语音</span>
+            <span id="diagZhVoices" class="diag-value">-</span>
+          </div>
+          <div class="diag-row">
+            <span class="diag-label">云端服务器</span>
+            <span id="diagCloudServer" class="diag-value diag-unknown">未检测</span>
+          </div>
+        </div>
+        <button id="runDiagnosticsBtn" class="btn-secondary">🔄 重新诊断</button>
+      </div>
+    </section>
+
+    <!-- 翻译 -->
+    <section id="tab-translation" class="tab-content">
+      <h2>翻译设置</h2>
+      <div class="setting-row">
+        <label for="translateTarget2">目标语言</label>
+        <select id="translateTarget2">
+          <option value="Simplified Chinese">简体中文</option>
+          <option value="English">English</option>
+          <option value="Japanese">日本語</option>
+          <option value="Korean">한국어</option>
+          <option value="French">Français</option>
+          <option value="German">Deutsch</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label for="autoTranslate">自动翻译下一句</label>
+        <input type="checkbox" id="autoTranslate">
+      </div>
+      <div class="setting-row">
+        <label for="translateOnSelect">选中文字自动翻译</label>
+        <input type="checkbox" id="translateOnSelect">
+      </div>
+      <p class="note">AI 翻译需先在弹出窗口中配置 API 密钥。</p>
+    </section>
+
+    <!-- 快捷键 -->
+    <section id="tab-shortcuts" class="tab-content">
+      <h2>键盘快捷键</h2>
+      <p class="note">快捷键在 <code>chrome://extensions/shortcuts</code> 中配置</p>
+      <table class="shortcuts-table">
+        <thead>
+          <tr><th>功能</th><th>默认快捷键</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>朗读选中文字</td><td><kbd>Ctrl+Shift+E</kbd></td><td>朗读当前选中的文字</td></tr>
+          <tr><td>朗读整页</td><td><kbd>Ctrl+Shift+P</kbd></td><td>从头朗读整个页面</td></tr>
+          <tr><td>朗读切换</td><td><kbd>Ctrl+Shift+Space</kbd></td><td>暂停/继续朗读</td></tr>
+          <tr><td>停止朗读</td><td><kbd>Ctrl+Shift+S</kbd></td><td>停止当前朗读</td></tr>
+        </tbody>
+      </table>
+      <div class="setting-row">
+        <label for="enableShortcuts">启用快捷键</label>
+        <input type="checkbox" id="enableShortcuts" checked>
+      </div>
+    </section>
+
+    <!-- 统计 -->
+    <section id="tab-stats" class="tab-content">
+      <h2>阅读统计</h2>
+      <div id="statsDisplay">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="statTotalChars">0</div>
+            <div class="stat-label">累计字符</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statTotalSessions">0</div>
+            <div class="stat-label">朗读次数</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statTotalTime">0</div>
+            <div class="stat-label">累计时间</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statTotalArticles">0</div>
+            <div class="stat-label">文章数</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statTodayChars">0</div>
+            <div class="stat-label">今日字符</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statTodaySessions">0</div>
+            <div class="stat-label">今日次数</div>
+          </div>
+        </div>
+        <h3>本周趋势</h3>
+        <div id="weekTrend" class="trend-bars"></div>
+        <button id="resetStatsBtn" class="btn-danger">重置统计数据</button>
+      </div>
+    </section>
+
+    <!-- 关于 -->
+    <section id="tab-about" class="tab-content">
+      <h2>关于 ReadMate / 读伴</h2>
+      <div class="about-info">
+        <div class="info-row"><span class="info-label">版本</span><span id="aboutVersion" class="info-value">1.2.0</span></div>
+        <div class="info-row"><span class="info-label">开发者</span><span class="info-value">Jimmy Liang</span></div>
+        <div class="info-row"><span class="info-label">许可协议</span><span class="info-value">MIT License</span></div>
+        <div class="info-row"><span class="info-label">技术栈</span><span class="info-value">Chrome Extension MV3, Web Speech API, Edge TTS API</span></div>
+        <div class="info-row"><span class="info-label">源码行数</span><span id="aboutSrcLines" class="info-value">计算中...</span></div>
+      </div>
+      <h3>功能特性</h3>
+      <ul class="feature-list">
+        <li>📖 网页文字朗读（选中/整页）</li>
+        <li>🔊 支持三种语音引擎：浏览器原生、Edge TTS、自定义 TTS</li>
+        <li>🌐 AI 翻译集成（DeepSeek / OpenAI 兼容 API）</li>
+        <li>🎯 句子级高亮跟随</li>
+        <li>📊 阅读统计跟踪</li>
+        <li>🌍 多语言界面（中文/English）</li>
+        <li>⌨️ 键盘快捷键支持</li>
+        <li>📋 右键菜单集成</li>
+        <li>📦 朗读内容导出</li>
+      </ul>
+      <div id="saveStatus" class="save-status"></div>
+    </section>
+
+    <footer>
+      <button id="saveBtn" class="btn-primary">保存设置</button>
+      <span id="globalSaveStatus" class="save-status"></span>
+    </footer>
+  </div>
+  <script src="../reading-stats.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

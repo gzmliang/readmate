@@ -1,132 +1,129 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title id="pageTitle"></title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ReadMate 读伴</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div class="popup-container">
-    <h1 id="lblAppName"></h1>
+    <!-- 头部 + 朗读操作 -->
+    <div class="header">
+      <div class="title-row">
+        <span class="app-name">ReadMate / 读伴</span>
+      </div>
+      <!-- 朗读操作区：手机端大按钮 -->
+      <div class="action-bar">
+        <button id="readPageBtn" class="btn-read-page">▶ 朗读此页</button>
+        <button id="injectBtn" class="btn-inject" title="注入插件到当前页面">🔄</button>
+        <button id="stopBtn" class="btn-stop" title="停止朗读" style="display:none">⏹</button>
+      </div>
+      <div id="pageStatus" class="page-status">检测页面状态...</div>
+    </div>
 
-    <!-- TTS Engine -->
-    <section>
-      <h2 id="lblTtsEngineSection"></h2>
-      <div class="field">
-        <label id="lblEngine"></label>
-        <select id="ttsEngine">
-          <option value="web-speech" id="optEngineWebSpeech"></option>
-          <option value="edge-tts" id="optEngineEdgeTts"></option>
-          <option value="custom" id="optEngineCustom"></option>
+    <!-- 语音设置 -->
+    <div class="section">
+      <div class="section-title" id="lblTtsSection">语音朗读</div>
+
+      <div class="setting-row">
+        <label id="lblSpeed">语速</label>
+        <div class="speed-row">
+          <input type="range" id="ttsSpeed" min="0.3" max="3.0" step="0.1" value="1.0">
+          <span id="ttsSpeedLabel" class="speed-value">1.0x</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <label id="lblVoice">语音</label>
+        <select id="ttsVoice">
+          <option value="" id="optVoiceAuto">自动匹配</option>
         </select>
       </div>
-      <div class="field">
-        <label id="lblSpeed"></label>
-        <input type="range" id="ttsSpeed" min="0.3" max="2.0" step="0.1" value="1.0">
-        <span id="ttsSpeedLabel">1.0x</span>
+      <div class="test-row-popup">
+        <button id="testBrowserVoiceBtn" class="btn-test-voice-sm">▶ 测试浏览器</button>
+        <span id="testBrowserVoiceResult" class="test-result"></span>
       </div>
-      <div class="field" id="voiceField">
-        <label id="lblVoice"></label>
-        <select id="ttsVoice"></select>
-      </div>
-    </section>
+    </div>
 
-    <!-- Edge TTS Config -->
-    <section id="edgeTtsSection" style="display:none">
-      <h2 id="lblEdgeTtsSection"></h2>
-      <div class="field">
-        <label id="lblEndpoint"></label>
-        <input type="text" id="edgeTtsEndpoint" placeholder="http://192.168.199.159:5001">
+    <!-- 云端语音 -->
+    <div class="section">
+      <div class="section-title">云端语音 (Edge TTS)</div>
+      <div class="setting-row">
+        <label id="lblCloudEndpoint">服务器</label>
+        <input type="text" id="cloudTtsEndpoint" placeholder="http://powerplus.blogsyte.com:5001">
       </div>
-      <div class="field">
-        <label id="lblEdgeTtsVoice"></label>
-        <select id="edgeTtsVoice"></select>
+      <div class="setting-row">
+        <label id="lblCloudVoice">云端语音</label>
+        <select id="cloudTtsVoice">
+          <option value="" id="optCloudAuto">默认 (zh-CN-XiaoxiaoNeural)</option>
+        </select>
       </div>
-    </section>
+      <div class="test-row-popup">
+        <button id="testCloudVoiceBtn" class="btn-test-voice-sm btn-cloud-sm">☁️ 测试云端</button>
+        <span id="testCloudVoiceResult" class="test-result"></span>
+      </div>
+    </div>
 
-    <!-- Custom TTS -->
-    <section id="customTtsSection" style="display:none">
-      <h2 id="lblCustomTtsSection"></h2>
-      <div class="field">
-        <label id="lblEndpoint"></label>
-        <input type="text" id="customTtsEndpoint" placeholder="http://192.168.199.159:8880/v1">
-      </div>
-      <div class="field">
-        <label id="lblApiKey"></label>
-        <input type="password" id="customTtsApiKey" placeholder="sk-...">
-      </div>
-      <div class="field">
-        <label id="lblModel"></label>
-        <input type="text" id="customTtsModel" placeholder="kokoro">
-      </div>
-      <div class="field">
-        <label id="lblCustomTtsVoice"></label>
-        <input type="text" id="customTtsVoice" placeholder="af_bella">
-      </div>
-    </section>
+    <!-- 翻译设置 -->
+    <div class="section">
+      <div class="section-title" id="lblAiSection">AI 翻译</div>
 
-    <!-- AI Translation -->
-    <section>
-      <h2 id="lblAiTranslateSection"></h2>
-      <div class="field">
-        <label id="lblEndpoint"></label>
+      <div class="setting-row">
+        <label id="lblEndpoint">API 端点</label>
         <input type="text" id="aiEndpoint" placeholder="https://api.deepseek.com/v1">
       </div>
-      <div class="field">
-        <label id="lblApiKey"></label>
+      <div class="setting-row">
+        <label id="lblApiKey">API Key</label>
         <input type="password" id="aiApiKey" placeholder="sk-...">
       </div>
-      <div class="field">
-        <label id="lblModel"></label>
+      <div class="setting-row">
+        <label id="lblModel">模型</label>
         <input type="text" id="aiModel" placeholder="deepseek-chat">
       </div>
-      <div class="field">
-        <label id="lblTargetLanguage"></label>
+      <div class="setting-row">
+        <label id="lblTargetLanguage">目标语言</label>
         <select id="translateTarget">
-          <option value="Simplified Chinese" id="optLangZhCn"></option>
-          <option value="English" id="optLangEn"></option>
-          <option value="Japanese" id="optLangJa"></option>
-          <option value="Korean" id="optLangKo"></option>
-          <option value="French" id="optLangFr"></option>
-          <option value="German" id="optLangDe"></option>
-          <option value="Spanish" id="optLangEs"></option>
+          <option value="Simplified Chinese" id="optLangZhCn">简体中文</option>
+          <option value="English" id="optLangEn">English</option>
+          <option value="Japanese" id="optLangJa">日本語</option>
+          <option value="Korean" id="optLangKo">한국어</option>
+          <option value="French" id="optLangFr">Français</option>
+          <option value="German" id="optLangDe">Deutsch</option>
+          <option value="Spanish" id="optLangEs">Español</option>
         </select>
       </div>
-      <div class="field checkbox">
-        <label>
-          <input type="checkbox" id="autoTranslate">
-          <span id="lblAutoTranslate"></span>
-        </label>
+      <div class="setting-row">
+        <label id="lblAutoTranslate">自动翻译下一句</label>
+        <input type="checkbox" id="autoTranslate">
       </div>
-    </section>
+      <div class="setting-row">
+        <label id="lblHighlight">朗读高亮</label>
+        <input type="checkbox" id="highlightEnabled">
+      </div>
 
-    <!-- Other Settings + UI Language -->
-    <section>
-      <h2 id="lblOtherSection"></h2>
-      <div class="field checkbox">
-        <label>
-          <input type="checkbox" id="highlightEnabled" checked>
-          <span id="lblHighlight"></span>
-        </label>
-      </div>
-      <div class="field">
-        <label id="lblUiLanguage"></label>
+      <button id="testBtn" class="btn-test">测试翻译连接</button>
+    </div>
+
+    <!-- 界面语言 -->
+    <div class="section">
+      <div class="section-title" id="lblUiSection">界面语言</div>
+      <div class="setting-row">
+        <label id="lblUiLanguage">界面语言</label>
         <select id="uiLanguage">
-          <option value="auto" id="optLangAuto"></option>
-          <option value="en" id="optLangEnglish"></option>
-          <option value="zh_CN" id="optLangChinese"></option>
+          <option value="auto" id="optLangAuto">自动检测</option>
+          <option value="en" id="optLangEnglish">English</option>
+          <option value="zh_CN" id="optLangChinese">中文</option>
         </select>
       </div>
-    </section>
+    </div>
 
-    <div class="actions">
-      <button id="saveBtn"></button>
-      <button id="testBtn"></button>
-      <span id="saveStatus"></span>
+    <div class="footer">
+      <button id="saveBtn" class="btn-save">保存设置</button>
+      <span id="saveStatus" class="save-status"></span>
+      <button id="openOptionsBtn" class="btn-settings">⚙ 完整设置</button>
     </div>
   </div>
-
   <script src="popup.js"></script>
 </body>
 </html>

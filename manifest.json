@@ -1,12 +1,14 @@
 {
   "manifest_version": 3,
   "name": "ReadMate / 读伴",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "网页朗读助手 — 浏览器原生语音朗读+AI翻译，读外语新闻轻松跟上",
   "permissions": [
     "contextMenus",
     "storage",
-    "activeTab"
+    "activeTab",
+    "downloads",
+    "scripting"
   ],
   "host_permissions": ["<all_urls>"],
   "background": {
@@ -21,12 +23,60 @@
       "128": "icons/icon128.png"
     }
   },
+  "options_page": "options/options.html",
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
+  "commands": {
+    "read-selection": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+E",
+        "mac": "MacCtrl+Shift+E"
+      },
+      "description": "朗读选中文字"
+    },
+    "read-page": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+P",
+        "mac": "MacCtrl+Shift+P"
+      },
+      "description": "朗读整页"
+    },
+    "toggle-read": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Space",
+        "mac": "MacCtrl+Shift+Space"
+      },
+      "description": "暂停/继续朗读"
+    },
+    "stop-read": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "MacCtrl+Shift+S"
+      },
+      "description": "停止朗读"
+    }
+  },
   "content_scripts": [{
     "matches": ["<all_urls>"],
-    "js": ["content.js"],
+    "js": ["content-extractor.js", "text-utils.js", "number-normalizer.js", "reading-stats.js", "content.js"],
     "css": ["content.css"],
     "run_at": "document_idle"
   }],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "content-extractor.js",
+        "text-utils.js",
+        "reading-stats.js",
+        "options/options.html",
+        "options/options.js",
+        "options/options.css"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",

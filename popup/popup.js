@@ -1,16 +1,15 @@
 // ReadMate / 读伴 — 设置弹窗
+// 语音设置 + 云端 Edge TTS + AI 翻译 + 界面语言 + 页面朗读控制
 
-// ====== i18n（支持手动语言切换）======
 let messages = {};
+let currentTabId = null;
 
-// 获取浏览器语言（取前5字符匹配 _locales 目录名）
 function getBrowserLang() {
   const lang = (navigator.language || 'en').replace('-', '_');
   if (lang === 'zh_CN' || lang === 'zh_TW' || lang === 'zh') return 'zh_CN';
   return 'en';
 }
 
-// 从 locale 文件加载消息
 async function loadMessages(lang) {
   try {
     const url = chrome.runtime.getURL('_locales/' + lang + '/messages.json');
@@ -34,25 +33,19 @@ function setText(id, text) {
   if (el) el.textContent = text;
 }
 
-// 本地化所有 UI 文本
 function localize() {
-  document.title = _('appDesc');
-  setText('lblAppName', _('appName'));
-  setText('lblTtsEngineSection', _('ttsEngineSection'));
-  setText('lblEngine', _('engineLabel'));
-  setText('optEngineWebSpeech', _('engineWebSpeech'));
-  setText('optEngineEdgeTts', _('engineEdgeTts'));
-  setText('optEngineCustom', _('engineCustom'));
+  document.title = _('appName');
+  setText('lblTtsSection', _('ttsEngineSection'));
   setText('lblSpeed', _('speedLabel'));
   setText('lblVoice', _('voiceLabel'));
-  setText('lblEdgeTtsSection', _('edgeTtsSection'));
+  setText('optVoiceAuto', _('voiceAutoLang'));
+  setText('lblCloudEndpoint', '服务器');
+  setText('lblCloudVoice', '云端语音');
+  setText('optCloudAuto', '默认 (zh-CN-XiaoxiaoNeural)');
+  setText('lblAiSection', _('aiTranslateSection'));
   setText('lblEndpoint', _('endpointLabel'));
-  setText('lblEdgeTtsVoice', _('edgeTtsVoiceLabel'));
-  setText('lblCustomTtsSection', _('customTtsSection'));
   setText('lblApiKey', _('apiKeyLabel'));
   setText('lblModel', _('modelLabel'));
-  setText('lblCustomTtsVoice', _('customTtsVoiceLabel'));
-  setText('lblAiTranslateSection', _('aiTranslateSection'));
   setText('lblTargetLanguage', _('targetLanguageLabel'));
   setText('optLangZhCn', _('langZhCn'));
   setText('optLangEn', _('langEn'));
@@ -62,8 +55,8 @@ function localize() {
   setText('optLangDe', _('langDe'));
   setText('optLangEs', _('langEs'));
   setText('lblAutoTranslate', _('autoTranslateLabel'));
-  setText('lblOtherSection', _('otherSection'));
   setText('lblHighlight', _('highlightLabel'));
+  setText('lblUiSection', _('otherSection'));
   setText('lblUiLanguage', _('uiLanguageLabel'));
   setText('optLangAuto', _('langAuto'));
   setText('optLangEnglish', _('langEnglish'));
@@ -72,33 +65,111 @@ function localize() {
   setText('testBtn', _('testTranslateBtn'));
 }
 
-// 初始化
+/** 获取当前活动标签页 */
+function getCurrentTab() {
+  return new Promise((resolve) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      resolve(tabs && tabs.length > 0 ? tabs[0] : null);
+    });
+  });
+}
+
+/** 检测 content script 是否已注入 */
+function pingContentScript(tabId) {
+  return new Promise((resolve) => {
+    chrome.tabs.sendMessage(tabId, { action: 'ping' }, (resp) => {
+      if (chrome.runtime.lastError || !resp) {
+        resolve(false);
+      } else {
+        resolve(true);
+      }
+    });
+  });
+}
+
+/** 通过 background 注入 content scripts */
+function injectContentScripts(tabId) {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({ action: 'injectContent', tabId }, (resp) => {
+      if (resp?.ok) {
+        resolve(true);
+      } else {
+        reject(resp?.error || 'inject failed');
+      }
+    });
+  });
+}
+
+/** 更新页面状态指示 */
+function setPageStatus(text, ok) {
+  const el = document.getElementById('pageStatus');
+  if (el) {
+    el.textContent = text;
+    el.className = 'page-status' + (ok === true ? ' status-ok' : ok === false ? ' status-err' : '');
+  }
+}
+
+/** 朗读当前页面 */
+async function readCurrentPage() {
+  if (!currentTabId) {
+    setPageStatus('没有活动页面', false);
+    return;
+  }
+
+  setPageStatus('正在连接插件...', null);
+
+  // 先保存当前设置
+  saveSettings(true);
+
+  // 检查 content script 是否存活
+  let alive = await pingContentScript(currentTabId);
+
+  if (!alive) {
+    setPageStatus('正在注入插件到页面...', null);
+    try {
+      await injectContentScripts(currentTabId);
+      // 等待注入完成
+      await new Promise(r => setTimeout(r, 300));
+      alive = await pingContentScript(currentTabId);
+    } catch (e) {
+      setPageStatus('注入失败: ' + e.message, false);
+      return;
+    }
+  }
+
+  if (alive) {
+    chrome.tabs.sendMessage(currentTabId, { action: 'readPage' }, (resp) => {
+      if (chrome.runtime.lastError) {
+        setPageStatus('朗读启动失败: ' + chrome.runtime.lastError.message, false);
+      } else {
+        setPageStatus('▶ 朗读已开始', true);
+      }
+    });
+  } else {
+    setPageStatus('无法连接页面，请刷新后重试', false);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
-  // 先获取设置，确定界面语言
+  // 获取当前标签
+  const tab = await getCurrentTab();
+  if (tab) {
+    currentTabId = tab.id;
+  }
+
   chrome.runtime.sendMessage({ action: 'getSettings' }, async (settings) => {
-    // 确定有效界面语言
     const uiLang = settings.uiLanguage || 'auto';
     const effectiveLang = uiLang === 'auto' ? getBrowserLang() : uiLang;
-
-    // 加载对应语言的消息
     await loadMessages(effectiveLang);
-    // 本地化 UI
     localize();
 
-    // 现在填充设置值
-    document.getElementById('ttsEngine').value = settings.ttsEngine;
+    // 填充设置值
     document.getElementById('ttsSpeed').value = settings.ttsSpeed;
     document.getElementById('ttsSpeedLabel').textContent = settings.ttsSpeed + 'x';
 
-    // Edge TTS
-    document.getElementById('edgeTtsEndpoint').value = settings.edgeTtsEndpoint;
-    loadEdgeTtsVoices(settings.edgeTtsEndpoint, settings.edgeTtsVoice);
-
-    // Custom TTS
-    document.getElementById('customTtsEndpoint').value = settings.customTtsEndpoint;
-    document.getElementById('customTtsApiKey').value = settings.customTtsApiKey;
-    document.getElementById('customTtsModel').value = settings.customTtsModel;
-    document.getElementById('customTtsVoice').value = settings.customTtsVoice;
+    // 从 HTTP 端点加载云端语音（手机端不需要 CA 证书）
+    document.getElementById('cloudTtsEndpoint').value = settings.cloudTtsEndpoint || 'http://powerplus.blogsyte.com:5001';
+    loadCloudVoices(settings.cloudTtsEndpoint || 'http://powerplus.blogsyte.com:5001', settings.cloudTtsVoice || '');
 
     // AI 翻译
     document.getElementById('aiEndpoint').value = settings.aiEndpoint;
@@ -107,52 +178,78 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('translateTarget').value = settings.translateTarget;
     document.getElementById('autoTranslate').checked = settings.autoTranslate;
     document.getElementById('highlightEnabled').checked = settings.highlightEnabled;
-
-    // 界面语言下拉
     document.getElementById('uiLanguage').value = settings.uiLanguage || 'auto';
 
-    // 加载可用语音
+    // 加载语音列表
     loadVoices(settings.ttsVoice);
 
-    // Edge TTS 端点变更时重新加载语音列表
-    document.getElementById('edgeTtsEndpoint').addEventListener('change', function() {
-      loadEdgeTtsVoices(this.value, '');
+    // Edge TTS 端点变更时重新加载语音
+    document.getElementById('cloudTtsEndpoint').addEventListener('change', function() {
+      loadCloudVoices(this.value, '');
     });
 
-    toggleSections();
+    // 检测页面状态
+    if (currentTabId) {
+      const alive = await pingContentScript(currentTabId);
+      setPageStatus(alive ? '✅ 插件已就绪' : '⚠️ 点击"▶ 朗读此页"自动注入', alive);
+    } else {
+      setPageStatus('⚠️ 没有活动标签页', false);
+    }
   });
 
-  // 语速
+  // ====== 朗读按钮 ======
+  document.getElementById('readPageBtn').addEventListener('click', readCurrentPage);
+
+  // ====== 重新注入按钮 ======
+  document.getElementById('injectBtn').addEventListener('click', async () => {
+    if (!currentTabId) return;
+    setPageStatus('正在注入插件到页面...', null);
+    try {
+      await injectContentScripts(currentTabId);
+      await new Promise(r => setTimeout(r, 300));
+      const alive = await pingContentScript(currentTabId);
+      setPageStatus(alive ? '✅ 注入成功' : '❌ 注入后仍未响应', alive);
+    } catch (e) {
+      setPageStatus('注入失败: ' + e.message, false);
+    }
+  });
+
+  // 语速实时更新
   document.getElementById('ttsSpeed').addEventListener('input', (e) => {
     document.getElementById('ttsSpeedLabel').textContent = e.target.value + 'x';
   });
 
-  // 引擎切换
-  document.getElementById('ttsEngine').addEventListener('change', toggleSections);
+  // ====== 测试按钮 ======
+  document.getElementById('testBrowserVoiceBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('testBrowserVoiceBtn');
+    const result = document.getElementById('testBrowserVoiceResult');
+    testVoiceFromPopup('browser', btn, result);
+  });
+  document.getElementById('testCloudVoiceBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('testCloudVoiceBtn');
+    const result = document.getElementById('testCloudVoiceResult');
+    testVoiceFromPopup('cloud', btn, result);
+  });
 
-  // 保存
-  document.getElementById('saveBtn').addEventListener('click', saveSettings);
-
-  // 测试翻译
+  document.getElementById('saveBtn').addEventListener('click', () => saveSettings(false));
   document.getElementById('testBtn').addEventListener('click', testTranslation);
 
-  // 所有输入变化自动保存
+  // ====== 打开完整设置页面（直接URL，兼容Kiwi）======
+  document.getElementById('openOptionsBtn').addEventListener('click', () => {
+    const optsUrl = chrome.runtime.getURL('options/options.html');
+    chrome.tabs.create({ url: optsUrl });
+  });
+
+  // 自动保存
   document.querySelectorAll('input, select').forEach(el => {
-    el.addEventListener('change', autoSave);
+    el.addEventListener('change', () => autoSave());
     if (el.tagName === 'INPUT' && el.type !== 'checkbox' && el.type !== 'password') {
       el.addEventListener('input', debounce(autoSave, 500));
     }
   });
 });
 
-function toggleSections() {
-  const engine = document.getElementById('ttsEngine').value;
-  document.getElementById('voiceField').style.display = engine === 'web-speech' ? 'block' : 'none';
-  document.getElementById('edgeTtsSection').style.display = engine === 'edge-tts' ? 'block' : 'none';
-  document.getElementById('customTtsSection').style.display = engine === 'custom' ? 'block' : 'none';
-}
-
-// 加载浏览器可用语音列表
+// 加载浏览器语音列表
 function loadVoices(savedVoice) {
   const voiceSelect = document.getElementById('ttsVoice');
 
@@ -175,7 +272,7 @@ function loadVoices(savedVoice) {
       for (const v of list) {
         const opt = document.createElement('option');
         opt.value = v.name;
-        opt.textContent = v.name + (v.localService ? _('localVoiceSuffix') : '');
+        opt.textContent = v.name + (v.localService ? ' (本地)' : '');
         optgroup.appendChild(opt);
       }
       voiceSelect.appendChild(optgroup);
@@ -188,39 +285,30 @@ function loadVoices(savedVoice) {
   window.speechSynthesis.onvoiceschanged = populateVoices;
 }
 
-// 加载 Edge TTS 语音列表
-function loadEdgeTtsVoices(endpoint, savedVoice) {
-  const select = document.getElementById('edgeTtsVoice');
+// 加载云端 Edge TTS 语音列表
+function loadCloudVoices(endpoint, savedVoice) {
+  const select = document.getElementById('cloudTtsVoice');
   if (!endpoint) {
-    select.innerHTML = '<option value="">' + _('configEndpointFirst') + '</option>';
+    select.innerHTML = '<option value="">先填写服务器地址</option>';
     return;
   }
-
   const voicesUrl = endpoint.replace(/\/+$/, '') + '/voices';
-  select.innerHTML = '<option value="">' + _('loadingVoices') + '</option>';
+  select.innerHTML = '<option value="">加载中...</option>';
 
   fetch(voicesUrl)
     .then(r => r.json())
     .then(voices => {
       if (!voices || voices.length === 0) {
-        select.innerHTML = '<option value="">' + _('noVoicesAvailable') + '</option>';
+        select.innerHTML = '<option value="">无可用语音</option>';
         return;
       }
-
-      select.innerHTML = '';
-
-      const defaultOpt = document.createElement('option');
-      defaultOpt.value = '';
-      defaultOpt.textContent = _('selectVoiceHint');
-      select.appendChild(defaultOpt);
-
+      select.innerHTML = '<option value="">默认 (zh-CN-XiaoxiaoNeural)</option>';
       const groups = {};
       for (const v of voices) {
         const locale = v.Locale || 'unknown';
         if (!groups[locale]) groups[locale] = [];
         groups[locale].push(v);
       }
-
       for (const [locale, list] of Object.entries(groups).sort()) {
         const optgroup = document.createElement('optgroup');
         optgroup.label = locale;
@@ -232,16 +320,13 @@ function loadEdgeTtsVoices(endpoint, savedVoice) {
         }
         select.appendChild(optgroup);
       }
-
       if (savedVoice) select.value = savedVoice;
     })
     .catch(err => {
-      select.innerHTML = '<option value="">' + _('loadVoicesFailed') + '</option>';
-      console.warn('[ReadMate] Failed to load Edge TTS voices:', err);
+      select.innerHTML = '<option value="">连接失败: ' + err.message + '</option>';
     });
 }
 
-// 防抖
 function debounce(fn, delay) {
   let timer;
   return function(...args) {
@@ -250,12 +335,11 @@ function debounce(fn, delay) {
   };
 }
 
-// 自动保存
 function autoSave() {
   const status = document.getElementById('saveStatus');
   status.textContent = _('savingStatus');
   status.style.color = '#888';
-  saveSettings();
+  saveSettings(true);
 }
 
 // 测试翻译连接
@@ -286,27 +370,82 @@ function testTranslation() {
       status.textContent = '✅ ' + resp.text;
       status.style.color = '#4caf50';
     } else {
-      status.textContent = '❌ ' + _('saveFailedStatus').replace('❌ ', '') + ': ' + (resp?.error || 'no response');
+      status.textContent = '❌ ' + (resp?.error || 'no response');
       status.style.color = '#f44336';
     }
     setTimeout(() => { status.textContent = ''; }, 5000);
   });
 }
 
+/** 测试语音（直接在当前弹窗播放，不依赖 content script） */
+function testVoiceFromPopup(type, btn, resultEl) {
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = type === 'cloud' ? '☁️ 测试中...' : '测试中...';
+  resultEl.textContent = '';
+  resultEl.className = 'test-result';
+
+  const speed = parseFloat(document.getElementById('ttsSpeed').value);
+  const testText = '你好，欢迎使用读伴朗读助手。This is a test of the TTS engine.';
+
+  if (type === 'cloud') {
+    // 云端测试：直接 fetch TTS 服务端
+    const endpoint = document.getElementById('cloudTtsEndpoint').value;
+    const voice = document.getElementById('cloudTtsVoice').value || 'zh-CN-XiaoxiaoNeural';
+    if (!endpoint) {
+      resultEl.textContent = '❌ 请先填写服务器地址';
+      resultEl.className = 'test-result test-err';
+      btn.disabled = false; btn.textContent = origText; return;
+    }
+    fetch(endpoint.replace(/\/+$/, '') + '/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: testText, voice, rate: `+${Math.round((speed - 1) * 100)}%` }),
+    }).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.blob(); })
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.onended = () => { URL.revokeObjectURL(url); done(true, '云端'); };
+        audio.onerror = () => { URL.revokeObjectURL(url); done(false, '播放失败'); };
+        audio.play().catch(e => done(false, e.message));
+      }).catch(e => done(false, e.message));
+  } else {
+    // 浏览器测试：直接用 speechSynthesis
+    if (!window.speechSynthesis) { done(false, '浏览器不支持 speechSynthesis'); return; }
+    speechSynthesis.cancel();
+    setTimeout(() => {
+      const utterance = new SpeechSynthesisUtterance(testText);
+      utterance.rate = speed;
+      const voiceName = document.getElementById('ttsVoice').value;
+      if (voiceName) {
+        const found = speechSynthesis.getVoices().find(v => v.name === voiceName);
+        if (found) { utterance.voice = found; utterance.lang = found.lang; }
+      } else { utterance.lang = 'zh-CN'; }
+      let started = false;
+      utterance.onstart = () => { started = true; };
+      utterance.onend = () => done(true, '浏览器');
+      utterance.onerror = (e) => done(false, e.error || '播放失败');
+      speechSynthesis.speak(utterance);
+      // 500ms 内没触发 onstart → 引擎未就绪
+      setTimeout(() => { if (!started && btn.disabled) done(false, '引擎未就绪'); }, 500);
+    }, 200);
+  }
+
+  function done(ok, msg) {
+    btn.disabled = false; btn.textContent = origText;
+    resultEl.textContent = ok ? '✅ ' + msg + '语音播放中...' : '❌ ' + msg;
+    resultEl.className = 'test-result ' + (ok ? 'test-ok' : 'test-err');
+  }
+}
+
 // 保存设置
-function saveSettings() {
+function saveSettings(silent) {
   const settings = {
-    ttsEngine: document.getElementById('ttsEngine').value,
     ttsSpeed: parseFloat(document.getElementById('ttsSpeed').value),
     ttsVoice: document.getElementById('ttsVoice').value || '',
-    // Edge TTS
-    edgeTtsEndpoint: document.getElementById('edgeTtsEndpoint').value,
-    edgeTtsVoice: document.getElementById('edgeTtsVoice').value,
-    // Custom TTS
-    customTtsEndpoint: document.getElementById('customTtsEndpoint').value,
-    customTtsApiKey: document.getElementById('customTtsApiKey').value,
-    customTtsModel: document.getElementById('customTtsModel').value,
-    customTtsVoice: document.getElementById('customTtsVoice').value,
+    // 云端 Edge TTS
+    cloudTtsEndpoint: document.getElementById('cloudTtsEndpoint').value,
+    cloudTtsVoice: document.getElementById('cloudTtsVoice').value || '',
     // AI 翻译
     aiEndpoint: document.getElementById('aiEndpoint').value,
     aiApiKey: document.getElementById('aiApiKey').value,
@@ -314,19 +453,20 @@ function saveSettings() {
     translateTarget: document.getElementById('translateTarget').value,
     autoTranslate: document.getElementById('autoTranslate').checked,
     highlightEnabled: document.getElementById('highlightEnabled').checked,
-    // UI 语言
     uiLanguage: document.getElementById('uiLanguage').value,
   };
 
   chrome.runtime.sendMessage({ action: 'saveSettings', settings }, (resp) => {
-    const status = document.getElementById('saveStatus');
-    if (resp?.ok) {
-      status.textContent = _('savedStatus');
-      status.style.color = '#4caf50';
-    } else {
-      status.textContent = _('saveFailedStatus');
-      status.style.color = '#f44336';
+    if (!silent) {
+      const status = document.getElementById('saveStatus');
+      if (resp?.ok) {
+        status.textContent = _('savedStatus');
+        status.style.color = '#4caf50';
+      } else {
+        status.textContent = _('saveFailedStatus');
+        status.style.color = '#f44336';
+      }
+      setTimeout(() => { status.textContent = ''; }, 2000);
     }
-    setTimeout(() => { status.textContent = ''; }, 2000);
   });
 }

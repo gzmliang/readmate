@@ -1,6 +1,6 @@
 // ReadMate / 读伴 — Content Script
-// 浮动朗读条、Web Speech API TTS、高亮、翻译
-// 调试日志：点击浮动条上的显示/隐藏日志按钮
+// 浮动朗读条、Web Speech TTS、阅读模式（自动去广告）、高亮、翻译、连续朗读
+// 调试日志：点击浮动条上的 🐛 按钮
 
 // ====== 调试日志 ======
 const DebugLog = {
@@ -23,6 +23,7 @@ const DebugLog = {
 
 DebugLog.add('Content script loaded');
 
+// ====== 状态变量 ======
 let settings = {};
 let floatingBar = null;
 let isPlaying = false;
@@ -32,9 +33,157 @@ let currentSentences = [];
 let currentSentenceIndex = 0;
 let currentMode = null;
 let selectionText = '';
+let userStopped = false; // 用户主动停止标记
+
+// ====== 连续朗读（跨页面持久化）======
+const CONTINUOUS_KEY = 'readmate_continuous';
+let continuousMode = true; // 默认开启
+
+// 页面加载时检测是否需要自动朗读（仅限连续模式跳转过来的页面）
+chrome.storage.session.get('readmate_auto_read', (result) => {
+  if (result.readmate_auto_read === true) {
+    chrome.storage.session.remove('readmate_auto_read');
+    DebugLog.add('Auto-read triggered by continuous mode navigation');
+    continuousMode = true;
+    loadSettings().then(() => {
+      autoReadPage();
+    });
+  } else {
+    // 正常打开页面 — 只加载连续模式状态，不自动朗读
+    chrome.storage.local.get(CONTINUOUS_KEY, (result) => {
+      continuousMode = result[CONTINUOUS_KEY] !== false;
+      DebugLog.add('Continuous mode from storage: ' + continuousMode + ' (no auto-read)');
+    });
+  }
+});
+
+/** 持久化连续模式到 storage */
+function setContinuousMode(enabled) {
+  continuousMode = enabled;
+  chrome.storage.local.set({ [CONTINUOUS_KEY]: enabled }, () => {
+    DebugLog.add('Continuous mode saved: ' + enabled);
+  });
+  // 更新按钮状态
+  const btn = document.getElementById('readmate-continuous-btn');
+  if (btn) {
+    btn.style.opacity = enabled ? '1' : '0.4';
+    btn.title = enabled ? '连续朗读 (开启)' : '连续朗读 (关闭)';
+  }
+}
 
 // ====== 选中文字浮动播放按钮 ======
 let selectionPlayBtn = null;
+
+// ====== 手机端悬浮朗读按钮 ======
+let fabButton = null;
+
+/** 检测是否为移动端（触屏 + 窄屏） */
+function isMobile() {
+  return ('ontouchstart' in window) || (window.innerWidth < 768);
+}
+
+function createFAB() {
+  if (fabButton) return;
+
+  fabButton = document.createElement('button');
+  fabButton.id = 'readmate-fab';
+  fabButton.textContent = '▶';
+  fabButton.title = '朗读此页';
+  fabButton.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (suppressNextClick) { suppressNextClick = false; return; }
+    if (isPlaying) return;
+    DebugLog.add('FAB clicked');
+
+    // 快速获取页面文字
+    let pageText = document.body.innerText || '';
+    if (pageText.trim().length < 50) {
+      DebugLog.add('FAB: page too short');
+      return;
+    }
+
+    DebugLog.add('FAB text: ' + pageText.length + ' chars');
+    hideFAB();
+
+    // 加载设置（带超时，不行就默认值）
+    try {
+      await Promise.race([
+        loadSettings(),
+        new Promise(r => setTimeout(() => { DebugLog.add('Settings timeout, using defaults'); r(); }, 2000))
+      ]);
+    } catch(e) {
+      DebugLog.add('Settings error, using defaults: ' + e.message);
+    }
+    if (!settings || !settings.ttsSpeed) {
+      settings = { ttsSpeed: 1.0, ttsVoice: '', ttsEngine: 'browser', cloudTtsEndpoint: '', cloudTtsVoice: '', highlightEnabled: true };
+    }
+
+    currentMode = 'page';
+    startReading(pageText);
+  });
+
+  document.body.appendChild(fabButton);
+  DebugLog.add('FAB created (simplified)');
+
+  // 拖拽支持 + 长按打开设置
+  let isDragging = false, startX, startY, origX, origY;
+  let longPressTimer = null;
+  let suppressNextClick = false;
+
+  fabButton.addEventListener('touchstart', (e) => {
+    if (isPlaying) return;
+    const touch = e.touches[0];
+    isDragging = true;
+    startX = touch.clientX;
+    startY = touch.clientY;
+    origX = fabButton.offsetLeft;
+    origY = fabButton.offsetTop;
+    if (!origX && !origY) {
+      const rect = fabButton.getBoundingClientRect();
+      origX = rect.left;
+      origY = rect.top;
+    }
+    // 设置入口：打开选项页（直接URL方式，兼容Kiwi）
+    longPressTimer = setTimeout(() => {
+      suppressNextClick = true;
+      isDragging = false;
+      DebugLog.add('FAB long-press: opening settings');
+      const optsUrl = chrome.runtime.getURL('options/options.html');
+      window.open(optsUrl, '_blank');
+    }, 600);
+  }, { passive: true });
+
+  fabButton.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    const touch = e.touches[0];
+    const dx = Math.abs(touch.clientX - startX);
+    const dy = Math.abs(touch.clientY - startY);
+    if (dx > 10 || dy > 10) {
+      clearTimeout(longPressTimer);
+    }
+    fabButton.style.left = (origX + touch.clientX - startX) + 'px';
+    fabButton.style.top = (origY + touch.clientY - startY) + 'px';
+    fabButton.style.right = 'auto';
+    fabButton.style.bottom = 'auto';
+  }, { passive: true });
+
+  fabButton.addEventListener('touchend', () => {
+    clearTimeout(longPressTimer);
+    isDragging = false;
+  }, { passive: true });
+}
+
+function showFAB() {
+  if (!fabButton) createFAB();
+  if (fabButton) {
+    fabButton.style.display = 'flex';
+    DebugLog.add('FAB shown');
+  }
+}
+
+function hideFAB() {
+  if (fabButton) fabButton.style.display = 'none';
+}
 
 function createSelectionPlayBtn() {
   if (selectionPlayBtn) return;
@@ -68,18 +217,12 @@ function hideSelectionPlayBtn() {
   if (selectionPlayBtn) selectionPlayBtn.style.display = 'none';
 }
 
-// 监听鼠标松开，检测是否有选中文字
+// ====== 文字选中弹出播放按钮（支持桌面鼠标+手机触屏）======
 document.addEventListener('mouseup', (e) => {
-  // 点击按钮本身时不处理
   if (e.target && e.target.id === 'readmate-selection-play') return;
-  
-  // 点击翻译面板内部时不处理
   if (e.target && e.target.closest && e.target.closest('#readmate-translation-panel')) return;
-  
-  // 点击浮动朗读条时不处理
   if (e.target && e.target.closest && e.target.closest('#readmate-bar')) return;
-  
-  // 延时等待 selection 稳定（处理双击选择等）
+
   setTimeout(() => {
     const sel = window.getSelection();
     const text = sel ? sel.toString().trim() : '';
@@ -95,37 +238,68 @@ document.addEventListener('mouseup', (e) => {
   }, 200);
 });
 
-// 点击其他地方隐藏按钮
 document.addEventListener('mousedown', (e) => {
   if (e.target && e.target.id !== 'readmate-selection-play') {
     hideSelectionPlayBtn();
   }
 });
 
+// 手机端：选中文字后弹出橙色播放按钮
+document.addEventListener('touchend', () => {
+  // 延迟等待系统选中完成
+  setTimeout(() => {
+    const sel = window.getSelection();
+    const text = sel ? sel.toString().trim() : '';
+    if (text && text.length > 0 && text.length < 5000) {
+      try {
+        const range = sel.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        if (rect && rect.width > 0) {
+          showSelectionPlayBtn(rect.right + 5, rect.top - 10);
+        }
+      } catch(e) {
+        // 某些选区可能没有 range
+      }
+    }
+  }, 300);
+});
+
+// 点击页面其他地方隐藏橙色按钮（手机适配）
+document.addEventListener('touchstart', (e) => {
+  if (!e.target || e.target.id !== 'readmate-selection-play') {
+    hideSelectionPlayBtn();
+  }
+}, { passive: true });
+
 // ====== 初始化 ======
 function loadSettings() {
   return new Promise((resolve) => {
     chrome.runtime.sendMessage({ action: 'getSettings' }, (s) => {
       settings = s;
-      DebugLog.add('Settings loaded: engine=' + s.ttsEngine + ' edgeVoice=' + (s.edgeTtsVoice || 'default') + ' ai=' + (s.aiEndpoint ? '✓' : '✗') + ' aiKey=' + (s.aiApiKey ? '***' : 'empty'));
+      DebugLog.add('Settings loaded: speed=' + s.ttsSpeed + ' voice=' + (s.ttsVoice || 'auto') + ' ai=' + (s.aiApiKey ? '✓' : '✗'));
       resolve(s);
     });
   });
 }
 
-// ====== Web Speech（直接调用）=====
-async function speakWithWebSpeech(text, onSentenceChange) {
-  DebugLog.add('speakWithWebSpeech: text length=' + text.length);
+// ====== Web Speech TTS（唯一引擎）=====
+async function speakText(text, onSentenceChange) {
+  DebugLog.add('speakText: length=' + text.length);
 
-  const sentences = text
-    .split(/(?<=[!?。！？；;]|(?<!\d)\.(?=\s|$))\s*/)
-    .map(s => s.trim())
-    .filter(s => s.length > 0);
-
+  const sentences = TextUtils.splitSentences(text);
   if (sentences.length === 0) {
     DebugLog.add('No sentences to speak');
     return;
   }
+  // === 断句调试日志 ===
+  DebugLog.add('=== SPLIT DEBUG ===');
+  DebugLog.add('Text preview: "' + text.substring(0, 120) + '..."');
+  DebugLog.add('Total sentences: ' + sentences.length);
+  sentences.forEach((s, i) => {
+    const excerpt = s.length > 80 ? s.substring(0, 80) + '...' : s;
+    DebugLog.add('  [' + i + '] (' + s.length + 'c) "' + excerpt + '"');
+  });
+  DebugLog.add('=== END SPLIT DEBUG ===');
 
   DebugLog.add('Sentences: ' + sentences.length);
   currentSentences = sentences;
@@ -166,16 +340,27 @@ async function speakWithWebSpeech(text, onSentenceChange) {
 
   isPlaying = false;
   hideBar();
-  DebugLog.add('speakWithWebSpeech done');
+  DebugLog.add('speakText done');
+
+  // 连续朗读模式：读完找下一篇（用户主动停止的不触发）
+  if (continuousMode && currentMode === 'page' && !userStopped) {
+    DebugLog.add('Continuous mode: looking for next article...');
+    showTranslation('🔁 当前篇读完，寻找下一篇...', true);
+    setTimeout(() => {
+      findAndNavigateNext();
+    }, 1500);
+  }
 }
 
 function speakSentence(text) {
   return new Promise((resolve) => {
     try {
-      // Chrome speechSynthesis 已知有假死 bug，但加太多保护反而变慢
-      // 保持简洁：点就播，假死了刷新页面就好（Edge TTS 不存在此问题）
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
+      // 数字朗读标准化（仅对送入 TTS 引擎的文本做转写）
+      const speechText = NumberNormalizer.needsNormalization(text)
+        ? NumberNormalizer.normalize(text)
+        : text;
+      // 注意：不要在这里调 cancel()！Android Chrome 上 cancel 会干扰下一句
+      const utterance = new SpeechSynthesisUtterance(speechText);
       currentUtterance = utterance;
 
       utterance.rate = settings.ttsSpeed || 1.0;
@@ -187,16 +372,43 @@ function speakSentence(text) {
         const matched = voices.find(v => v.name === settings.ttsVoice);
         if (matched) {
           utterance.voice = matched;
+          utterance.lang = matched.lang; // Android 上必须匹配 lang
         }
       }
 
-      utterance.onend = () => { resolve(); };
+      // 双保险：onend + 轮询 speaking（Android 上 onend 不可靠）
+      let resolved = false;
+      function done() { if (!resolved) { resolved = true; resolve(); } }
+
+      utterance.onend = done;
       utterance.onerror = (e) => {
         DebugLog.add('speak error: ' + (e.error || 'unknown'));
-        resolve();
+        done();
       };
 
       window.speechSynthesis.speak(utterance);
+
+      // 两阶段轮询：先等 speaking=true（开始），再等 speaking=false（结束）
+      let phase = 'wait_start';
+      function pollSpeaking() {
+        if (resolved) return;
+        const s = window.speechSynthesis.speaking;
+        if (phase === 'wait_start') {
+          if (s) { phase = 'wait_end'; DebugLog.add('speak poll: started'); }
+        } else if (phase === 'wait_end') {
+          if (!s) { DebugLog.add('speak poll: finished'); setTimeout(done, 100); return; }
+        }
+        setTimeout(pollSpeaking, 200);
+      }
+      setTimeout(pollSpeaking, 300);
+
+      // 安全超时（30秒）
+      setTimeout(() => {
+        if (!resolved) {
+          DebugLog.add('speakSentence safety timeout 30s');
+          done();
+        }
+      }, 30000);
     } catch (e) {
       DebugLog.add('speakSentence exception: ' + e.message);
       resolve();
@@ -204,177 +416,9 @@ function speakSentence(text) {
   });
 }
 
-// ====== Edge TTS（HTTP 请求）=====
-async function speakWithEdgeTTS(text, onSentenceChange) {
-  const endpoint = (settings.edgeTtsEndpoint || 'http://192.168.199.159:5001').replace(/\/+$/, '') + '/tts';
-  DebugLog.add('speakWithEdgeTTS: endpoint=' + endpoint + ' voice=' + (settings.edgeTtsVoice || 'default'));
-
-  const sentences = text.split(/(?<=[!?。！？；;]|(?<!\d)\.(?=\s|$))\s*/).map(s => s.trim()).filter(s => s.length > 0);
-  if (sentences.length === 0) { DebugLog.add('No sentences for Edge TTS'); return; }
-  currentSentences = sentences;
-  currentSentenceIndex = 0;
-  isPlaying = true;
-  isPaused = false;
-
-  // 预取缓存：提前 fetch 后面几句的音频
-  const audioCache = []; // { url, blob }
-  let prefetchUpTo = 0;
-
-  async function ensurePrefetched(upToIndex) {
-    for (let i = Math.max(prefetchUpTo, currentSentenceIndex + 1); i <= upToIndex && i < sentences.length; i++) {
-      if (audioCache[i]) continue;
-      const s = sentences[i];
-      if (!s || s.trim().length < 2) { audioCache[i] = { url: null }; continue; }
-      DebugLog.add('Prefetching sentence ' + (i + 1) + ': "' + s.substring(0, 20) + '..."');
-      proxyFetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: s,
-          voice: settings.edgeTtsVoice || 'zh-CN-XiaoxiaoNeural',
-          rate: `+${Math.round((settings.ttsSpeed - 1) * 100)}%`,
-        }),
-      }).then(blob => {
-        audioCache[i] = { url: URL.createObjectURL(blob), blob };
-        DebugLog.add('Prefetched ' + (i + 1) + ': ' + blob.size + ' bytes');
-      }).catch(e => {
-        DebugLog.add('Prefetch error ' + (i + 1) + ': ' + e.message);
-        audioCache[i] = { url: null };
-      });
-    }
-    prefetchUpTo = Math.max(prefetchUpTo, upToIndex);
-  }
-
-  // 提前预取前10句
-  await ensurePrefetched(Math.min(9, sentences.length - 1));
-
-  while (isPlaying && currentSentenceIndex < sentences.length) {
-    if (isPaused) { await new Promise(r => setTimeout(r, 200)); continue; }
-
-    const i = currentSentenceIndex;
-    const sentence = sentences[i];
-    highlightSentence(i);
-    onSentenceChange?.(i, sentences.length, sentence);
-    updateBarProgress(i + 1, sentences.length);
-
-    try {
-      let audioUrl;
-      // 如果已预取到，直接用；否则等 fetch
-      if (audioCache[i]?.url) {
-        audioUrl = audioCache[i].url;
-        DebugLog.add('Using prefetched audio for sentence ' + (i + 1));
-      } else {
-        DebugLog.add('Fetching sentence ' + (i + 1) + ': "' + sentence.substring(0, 30) + '..."');
-        const blob = await proxyFetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            text: sentence,
-            voice: settings.edgeTtsVoice || 'zh-CN-XiaoxiaoNeural',
-            rate: `+${Math.round((settings.ttsSpeed - 1) * 100)}%`,
-          }),
-        });
-        audioUrl = URL.createObjectURL(blob);
-        DebugLog.add('Fetched ' + (i + 1) + ': ' + blob.size + ' bytes');
-      }
-
-      const audio = new Audio(audioUrl);
-
-      // 在播放当前句的同时预取后面10句
-      ensurePrefetched(i + 10);
-
-      await new Promise((resolve, reject) => {
-        audio.onended = () => { DebugLog.add('Sentence ' + (i + 1) + ' ended'); resolve(); };
-        audio.onerror = (e) => { DebugLog.add('Audio error on ' + (i + 1)); reject(e); };
-        audio.play().catch(reject);
-      });
-
-      URL.revokeObjectURL(audioUrl);
-      delete audioCache[i];
-    } catch (e) {
-      DebugLog.add('Edge TTS error: ' + e.message);
-    }
-
-    currentSentenceIndex++;
-    if (settings.autoTranslate && currentSentenceIndex < sentences.length) {
-      translateText(sentences[currentSentenceIndex]).then(t => {
-        showInlineTranslation(currentSentenceIndex, t);
-      });
-    }
-  }
-
-  // 清理缓存
-  for (const key in audioCache) {
-    if (audioCache[key]?.url) URL.revokeObjectURL(audioCache[key].url);
-  }
-
-  isPlaying = false;
-  hideBar();
-  DebugLog.add('speakWithEdgeTTS done');
-}
-
-// ====== Custom TTS ======
-async function speakWithCustomTTS(text, onSentenceChange) {
-  if (!settings.customTtsEndpoint) {
-    DebugLog.add('Custom TTS: no endpoint configured');
-    return;
-  }
-  const endpoint = settings.customTtsEndpoint.replace(/\/+$/, '') + '/audio/speech';
-  DebugLog.add('speakWithCustomTTS');
-
-  const sentences = text.split(/(?<=[!?。！？；;]|(?<!\d)\.(?=\s|$))\s*/).map(s => s.trim()).filter(s => s.length > 0);
-  currentSentences = sentences;
-  currentSentenceIndex = 0;
-  isPlaying = true;
-  isPaused = false;
-
-  while (isPlaying && currentSentenceIndex < sentences.length) {
-    if (isPaused) { await new Promise(r => setTimeout(r, 200)); continue; }
-
-    const sentence = sentences[currentSentenceIndex];
-    highlightSentence(currentSentenceIndex);
-    onSentenceChange?.(currentSentenceIndex, sentences.length, sentence);
-    updateBarProgress(currentSentenceIndex + 1, sentences.length);
-
-    try {
-      const resp = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${settings.customTtsApiKey || 'dummy'}`,
-        },
-        body: JSON.stringify({
-          model: settings.customTtsModel || 'tts-1',
-          input: sentence, voice: settings.customTtsVoice || 'alloy',
-          response_format: 'mp3',
-        }),
-      });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const audioBlob = await resp.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-      await new Promise((resolve, reject) => {
-        audio.onended = resolve;
-        audio.onerror = reject;
-        audio.play().catch(reject);
-      });
-      URL.revokeObjectURL(audioUrl);
-    } catch (e) {
-      console.error('[ReadMate] Custom TTS error:', e);
-    }
-    currentSentenceIndex++;
-    if (settings.autoTranslate && currentSentenceIndex < sentences.length) {
-      translateText(sentences[currentSentenceIndex]).then(t => {
-        showInlineTranslation(currentSentenceIndex, t);
-      });
-    }
-  }
-  isPlaying = false;
-  hideBar();
-}
-
-// ====== 后台代理 fetch（解决 HTTPS 页面无法 fetch HTTP 的问题）======
+// ====== 云端 Edge TTS（通过 background 代理请求）======
 let _proxyReqId = 0;
+
 function proxyFetch(url, options) {
   const requestId = 'req_' + (++_proxyReqId);
   return new Promise((resolve, reject) => {
@@ -387,16 +431,13 @@ function proxyFetch(url, options) {
         reject(new Error(resp.error || 'proxy fetch failed'));
         return;
       }
-      // 从 chrome.storage.local 读取音频数据（避免消息传递体积限制）
       chrome.storage.local.get(resp.storageKey, (items) => {
         const stored = items[resp.storageKey];
         if (!stored || !stored.bytes) {
-          reject(new Error('Audio data not found in storage'));
+          reject(new Error('Audio data not found'));
           return;
         }
-        const blob = new Blob([new Uint8Array(stored.bytes)], { type: stored.contentType || 'audio/mpeg' });
-        DebugLog.add('Proxy fetch returned: ' + stored.byteLength + ' bytes');
-        // 清理存储
+        const blob = new Blob([new Uint8Array(stored.bytes)], { type: 'audio/mpeg' });
         chrome.storage.local.remove(resp.storageKey, () => {});
         resolve(blob);
       });
@@ -404,10 +445,132 @@ function proxyFetch(url, options) {
   });
 }
 
+async function speakWithCloudTTS(text, onSentenceChange) {
+  const endpoint = (settings.cloudTtsEndpoint || 'http://powerplus.blogsyte.com:5001').replace(/\/+$/, '') + '/tts';
+  const bufferSize = settings.ttsBuffer || 1; // 预读句数
+  DebugLog.add('Cloud TTS: ' + endpoint + ' voice=' + (settings.cloudTtsVoice || 'default') + ' buffer=' + bufferSize);
+
+  const sentences = TextUtils.splitSentences(text);
+  if (sentences.length === 0) return;
+  // === 断句调试日志 ===
+  DebugLog.add('=== SPLIT DEBUG ===');
+  DebugLog.add('Text preview: "' + text.substring(0, 120) + '..."');
+  DebugLog.add('Total sentences: ' + sentences.length);
+  sentences.forEach((s, i) => {
+    const excerpt = s.length > 80 ? s.substring(0, 80) + '...' : s;
+    DebugLog.add('  [' + i + '] (' + s.length + 'c) "' + excerpt + '"');
+  });
+  DebugLog.add('=== END SPLIT DEBUG ===');
+  currentSentences = sentences;
+  currentSentenceIndex = 0;
+  isPlaying = true;
+  isPaused = false;
+
+  /** 获取朗读用文本（数字标准化） */
+  function getSpeechText(sentence) {
+    return NumberNormalizer.needsNormalization(sentence)
+      ? NumberNormalizer.normalize(sentence)
+      : sentence;
+  }
+
+  // 预取缓存：URL对象
+  const prefetched = {};
+
+  /** 后台预取一句 */
+  function prefetchOne(idx) {
+    if (idx >= sentences.length || prefetched[idx]) return;
+    DebugLog.add('Cloud TTS prefetch: sentence ' + (idx + 1));
+    proxyFetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: getSpeechText(sentences[idx]),
+        voice: settings.cloudTtsVoice || 'zh-CN-XiaoxiaoNeural',
+        rate: `+${Math.round((settings.ttsSpeed - 1) * 100)}%`,
+      }),
+    }).then(blob => {
+      prefetched[idx] = URL.createObjectURL(blob);
+      DebugLog.add('Cloud TTS prefetched: sentence ' + (idx + 1));
+    }).catch(e => {
+      DebugLog.add('Cloud TTS prefetch error: ' + e.message);
+    });
+  }
+
+  // 先预取第一批
+  for (let b = 0; b <= bufferSize && b < sentences.length; b++) {
+    prefetchOne(b);
+  }
+
+  let i = 0;
+  DebugLog.add('Cloud TTS: entering loop, ' + sentences.length + ' sentences');
+  while (isPlaying && i < sentences.length) {
+    if (isPaused) { await new Promise(r => setTimeout(r, 200)); continue; }
+    currentSentenceIndex = i;
+    DebugLog.add('Cloud TTS: playing sentence ' + (i + 1));
+    highlightSentence(i);
+    onSentenceChange?.(i, sentences.length, sentences[i]);
+    updateBarProgress(i + 1, sentences.length);
+
+    try {
+      // 如果已经预取好了，直接用；否则同步等
+      let audioUrl = prefetched[i];
+      if (!audioUrl) {
+        DebugLog.add('Cloud TTS: buffer miss, fetching sync');
+        const fetchPromise = proxyFetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: getSpeechText(sentences[i]),
+            voice: settings.cloudTtsVoice || 'zh-CN-XiaoxiaoNeural',
+            rate: `+${Math.round((settings.ttsSpeed - 1) * 100)}%`,
+          }),
+        });
+        // 15秒超时保护
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('TTS request timeout (15s)')), 15000)
+        );
+        const blob = await Promise.race([fetchPromise, timeoutPromise]);
+        audioUrl = URL.createObjectURL(blob);
+      }
+
+      // 播放当前句的同时预取后续句
+      for (let b = 1; b <= bufferSize; b++) {
+        prefetchOne(i + b);
+      }
+
+      const audio = new Audio(audioUrl);
+      await new Promise((resolve, reject) => {
+        audio.onended = () => { DebugLog.add('Cloud TTS sentence ' + (i + 1) + ' done'); resolve(); };
+        audio.onerror = (e) => { DebugLog.add('Cloud TTS error: ' + e.message); reject(e); };
+        audio.play().catch(reject);
+      });
+      URL.revokeObjectURL(audioUrl);
+      delete prefetched[i];
+    } catch (e) {
+      DebugLog.add('Cloud TTS error: ' + e.message);
+    }
+    i++;
+  }
+  isPlaying = false;
+  hideBar();
+  DebugLog.add('Cloud TTS done');
+
+  // 清理残留预取
+  for (const key in prefetched) {
+    URL.revokeObjectURL(prefetched[key]);
+  }
+
+  // 连续朗读
+  if (continuousMode && currentMode === 'page' && !userStopped) {
+    setTimeout(() => { findAndNavigateNext(); }, 1500);
+  }
+}
+
+// ====== AI 翻译代理 ======
 function proxyTranslate(text) {
   return new Promise((resolve) => {
     if (!settings.aiEndpoint || !settings.aiApiKey) {
-      DebugLog.add('Translate skipped: no AI config (ep=' + (settings.aiEndpoint||'') + ' key=' + (settings.aiApiKey ? '***' : 'empty') + ')');
+      DebugLog.add('Translate skipped: no AI config');
       resolve(null);
       return;
     }
@@ -450,12 +613,14 @@ function createFloatingBar() {
         <button class="readmate-btn" id="readmate-stop-btn" title="停止">⏹</button>
       </div>
       <div class="readmate-bar-right">
+        <button class="readmate-btn" id="readmate-continuous-btn" title="连续朗读">🔁</button>
         <button class="readmate-btn" id="readmate-translate-btn" title="翻译当前句">🌐</button>
         <button class="readmate-btn" id="readmate-close-btn" title="关闭">✕</button>
         <button class="readmate-btn" id="readmate-debug-btn" title="调试日志">🐛</button>
       </div>
     </div>
     <div class="readmate-current-text"></div>
+    <div class="readmate-page-info" id="readmate-page-info" style="display:none"></div>
     <div id="readmate-debug-panel" style="display:none;max-height:200px;overflow:auto;padding:8px 12px;font-size:11px;font-family:monospace;border-top:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.2);color:#aaa;">
       <div style="display:flex;justify-content:space-between;margin-bottom:4px">
         <span>调试日志</span>
@@ -469,14 +634,24 @@ function createFloatingBar() {
   floatingBar.querySelector('#readmate-play-btn').onclick = togglePlayPause;
   floatingBar.querySelector('#readmate-stop-btn').onclick = stopReading;
   floatingBar.querySelector('#readmate-close-btn').onclick = stopReading;
+  floatingBar.querySelector('#readmate-continuous-btn').onclick = () => {
+    setContinuousMode(!continuousMode);
+    showTranslation(continuousMode ? '🔁 连续朗读已开启 — 读完自动下一篇' : '🔁 连续朗读已关闭', true);
+  };
   floatingBar.querySelector('#readmate-translate-btn').onclick = (e) => {
-    // 捕获鼠标点击位置
     window._readmateMouseX = e.clientX;
     window._readmateMouseY = e.clientY;
     translateCurrentSentence();
   };
   floatingBar.querySelector('#readmate-debug-btn').onclick = toggleDebugPanel;
   document.getElementById('readmate-debug-count')?.addEventListener('click', copyDebugLogs);
+
+  // 初始化连续模式按钮状态
+  const contBtn = document.getElementById('readmate-continuous-btn');
+  if (contBtn) {
+    contBtn.style.opacity = continuousMode ? '1' : '0.4';
+    contBtn.title = continuousMode ? '连续朗读 (开启)' : '连续朗读 (关闭)';
+  }
 
   makeDraggable(floatingBar);
   DebugLog.add('Floating bar created');
@@ -506,7 +681,6 @@ function copyDebugLogs() {
   }, 2000);
 }
 
-// 定时刷新调试面板
 let debugTimer = null;
 function startDebugTimer() {
   stopDebugTimer();
@@ -519,6 +693,7 @@ function stopDebugTimer() {
 function showBar() {
   if (!floatingBar) createFloatingBar();
   floatingBar.classList.add('readmate-active');
+  hideFAB(); // 朗读中隐藏悬浮按钮
   startDebugTimer();
   refreshDebugPanel();
 }
@@ -532,6 +707,7 @@ function hideBar() {
   clearHighlights();
   currentSentences = [];
   currentSentenceIndex = 0;
+  showFAB(); // 朗读结束恢复悬浮按钮
 }
 
 function updateBarProgress(current, total) {
@@ -562,13 +738,17 @@ function togglePlayPause() {
 function stopReading() {
   isPlaying = false;
   isPaused = false;
+  userStopped = true; // 标记用户主动停止
+  stopImmediate = true; // 让 speakSentence 的 poll 立刻退出
   window.speechSynthesis.cancel();
   hideBar();
-  DebugLog.add('Stopped');
+  DebugLog.add('Stopped (user)');
 }
 
-// ====== 句子高亮 ======
+// ====== 句子高亮（改进版：覆盖整句，跨元素边界正确，避免重复图片 caption 跳转）======
 let highlightSpans = [];
+let lastHighlightEnd = 0; // 上次高亮结束位置，用于避免重复文字跳回开头
+let stopImmediate = false; // 立即停止信号，让 speakSentence 的 poll 立刻退出
 
 function highlightSentence(index) {
   clearHighlights();
@@ -579,36 +759,81 @@ function highlightSentence(index) {
   const textNodes = getTextNodesInBody();
   const fullText = textNodes.map(n => n.textContent).join('');
 
-  let searchText = sentence.trim();
-  if (searchText.length > 30) searchText = searchText.substring(0, 30);
+  // 用整句前200字匹配，从上一次高亮结束位置往后搜（避免重复 caption 跳回开头）
+  const searchText = sentence.trim().substring(0, 200);
+  let startIdx = fullText.indexOf(searchText, lastHighlightEnd);
+  if (startIdx < 0) {
+    // 后面没找到，回溯全文搜索
+    startIdx = fullText.indexOf(searchText);
+  }
 
-  const startIdx = fullText.indexOf(searchText);
-  if (startIdx < 0) { DebugLog.add('Highlight: text not found'); return; }
+  // 精确匹配失败时降级到前30字
+  if (startIdx < 0) {
+    const shortText = sentence.trim().substring(0, 30);
+    startIdx = fullText.indexOf(shortText, lastHighlightEnd);
+    if (startIdx < 0) {
+      startIdx = fullText.indexOf(shortText);
+    }
+    if (startIdx < 0) {
+      DebugLog.add('Highlight: text not found for "' + shortText + '"');
+      return;
+    }
+    DebugLog.add('Highlight: fuzzy match at ' + startIdx);
+  }
 
-  const endIdx = startIdx + searchText.length;
+  // 确定高亮终止位置
+  const endIdx = Math.min(startIdx + sentence.trim().length, fullText.length);
+  lastHighlightEnd = endIdx; // 记录本次位置，下一句从这往后搜
+  applyHighlight(textNodes, startIdx, endIdx);
+}
+
+/** 在文本节点序列上应用高亮（分割文本节点避免跨元素失败） */
+function applyHighlight(textNodes, startIdx, endIdx) {
   let charCount = 0;
+
   for (const node of textNodes) {
     const nodeLen = node.textContent.length;
     const nodeStart = charCount;
     const nodeEnd = charCount + nodeLen;
 
     if (nodeEnd > startIdx && nodeStart < endIdx) {
-      const range = document.createRange();
+      // 此节点包含需要高亮的部分
       const rangeStart = Math.max(0, startIdx - nodeStart);
       const rangeEnd = Math.min(nodeLen, endIdx - nodeStart);
-      try {
-        range.setStart(node, rangeStart);
-        range.setEnd(node, rangeEnd);
+      const text = node.textContent;
+
+      if (rangeStart <= 0 && rangeEnd >= nodeLen) {
+        // 整个节点都高亮
         const span = document.createElement('span');
         span.className = 'readmate-highlight';
-        range.surroundContents(span);
+        node.parentNode.insertBefore(span, node);
+        span.appendChild(node);
         highlightSpans.push(span);
-        span.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      } catch (e) {}
+      } else {
+        // 部分高亮：分割文本节点
+        const parent = node.parentNode;
+        const before = document.createTextNode(text.substring(0, rangeStart));
+        const highlight = document.createElement('span');
+        highlight.className = 'readmate-highlight';
+        highlight.textContent = text.substring(rangeStart, rangeEnd);
+        const after = document.createTextNode(text.substring(rangeEnd));
+
+        parent.insertBefore(before, node);
+        parent.insertBefore(highlight, node);
+        parent.insertBefore(after, node);
+        parent.removeChild(node);
+        highlightSpans.push(highlight);
+      }
     }
     charCount += nodeLen;
     if (charCount >= endIdx) break;
   }
+
+  // 滚动到第一个高亮元素
+  if (highlightSpans.length > 0) {
+    highlightSpans[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  DebugLog.add('Highlighted ' + highlightSpans.length + ' spans for sentence');
 }
 
 function clearHighlights() {
@@ -643,6 +868,7 @@ function getTextNodesInBody() {
   return nodes;
 }
 
+// ====== 翻译面板 ======
 function showTranslation(text, isInfo, posX, posY) {
   let panel = document.getElementById('readmate-translation-panel');
   if (!panel) {
@@ -650,44 +876,38 @@ function showTranslation(text, isInfo, posX, posY) {
     panel.id = 'readmate-translation-panel';
     panel.innerHTML = '<span id="readmate-translation-text" style="flex:1"></span><button id="readmate-translation-close" style="flex-shrink:0;margin-left:8px;background:none;border:none;color:#8b8b9e;cursor:pointer;font-size:14px;line-height:1;padding:0">✕</button>';
     document.body.appendChild(panel);
-    
-    // 点击✕关闭
+
     document.getElementById('readmate-translation-close').onclick = () => {
       panel.style.display = 'none';
     };
-    
-    // 点击外部关闭
+
     document.addEventListener('click', (e) => {
       if (panel.style.display !== 'none' && !panel.contains(e.target) && e.target.closest('#readmate-translate-btn') === null) {
         panel.style.display = 'none';
       }
     });
 
-    // 拖拽功能
     let isDragging = false, startX, startY, origLeft, origTop;
-    const onMouseDown = (e) => {
+    function onMouseDown(e) {
       if (e.target.id === 'readmate-translation-close') return;
       isDragging = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      origLeft = panel.offsetLeft;
-      origTop = panel.offsetTop;
+      startX = e.clientX; startY = e.clientY;
+      origLeft = panel.offsetLeft; origTop = panel.offsetTop;
       document.addEventListener('mousemove', onMouseMove);
       document.addEventListener('mouseup', onMouseUp);
       e.preventDefault();
-    };
-    const onMouseMove = (e) => {
+    }
+    function onMouseMove(e) {
       if (!isDragging) return;
       panel.style.left = (origLeft + e.clientX - startX) + 'px';
       panel.style.top = (origTop + e.clientY - startY) + 'px';
-      panel.style.right = 'auto';
-      panel.style.bottom = 'auto';
-    };
-    const onMouseUp = () => {
+      panel.style.right = 'auto'; panel.style.bottom = 'auto';
+    }
+    function onMouseUp() {
       isDragging = false;
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
-    };
+    }
     panel.addEventListener('mousedown', onMouseDown);
   }
 
@@ -697,29 +917,19 @@ function showTranslation(text, isInfo, posX, posY) {
   panel.style.alignItems = 'flex-start';
   panel.style.gap = '4px';
 
-  // 定位
   if (posX !== undefined && posY !== undefined) {
-    // 需要先显示才能量尺寸
     const w = panel.offsetWidth || 300;
     const h = panel.offsetHeight || 60;
     let x = Math.max(10, Math.min(posX, window.innerWidth - w - 10));
     let y = posY - h - 10;
     if (y < 10) y = Math.min(posY + 20, window.innerHeight - h - 10);
-    panel.style.left = x + 'px';
-    panel.style.top = y + 'px';
-    panel.style.right = 'auto';
-    panel.style.bottom = 'auto';
-    DebugLog.add('Panel position: (' + x + ', ' + y + ')');
+    panel.style.left = x + 'px'; panel.style.top = y + 'px';
+    panel.style.right = 'auto'; panel.style.bottom = 'auto';
   } else {
-    // 默认：显示在屏幕中央偏下
-    panel.style.left = 'auto';
-    panel.style.right = '20px';
-    panel.style.bottom = '80px';
-    panel.style.top = 'auto';
-    DebugLog.add('Panel position: default bottom-right');
+    panel.style.left = 'auto'; panel.style.right = '20px';
+    panel.style.bottom = '80px'; panel.style.top = 'auto';
   }
 
-  // 信息类提示 2 秒自消，翻译结果不自动隐藏
   if (isInfo) {
     clearTimeout(panel._infoTimer);
     panel._infoTimer = setTimeout(() => { panel.style.display = 'none'; }, 2000);
@@ -734,16 +944,14 @@ function showInlineTranslation(sentenceIndex, translation, posX, posY) {
 async function translateCurrentSentence() {
   const text = currentSentences[currentSentenceIndex];
   if (!text) { DebugLog.add('Translate: no current sentence'); return; }
-  
-  // 使用鼠标点击位置（优先）或浮动条按钮位置
+
   let posX = window._readmateMouseX;
   let posY = window._readmateMouseY;
   if (posX === undefined) {
     const btn = document.getElementById('readmate-translate-btn');
     if (btn) {
       const rect = btn.getBoundingClientRect();
-      posX = rect.left;
-      posY = rect.top;
+      posX = rect.left; posY = rect.top;
     }
   }
   DebugLog.add('Translate pos: (' + posX + ', ' + posY + ')');
@@ -789,10 +997,80 @@ function makeDraggable(el) {
   }
 }
 
-// ====== 消息处理 ======
+// ====== 内容提取（阅读模式 — 始终开启）======
+
+/** 使用 ContentExtractor 提取正文，失败则回退 body.innerText */
+function extractReadableContent() {
+  const result = ContentExtractor.extract();
+  if (result.success) {
+    DebugLog.add('Content extracted: ' + result.wordCount + ' chars, title="' + (result.title || '').substring(0, 40) + '"');
+    if (result.fallback) {
+      DebugLog.add('Content extraction used fallback (full body text)');
+    }
+    return result;
+  }
+  DebugLog.add('Content extraction failed: ' + (result.error || 'unknown'));
+  return null;
+}
+
+// ====== 消息监听 ======
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  DebugLog.add('Message received: ' + msg.action);
+  if (msg.action === 'ping') {
+    sendResponse({ ok: true, version: '1.2.1' });
+    return true;
+  }
+
   switch (msg.action) {
+    case 'testTts':
+      loadSettings().then(async () => {
+        settings.cloudTtsEndpoint = msg.cloudEndpoint || settings.cloudTtsEndpoint;
+        settings.cloudTtsVoice = msg.cloudVoice || settings.cloudTtsVoice;
+        settings.ttsVoice = msg.browserVoice || settings.ttsVoice;
+        settings.ttsSpeed = msg.speed || settings.ttsSpeed;
+
+        const testText = '你好，欢迎使用读伴朗读助手。This is a test of the TTS engine.';
+        DebugLog.add('testTts: using cloud=' + !!settings.cloudTtsEndpoint);
+
+        try {
+          if (settings.cloudTtsEndpoint && settings.cloudTtsEndpoint.includes('://')) {
+            const endpoint = settings.cloudTtsEndpoint.replace(/\/+$/, '') + '/tts';
+            const blob = await proxyFetch(endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                text: testText,
+                voice: settings.cloudTtsVoice || 'zh-CN-XiaoxiaoNeural',
+                rate: '+0%',
+              }),
+            });
+            const audioUrl = URL.createObjectURL(blob);
+            const audio = new Audio(audioUrl);
+            audio.onended = () => { URL.revokeObjectURL(audioUrl); sendResponse({ ok: true, engine: 'cloud' }); };
+            audio.onerror = (e) => { URL.revokeObjectURL(audioUrl); sendResponse({ ok: false, error: 'Cloud TTS音频播放失败' }); };
+            audio.play().catch(e => { sendResponse({ ok: false, error: 'Cloud TTS播放错误: ' + e.message }); });
+          } else if (window.speechSynthesis) {
+            speechSynthesis.cancel();
+            await new Promise(r => setTimeout(r, 100));
+            const utterance = new SpeechSynthesisUtterance(testText);
+            utterance.lang = 'zh-CN';
+            utterance.rate = settings.ttsSpeed || 1.0;
+            if (settings.ttsVoice) {
+              const voices = speechSynthesis.getVoices();
+              const found = voices.find(v => v.name === settings.ttsVoice);
+              if (found) utterance.voice = found;
+            }
+            utterance.onend = () => sendResponse({ ok: true, engine: 'browser' });
+            utterance.onerror = (e) => sendResponse({ ok: false, error: 'Browser TTS错误: ' + e.error });
+            speechSynthesis.speak(utterance);
+          } else {
+            sendResponse({ ok: false, error: '没有可用的语音引擎' });
+          }
+        } catch (e) {
+          sendResponse({ ok: false, error: e.message });
+        }
+      });
+      return true;
+
     case 'readSelection':
       loadSettings().then(() => {
         selectionText = msg.text || '';
@@ -801,18 +1079,34 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         startReading(selectionText);
       });
       break;
+
     case 'readPage':
+      sendResponse({ ok: true }); // 先回复避免弹窗端超时报错
       loadSettings().then(() => {
-        const bodyText = document.body.innerText;
+        // 阅读模式始终开启：先用 extractor，失败 fallback
+        const content = extractReadableContent();
+        let pageText;
+        if (content && content.success) {
+          pageText = content.text;
+          const info = document.getElementById('readmate-page-info');
+          if (info) {
+            info.textContent = '📖 ' + (content.title || '') + ' · ' + (content.wordCount || 0) + '字';
+            info.style.display = 'block';
+            setTimeout(() => { info.style.display = 'none'; }, 5000);
+          }
+        } else {
+          pageText = document.body.innerText;
+          DebugLog.add('Using full body text as fallback');
+        }
         currentMode = 'page';
-        DebugLog.add('readPage: text length=' + bodyText.length);
-        startReading(bodyText);
+        DebugLog.add('readPage: text length=' + pageText.length);
+        startReading(pageText);
       });
       break;
+
     case 'translateSelection':
       loadSettings().then(() => {
         if (msg.text) {
-          // 使用选中文本的位置
           const sel = window.getSelection();
           if (sel && sel.rangeCount > 0) {
             const rect = sel.getRangeAt(0).getBoundingClientRect();
@@ -825,52 +1119,182 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         }
       });
       break;
+
     case 'stop':
       stopReading();
+      break;
+
+    case 'toggleRead':
+      if (isPlaying) togglePlayPause();
+      break;
+
+    case 'copyToClipboard':
+      if (msg.text) {
+        navigator.clipboard.writeText(msg.text).then(() => {
+          showTranslation('✓ 已复制到剪贴板', true);
+          DebugLog.add('Copied ' + msg.text.length + ' chars to clipboard');
+        }).catch(() => {
+          const ta = document.createElement('textarea');
+          ta.value = msg.text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          showTranslation('✓ 已复制到剪贴板', true);
+        });
+      }
+      break;
+
+    case 'exportMarkdown':
+      if (msg.text) exportToMarkdown(msg.text, msg.title, msg.url);
       break;
   }
 });
 
+// ====== 导出功能 ======
+function exportToMarkdown(text, title, url) {
+  const now = new Date().toISOString().slice(0, 10);
+  const md = `# ${title || 'ReadMate Export'}\n\n${url ? `来源: ${url}\n\n` : ''}---\n\n${text}\n\n---\n*由 ReadMate / 读伴于 ${now} 导出*\n`;
+
+  navigator.clipboard.writeText(md).then(() => {
+    showTranslation('✓ Markdown 已复制到剪贴板', true);
+    DebugLog.add('Markdown exported: ' + md.length + ' chars');
+  }).catch(() => {
+    showTranslation('✓ Markdown 已准备好（字符数: ' + md.length + '）', true);
+  });
+}
+
+// ====== 连续朗读：寻找下一篇 ======
+function findAndNavigateNext() {
+  const nextLink = ContentExtractor.findNextPageLink();
+  if (nextLink) {
+    DebugLog.add('Found next page link: ' + nextLink.url);
+    showTranslation('➡️ 正在跳转到下一篇: ' + (nextLink.text || '下一篇文章'), true);
+    // 标记这是连续朗读跳转
+    chrome.storage.session.set({ readmate_auto_read: true }, () => {
+      setTimeout(() => { window.location.href = nextLink.url; }, 800);
+    });
+    return true;
+  }
+
+  const articles = ContentExtractor.findArticleLinks();
+  if (articles.length > 0) {
+    const currentUrl = window.location.href;
+    const nextArticle = articles.find(a => a.url !== currentUrl);
+    if (nextArticle) {
+      DebugLog.add('Found next article: ' + nextArticle.title);
+      showTranslation('➡️ 正在跳转: ' + (nextArticle.title || '下一篇文章'), true);
+      chrome.storage.session.set({ readmate_auto_read: true }, () => {
+        setTimeout(() => { window.location.href = nextArticle.url; }, 800);
+      });
+      return true;
+    }
+  }
+
+  DebugLog.add('No next page/article found');
+  showTranslation('🔚 没有找到下一篇，连续朗读结束', true);
+  setContinuousMode(false);
+  return false;
+}
+
+/** 连续朗读模式：页面加载后自动朗读 */
+async function autoReadPage() {
+  await loadSettings();
+  const content = extractReadableContent();
+  let pageText;
+  if (content && content.success) {
+    pageText = content.text;
+  } else {
+    pageText = document.body.innerText;
+  }
+  if (pageText && pageText.trim().length > 50) {
+    currentMode = 'page';
+    DebugLog.add('Auto-read: ' + pageText.length + ' chars');
+    startReading(pageText);
+  } else {
+    DebugLog.add('Auto-read skipped: page too short');
+    setContinuousMode(false);
+  }
+}
+
 // ====== 主朗读入口 ======
 async function startReading(text) {
   if (!text || !text.trim()) { DebugLog.add('startReading: empty text'); return; }
-  DebugLog.add('== startReading == engine=' + settings.ttsEngine);
+  DebugLog.add('== startReading ==');
+  // 记录原文前200字用于调试
+  DebugLog.add('RAW TEXT: "' + text.substring(0, 200) + (text.length > 200 ? '...' : '') + '"');
+
+  // 重置高亮追踪位置
+  lastHighlightEnd = 0;
+  stopImmediate = false; // 清除停止信号
+
+  // 文本预处理
+  const cleanText = TextUtils.preprocess(text, {
+    stripHtml: true,
+    stripPinyin: true,
+    stripFootnotes: true,
+    stripDecorative: true,
+    collapseWhitespace: true,
+    cleanCjk: false,
+  });
+  if (cleanText.length < text.length) {
+    DebugLog.add('Preprocessed: ' + text.length + ' → ' + cleanText.length + ' chars');
+  }
+  // 记录预处理后的文本内容
+  DebugLog.add('CLEAN TEXT: "' + cleanText.substring(0, 200) + (cleanText.length > 200 ? '...' : '') + '"');
+
+  // 语速验证
+  settings.ttsSpeed = TextUtils.validateSpeed(settings.ttsSpeed);
+  DebugLog.add('Validated speed: ' + settings.ttsSpeed + 'x');
 
   stopReading();
   await new Promise(r => setTimeout(r, 100));
 
+  userStopped = false; // 重置停止标记
   showBar();
   floatingBar.querySelector('#readmate-play-btn').textContent = '⏸';
 
-  console.log('[ReadMate] Starting with engine:', settings.ttsEngine);
+  console.log('[ReadMate] Starting...');
+  const startTime = Date.now();
 
-  if (settings.ttsEngine === 'web-speech') {
-    DebugLog.add('Selected engine: Web Speech');
-    await speakWithWebSpeech(text, (idx, total, sentence) => {
-      updateCurrentText(sentence);
-    });
-  } else if (settings.ttsEngine === 'edge-tts') {
-    DebugLog.add('Selected engine: Edge TTS');
-    await speakWithEdgeTTS(text, (idx, total, sentence) => {
-      updateCurrentText(sentence);
-    });
-  } else if (settings.ttsEngine === 'custom' && settings.customTtsEndpoint) {
-    DebugLog.add('Selected engine: Custom TTS');
-    await speakWithCustomTTS(text, (idx, total, sentence) => {
+  // 选择引擎：ttsEngine='cloud'且端点有效才用云端
+  const useCloud = settings.ttsEngine === 'cloud' && settings.cloudTtsEndpoint && settings.cloudTtsEndpoint.includes('://');
+  DebugLog.add('Engine: ' + (useCloud ? 'Cloud TTS' : 'Web Speech') + ' (ttsEngine=' + (settings.ttsEngine || 'browser') + ')');
+
+  if (useCloud) {
+    await speakWithCloudTTS(cleanText, (idx, total, sentence) => {
       updateCurrentText(sentence);
     });
   } else {
-    DebugLog.add('ERROR: Unknown engine: ' + settings.ttsEngine);
+    await speakText(cleanText, (idx, total, sentence) => {
+      updateCurrentText(sentence);
+    });
   }
+
+  // 记录阅读统计
+  const elapsedMs = Date.now() - startTime;
+  ReadingStats.recordSession(cleanText, elapsedMs).then(result => {
+    DebugLog.add('Stats recorded: ' + result.chars + ' chars, ' + result.timeMs + 'ms');
+  }).catch(e => {
+    DebugLog.add('Stats error: ' + e.message);
+  });
 
   DebugLog.add('== startReading done ==');
 }
 
-// ====== 自动检测语言设置 ======
-loadSettings().then(() => {
+// ====== 初始化：页面语言检测 ======
+function initializePageDetection() {
   const htmlLang = document.documentElement.lang || '';
   if (htmlLang.startsWith('zh')) settings.ttsVoiceLang = 'zh-CN';
   else if (htmlLang.startsWith('ja')) settings.ttsVoiceLang = 'ja-JP';
+  else if (htmlLang.startsWith('ko')) settings.ttsVoiceLang = 'ko-KR';
   else settings.ttsVoiceLang = 'en-US';
   DebugLog.add('Page language: ' + htmlLang + ' → voiceLang: ' + settings.ttsVoiceLang);
+}
+
+loadSettings().then(() => {
+  initializePageDetection();
+  // 始终显示悬浮朗读按钮
+  createFAB();
+  showFAB();
 });

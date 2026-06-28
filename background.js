@@ -1,5 +1,5 @@
 // ReadMate / 读伴 — Background Service Worker
-// 右键菜单、消息路由、设置存储、代理 fetch（避开 HTTPS 页面 CSP）
+// 右键菜单、消息路由、设置存储、AI翻译代理、键盘快捷键、脚本注入
 
 let readState = {
   isPlaying: false,
@@ -7,8 +7,60 @@ let readState = {
   tabId: null,
 };
 
-// 构建右键菜单
-chrome.runtime.onInstalled.addListener(() => {
+// ====== 脚本注入配置 ======
+const CONTENT_FILES = [
+  'content-extractor.js',
+  'text-utils.js',
+  'number-normalizer.js',
+  'reading-stats.js',
+  'content.js',
+];
+const CONTENT_CSS = ['content.css'];
+
+/** 向指定标签页注入 content scripts */
+function injectScripts(tabId) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // 注入 CSS
+      for (const css of CONTENT_CSS) {
+        try {
+          await chrome.scripting.insertCSS({
+            target: { tabId },
+            files: [css],
+          });
+        } catch(e) {
+          // CSS 可能已存在，忽略
+        }
+      }
+      // 注入 JS（按顺序）
+      for (const js of CONTENT_FILES) {
+        await chrome.scripting.executeScript({
+          target: { tabId },
+          files: [js],
+        });
+      }
+      resolve(true);
+    } catch (e) {
+      reject(new Error('注入失败: ' + e.message));
+    }
+  });
+}
+
+// ====== 右键菜单 ======
+chrome.runtime.onInstalled.addListener((details) => {
+  // 首次安装：设置连续模式默认开启
+  if (details.reason === 'install') {
+    chrome.storage.local.set({ readmate_continuous: true });
+    chrome.runtime.openOptionsPage();
+  } else if (details.reason === 'update') {
+    // 更新时确保连续模式存储存在
+    chrome.storage.local.get('readmate_continuous', (result) => {
+      if (result.readmate_continuous === undefined) {
+        chrome.storage.local.set({ readmate_continuous: true });
+      }
+    });
+  }
+
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
       id: 'read-selection',
@@ -21,53 +73,136 @@ chrome.runtime.onInstalled.addListener(() => {
       contexts: ['page'],
     });
     chrome.contextMenus.create({
+      id: 'separator-1',
+      type: 'separator',
+      contexts: ['selection', 'page'],
+    });
+    chrome.contextMenus.create({
       id: 'translate-selection',
       title: chrome.i18n.getMessage('menuTranslateSelection'),
       contexts: ['selection'],
     });
+    chrome.contextMenus.create({
+      id: 'separator-2',
+      type: 'separator',
+      contexts: ['selection', 'page'],
+    });
+    chrome.contextMenus.create({
+      id: 'copy-to-clipboard',
+      title: '复制朗读内容到剪贴板',
+      contexts: ['selection'],
+    });
+    chrome.contextMenus.create({
+      id: 'export-markdown',
+      title: '导出选中内容为 Markdown',
+      contexts: ['selection'],
+    });
+    chrome.contextMenus.create({
+      id: 'open-options',
+      title: chrome.i18n.getMessage('menuOpenOptions') || 'ReadMate 设置',
+      contexts: ['action'],
+    });
   });
 });
 
-// 点击右键菜单
+// ====== 右键菜单点击 ======
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (!tab?.id) return;
   readState.tabId = tab.id;
 
-  if (info.menuItemId === 'read-selection') {
-    chrome.tabs.sendMessage(tab.id, {
-      action: 'readSelection',
-      text: info.selectionText,
-      pageUrl: info.pageUrl,
-    });
-  } else if (info.menuItemId === 'read-page') {
-    chrome.tabs.sendMessage(tab.id, {
-      action: 'readPage',
-    });
-  } else if (info.menuItemId === 'translate-selection') {
-    chrome.tabs.sendMessage(tab.id, {
-      action: 'translateSelection',
-      text: info.selectionText,
-    });
+  switch (info.menuItemId) {
+    case 'read-selection':
+      chrome.tabs.sendMessage(tab.id, {
+        action: 'readSelection',
+        text: info.selectionText,
+        pageUrl: info.pageUrl,
+      });
+      break;
+
+    case 'read-page':
+      chrome.tabs.sendMessage(tab.id, { action: 'readPage' });
+      break;
+
+    case 'translate-selection':
+      chrome.tabs.sendMessage(tab.id, {
+        action: 'translateSelection',
+        text: info.selectionText,
+      });
+      break;
+
+    case 'copy-to-clipboard':
+      if (info.selectionText) {
+        chrome.tabs.sendMessage(tab.id, {
+          action: 'copyToClipboard',
+          text: info.selectionText,
+        });
+      }
+      break;
+
+    case 'export-markdown':
+      if (info.selectionText) {
+        chrome.tabs.sendMessage(tab.id, {
+          action: 'exportMarkdown',
+          text: info.selectionText,
+          title: tab.title || 'ReadMate Export',
+          url: info.pageUrl,
+        });
+      }
+      break;
+
+    case 'open-options':
+      chrome.runtime.openOptionsPage();
+      break;
   }
 });
 
-// 接收消息
+// ====== 键盘快捷键 ======
+chrome.commands.onCommand.addListener((command) => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (!tabs || tabs.length === 0) return;
+    const tab = tabs[0];
+    if (!tab?.id) return;
+    readState.tabId = tab.id;
+
+    switch (command) {
+      case 'read-selection':
+        chrome.tabs.sendMessage(tab.id, { action: 'readSelection' });
+        break;
+      case 'read-page':
+        chrome.tabs.sendMessage(tab.id, { action: 'readPage' });
+        break;
+      case 'toggle-read':
+        chrome.tabs.sendMessage(tab.id, { action: 'toggleRead' });
+        break;
+      case 'stop-read':
+        chrome.tabs.sendMessage(tab.id, { action: 'stop' });
+        readState.isPlaying = false;
+        readState.isPaused = false;
+        break;
+    }
+  });
+});
+
+// ====== 消息处理 ======
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   switch (msg.action) {
+    // ====== 注入 content scripts ======
+    case 'injectContent':
+      injectScripts(msg.tabId)
+        .then(() => sendResponse({ ok: true }))
+        .catch(err => sendResponse({ ok: false, error: err.message }));
+      return true;
+
     case 'getSettings':
       chrome.storage.sync.get({
-        ttsEngine: 'web-speech',
         ttsSpeed: 1.0,
         ttsVoice: '',
         ttsVoiceLang: 'en-US',
-        // Edge TTS
-        edgeTtsEndpoint: 'http://192.168.199.159:5001',
-        edgeTtsVoice: 'zh-CN-XiaoxiaoNeural',
-        // Custom TTS
-        customTtsEndpoint: '',
-        customTtsApiKey: '',
-        customTtsModel: '',
-        customTtsVoice: '',
+        ttsEngine: 'browser', // 'browser' 或 'cloud'
+        ttsBuffer: 1,        // 云端预读句数
+        // 云端 Edge TTS
+        cloudTtsEndpoint: 'http://powerplus.blogsyte.com:5001',
+        cloudTtsVoice: '',
         // AI 翻译
         aiEndpoint: 'https://api.deepseek.com/v1',
         aiApiKey: '',
@@ -77,11 +212,40 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         highlightEnabled: true,
         autoTranslate: false,
         uiLanguage: 'auto',
-      }, (settings) => sendResponse(settings));
+        enableShortcuts: true,
+        translateOnSelect: false,
+      }, (settings) => {
+        // === 设置迁移：兼容 v1.2.0 的旧键名 ===
+        let changed = false;
+        if (!settings.cloudTtsEndpoint && settings.edgeTtsEndpoint) {
+          settings.cloudTtsEndpoint = settings.edgeTtsEndpoint;
+          changed = true;
+        }
+        if (!settings.cloudTtsVoice && settings.edgeTtsVoice) {
+          settings.cloudTtsVoice = settings.edgeTtsVoice;
+          changed = true;
+        }
+        if (settings.ttsEngine === 'edge-tts') {
+          settings.ttsEngine = 'cloud';
+          changed = true;
+        }
+        if (changed) {
+          chrome.storage.sync.set({
+            cloudTtsEndpoint: settings.cloudTtsEndpoint,
+            cloudTtsVoice: settings.cloudTtsVoice,
+            ttsEngine: settings.ttsEngine,
+          });
+        }
+        sendResponse(settings);
+      });
       return true;
 
     case 'saveSettings':
-      chrome.storage.sync.set(msg.settings, () => sendResponse({ ok: true }));
+      // 合并保存，防止丢字段
+      chrome.storage.sync.get(null, (existing) => {
+        const merged = Object.assign({}, existing, msg.settings);
+        chrome.storage.sync.set(merged, () => sendResponse({ ok: true }));
+      });
       return true;
 
     case 'speak':
@@ -106,21 +270,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       sendResponse(readState);
       return true;
 
-    // ====== 后台代理 fetch（避开 HTTPS 页面 CSP 限制）======
+    // ====== Edge TTS 代理 fetch（支持 HTTPS 页面）====== 
     case 'proxyFetch': {
       const { url, options, requestId } = msg;
       fetch(url, options || {})
         .then(async (resp) => {
           if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
           const buffer = await resp.arrayBuffer();
-          const contentType = resp.headers.get('content-type') || 'audio/mpeg';
-          console.log('[ReadMate BG] proxyFetch got', buffer.byteLength, 'bytes');
-          
-          // 存到 chrome.storage.local（比消息传递容量大得多）
           const key = 'proxy_audio_' + requestId;
           const data = {
             [key]: {
-              contentType: contentType,
               bytes: Array.from(new Uint8Array(buffer)),
               byteLength: buffer.byteLength
             }
@@ -130,7 +289,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           });
         })
         .catch((err) => {
-          console.error('[ReadMate BG] proxyFetch error:', err.message);
           sendResponse({ ok: false, error: err.message });
         });
       return true;
@@ -163,7 +321,25 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         .catch((err) => {
           sendResponse({ ok: false, error: err.message });
         });
-      return true; // 异步响应
+      return true;
+    }
+
+    // ====== 导出 Markdown（后台下载）======
+    case 'doExportMarkdown': {
+      const { title, url, text } = msg;
+      const markdown = `# ${title}\n\n${url}\n\n---\n\n${text}\n\n---\n*Exported by ReadMate / 读伴*`;
+      const blob = new Blob([markdown], { type: 'text/markdown' });
+      const reader = new FileReader();
+      reader.onload = () => {
+        chrome.downloads.download({
+          url: reader.result,
+          filename: 'readmate-export-' + Date.now() + '.md',
+          saveAs: true,
+        });
+      };
+      reader.readAsDataURL(blob);
+      sendResponse({ ok: true });
+      return true;
     }
   }
 });

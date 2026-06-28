@@ -60,17 +60,29 @@
 .readmate-btn {
   background: none;
   border: none;
-  color: #e0e0e0;
-  font-size: 16px;
+  color: #f0f0f0;
   cursor: pointer;
+  font-size: 16px;
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: 4px;
+  transition: all 0.2s;
   line-height: 1;
-  transition: background 0.15s;
+}
+.readmate-btn:hover {
+  background: rgba(255,255,255,0.15);
 }
 
-.readmate-btn:hover {
-  background: rgba(255,255,255,0.1);
+/* 阅读模式信息条 */
+#readmate-page-info {
+  padding: 4px 12px 6px;
+  font-size: 11px;
+  color: #6a9bd8;
+  background: rgba(26, 26, 46, 0.9);
+  text-align: center;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .readmate-btn:active {
@@ -179,4 +191,38 @@
 #readmate-selection-play:hover {
   transform: scale(1.1);
   box-shadow: 0 4px 16px rgba(255,107,107,0.4);
+}
+
+/* ====== 手机端悬浮朗读按钮 ====== */
+#readmate-fab {
+  display: none;
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  z-index: 2147483646;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: #4a6cf7;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(74, 108, 247, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+  line-height: 1;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#readmate-fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(74, 108, 247, 0.5);
+}
+
+#readmate-fab:active {
+  transform: scale(0.95);
 }
