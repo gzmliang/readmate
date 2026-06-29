@@ -133,18 +133,24 @@ const TextUtils = (() => {
         result.push(text.slice(pos).trim());
         break;
       }
-      // 从 maxLen 位置向后扫描最多 30 字符，找自然断点
-      const scanEnd = Math.min(pos + maxLen + 30, text.length);
+      // 从 maxLen 位置向后扫描最多 50 字符，先找强断点（句末标点），再找弱断点（逗号）
+      const scanEnd = Math.min(pos + maxLen + 50, text.length);
       let splitAt = -1;
-      for (let j = pos + maxLen; j < scanEnd; j++) {
+      // 第一遍：强断点（句末标点）
+      for (let j = pos + maxLen; j < Math.min(pos + maxLen + 30, text.length); j++) {
         const ch = text[j];
-        // 确定是否是句末符号
         const isPeriodEnd = ch === '.' &&
           (j + 1 >= text.length || /\s/.test(text[j + 1])) &&
           !(j > 0 && /\d/.test(text[j - 1]) && j + 1 < text.length && /\d/.test(text[j + 1]));
         if (ch === '!' || ch === '?' || ch === '。' || ch === '！' || ch === '？' || ch === '；' || ch === ';' || isPeriodEnd) {
-          splitAt = j + 1; // 包含标点
+          splitAt = j + 1;
           break;
+        }
+      }
+      // 第二遍：弱断点（逗号）— 在 30-50 字范围内
+      if (splitAt < 0) {
+        for (let j = pos + maxLen + 30; j < scanEnd; j++) {
+          if (text[j] === ',' || text[j] === '，') { splitAt = j + 1; break; }
         }
       }
       if (splitAt > 0) {
