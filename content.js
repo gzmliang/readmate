@@ -312,6 +312,9 @@ async function speakText(text, onSentenceChange) {
     return;
   }
 
+  // 预构建第一句 utterance（后面的在播放中提前构建）
+  let prebuilt = buildUtterance(sentences[0]);
+
   for (let i = 0; i < sentences.length; i++) {
     if (!isPlaying) { DebugLog.add('Stopped at sentence ' + i); break; }
     if (isPaused) {
@@ -327,7 +330,16 @@ async function speakText(text, onSentenceChange) {
 
     DebugLog.add('Speaking sentence ' + (i + 1) + '/' + sentences.length + ': "' + sentences[i].substring(0, 40) + '..."');
 
-    await speakSentence(sentences[i]);
+    // speak() 是同步返回的，不会阻塞
+    const playPromise = speakUtterance(prebuilt);
+
+    // 【预构建】当前句正在播放时，提前准备好下一句的 utterance
+    if (i + 1 < sentences.length) {
+      prebuilt = buildUtterance(sentences[i + 1]);
+    }
+
+    // 等待当前句播完
+    await playPromise;
 
     if (!isPlaying) break;
 
@@ -352,31 +364,32 @@ async function speakText(text, onSentenceChange) {
   }
 }
 
-function speakSentence(text) {
+// ====== 预构建 Utterance（数字标准化+语音设置，提前准备好）======
+function buildUtterance(text) {
+  const speechText = NumberNormalizer.needsNormalization(text)
+    ? NumberNormalizer.normalize(text)
+    : text;
+  const utterance = new SpeechSynthesisUtterance(speechText);
+  utterance.rate = settings.ttsSpeed || 1.0;
+  utterance.pitch = 1.0;
+  utterance.volume = 1.0;
+
+  if (settings.ttsVoice) {
+    const voices = window.speechSynthesis.getVoices();
+    const matched = voices.find(v => v.name === settings.ttsVoice);
+    if (matched) {
+      utterance.voice = matched;
+      utterance.lang = matched.lang;
+    }
+  }
+  return utterance;
+}
+
+/** 播放一个已构建好的 Utterance，返回 onend promise */
+function speakUtterance(utterance) {
   return new Promise((resolve) => {
     try {
-      // 数字朗读标准化（仅对送入 TTS 引擎的文本做转写）
-      const speechText = NumberNormalizer.needsNormalization(text)
-        ? NumberNormalizer.normalize(text)
-        : text;
-      // 注意：不要在这里调 cancel()！Android Chrome 上 cancel 会干扰下一句
-      const utterance = new SpeechSynthesisUtterance(speechText);
       currentUtterance = utterance;
-
-      utterance.rate = settings.ttsSpeed || 1.0;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
-
-      if (settings.ttsVoice) {
-        const voices = window.speechSynthesis.getVoices();
-        const matched = voices.find(v => v.name === settings.ttsVoice);
-        if (matched) {
-          utterance.voice = matched;
-          utterance.lang = matched.lang; // Android 上必须匹配 lang
-        }
-      }
-
-      // 双保险：onend + 轮询 speaking（Android 上 onend 不可靠）
       let resolved = false;
       function done() { if (!resolved) { resolved = true; resolve(); } }
 
@@ -386,9 +399,10 @@ function speakSentence(text) {
         done();
       };
 
+      // 注意：不要在这里调 cancel()！Android Chrome 上 cancel 会干扰下一句
       window.speechSynthesis.speak(utterance);
 
-      // 两阶段轮询：先等 speaking=true（开始），再等 speaking=false（结束）
+      // 轮询 fallback：Android 上 onend 不可靠，用 speaking 状态兜底
       let phase = 'wait_start';
       function pollSpeaking() {
         if (resolved) return;
@@ -401,16 +415,8 @@ function speakSentence(text) {
         setTimeout(pollSpeaking, 200);
       }
       setTimeout(pollSpeaking, 300);
-
-      // 安全超时（30秒）
-      setTimeout(() => {
-        if (!resolved) {
-          DebugLog.add('speakSentence safety timeout 30s');
-          done();
-        }
-      }, 30000);
     } catch (e) {
-      DebugLog.add('speakSentence exception: ' + e.message);
+      DebugLog.add('speakUtterance exception: ' + e.message);
       resolve();
     }
   });
