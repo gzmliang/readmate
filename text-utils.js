@@ -107,6 +107,16 @@ const TextUtils = (() => {
           result[i + 1] = cur + ' ' + nxt;
           continue;
         }
+        // 当前段以连字符结尾（如 multi-）→ 连字符单词被误切，合并
+        if (/-\s*$/.test(cur) && /[a-zA-Z-]/.test(nxt.charAt(0))) {
+          result[i + 1] = cur + nxt;
+          continue;
+        }
+        // 当前段以字母结尾且下一段以连字符+字母开头（如 -stage）→ 合并
+        if (/[a-zA-Z]$/.test(cur) && /^-[a-zA-Z]/.test(nxt)) {
+          result[i + 1] = cur + nxt;
+          continue;
+        }
       }
       merged.push(result[i]);
     }
@@ -141,9 +151,19 @@ const TextUtils = (() => {
         result.push(text.slice(pos, splitAt).trim());
         pos = splitAt;
       } else {
-        // 找不到自然断点，按最多 maxLen 切
-        result.push(text.slice(pos, pos + maxLen).trim());
-        pos += maxLen;
+        // 找不到自然断点 → 向前找最后一个空格（单词边界），避免腰斩单词
+        let wordBoundary = -1;
+        for (let j = pos + maxLen; j > pos; j--) {
+          if (/\s/.test(text[j])) { wordBoundary = j + 1; break; }
+        }
+        if (wordBoundary > 0 && wordBoundary > pos) {
+          result.push(text.slice(pos, wordBoundary).trim());
+          pos = wordBoundary;
+        } else {
+          // 真的找不到任何空格了，才硬切
+          result.push(text.slice(pos, pos + maxLen).trim());
+          pos += maxLen;
+        }
       }
     }
     return result.filter(s => s.length > 0);
@@ -173,6 +193,8 @@ const TextUtils = (() => {
   function sanitizeForSpeech(text) {
     if (!text) return '';
     let result = text;
+    // 去除软连字符 &shy; (U+00AD) — 某些网站用此标记断词
+    result = result.replace(/\u00AD/g, '');
     // 去除 HTML 标签
     result = result.replace(HTML_TAG_RE, '');
     // 去除脚注标记
@@ -209,6 +231,8 @@ const TextUtils = (() => {
   /** 完整预处理流水线 */
   function preprocess(text, options = {}) {
     let result = text;
+    // 软连字符 &shy; (U+00AD) 始终清理，不需要选项
+    result = result.replace(/\u00AD/g, '');
     if (options.stripHtml) result = result.replace(HTML_TAG_RE, '');
     if (options.stripPinyin) result = stripPinyin(result);
     if (options.stripFootnotes) result = result.replace(FOOTNOTE_RE, '');
