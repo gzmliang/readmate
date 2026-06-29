@@ -95,14 +95,21 @@ function createFAB() {
     if (isPlaying) return;
     DebugLog.add('FAB clicked');
 
-    // 快速获取页面文字
-    let pageText = document.body.innerText || '';
+    // 内容提取：去广告，只读正文
+    let pageText;
+    const content = extractReadableContent();
+    if (content && content.success) {
+      pageText = content.text;
+      DebugLog.add('FAB extracted: ' + pageText.length + ' chars (title: ' + (content.title || '') + ')');
+    } else {
+      pageText = document.body.innerText || '';
+      DebugLog.add('FAB fallback to body: ' + pageText.length + ' chars');
+    }
     if (pageText.trim().length < 50) {
       DebugLog.add('FAB: page too short');
       return;
     }
 
-    DebugLog.add('FAB text: ' + pageText.length + ' chars');
     hideFAB();
 
     // 加载设置（带超时，不行就默认值）
