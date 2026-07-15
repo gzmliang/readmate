@@ -203,6 +203,7 @@ function createSelectionPlayBtn() {
   playBtn.title = '朗读选中文字';
   playBtn.addEventListener('click', (e) => {
     e.stopPropagation();
+    suppressSelectionBtn();
     const sel = window.getSelection().toString().trim();
     if (sel) {
       selectionText = sel;
@@ -214,27 +215,36 @@ function createSelectionPlayBtn() {
 
   const translateBtn = document.createElement('button');
   translateBtn.className = 'readmate-sel-btn readmate-sel-translate';
-  translateBtn.textContent = '🌐';
+  translateBtn.textContent = '译';
   translateBtn.title = '翻译选中文字';
   translateBtn.addEventListener('click', (e) => {
     e.stopPropagation();
+    suppressSelectionBtn();
     const sel = window.getSelection().toString().trim();
     if (sel) {
       hideSelectionPlayBtn();
-      const rect = translateBtn.getBoundingClientRect();
-      window._readmateMouseX = rect.left;
-      window._readmateMouseY = rect.top;
+      // 用选区位置定位翻译弹窗，而非按钮位置
+      let posX, posY;
+      try {
+        const selRange = window.getSelection().getRangeAt(0);
+        const selRect = selRange.getBoundingClientRect();
+        posX = selRect.left;
+        posY = selRect.top;
+      } catch(err) {
+        posX = window._readmateMouseX;
+        posY = window._readmateMouseY;
+      }
       loadSettings().then(async () => {
         if (!settings.aiEndpoint || !settings.aiApiKey) {
-          showTranslation('⚠️ 请先在设置中配置 AI 翻译（端点 + API Key）', true, rect.left, rect.top);
+          showTranslation('⚠️ 请先在设置中配置 AI 翻译（端点 + API Key）', true, posX, posY);
           DebugLog.add('Selection translate: no AI config');
           return;
         }
         const translation = await translateText(sel);
         if (translation) {
-          showTranslation(translation, false, rect.left, rect.top);
+          showTranslation(translation, false, posX, posY);
         } else {
-          showTranslation('⚠️ 翻译失败，请检查 API 配置', true, rect.left, rect.top);
+          showTranslation('⚠️ 翻译失败，请检查 API 配置', true, posX, posY);
         }
       });
     }
@@ -245,12 +255,19 @@ function createSelectionPlayBtn() {
   document.body.appendChild(selectionPlayBtn);
 }
 
+// 防止点击按钮后 touchend/mouseup 重新弹出
+let _selectionBtnSuppressed = false;
+function suppressSelectionBtn() {
+  _selectionBtnSuppressed = true;
+  setTimeout(() => { _selectionBtnSuppressed = false; }, 500);
+}
+
 function showSelectionPlayBtn(x, y) {
   if (!selectionPlayBtn) createSelectionPlayBtn();
   const btn = selectionPlayBtn;
   btn.style.display = 'flex';
-  // 容器宽度约80px(两个36px按钮+gap)，防止超出右边界
-  btn.style.left = Math.min(x, window.innerWidth - 90) + 'px';
+  // 容器约62px宽(两个30px按钮+分隔)，防止超出边界
+  btn.style.left = Math.min(x, window.innerWidth - 70) + 'px';
   btn.style.top = Math.max(5, y) + 'px';
   DebugLog.add('Selection play btn shown at (' + x + ', ' + y + ')');
 }
@@ -261,6 +278,7 @@ function hideSelectionPlayBtn() {
 
 // ====== 文字选中弹出播放按钮（支持桌面鼠标+手机触屏）======
 document.addEventListener('mouseup', (e) => {
+  if (_selectionBtnSuppressed) return;
   if (e.target && e.target.closest && e.target.closest('#readmate-selection-play')) return;
   if (e.target && e.target.closest && e.target.closest('#readmate-translation-panel')) return;
   if (e.target && e.target.closest && e.target.closest('#readmate-bar')) return;
@@ -288,6 +306,7 @@ document.addEventListener('mousedown', (e) => {
 
 // 手机端：选中文字后弹出橙色播放按钮
 document.addEventListener('touchend', () => {
+  if (_selectionBtnSuppressed) return;
   // 延迟等待系统选中完成
   setTimeout(() => {
     const sel = window.getSelection();

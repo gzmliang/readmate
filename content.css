@@ -174,38 +174,35 @@
   display: none;
   position: fixed;
   z-index: 2147483646;
-  gap: 6px;
+  gap: 1px;
   align-items: center;
-  transition: opacity 0.15s;
+  background: #2b2b2b;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  overflow: hidden;
 }
 .readmate-sel-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 30px;
+  height: 28px;
   border: none;
-  color: #fff;
-  font-size: 16px;
+  color: #e0e0e0;
+  font-size: 12px;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.15s, box-shadow 0.15s;
   line-height: 1;
-}
-.readmate-sel-play {
-  background: #FF6B6B;
+  background: transparent;
+  transition: background 0.12s;
 }
 .readmate-sel-play:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 16px rgba(255,107,107,0.4);
+  background: #3d3d3d;
 }
 .readmate-sel-translate {
-  background: #4A90D9;
+  border-left: 1px solid #404040;
 }
 .readmate-sel-translate:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 16px rgba(74,144,217,0.4);
+  background: #3d3d3d;
 }
 
 /* ====== 手机端悬浮朗读按钮 ====== */
