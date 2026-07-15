@@ -22,10 +22,21 @@
       <div id="pageStatus" class="page-status">检测页面状态...</div>
     </div>
 
-    <!-- 语音设置 -->
+    <!-- 引擎切换 -->
     <div class="section">
       <div class="section-title" id="lblTtsSection">语音朗读</div>
+      <div class="engine-switch">
+        <label class="engine-option">
+          <input type="radio" name="ttsEngine" value="browser" checked>
+          <span>🔊 浏览器</span>
+        </label>
+        <label class="engine-option">
+          <input type="radio" name="ttsEngine" value="cloud">
+          <span>☁️ 云端</span>
+        </label>
+      </div>
 
+      <div id="browserTtsSection">
       <div class="setting-row">
         <label id="lblSpeed">语速</label>
         <div class="speed-row">
@@ -44,10 +55,11 @@
         <button id="testBrowserVoiceBtn" class="btn-test-voice-sm">▶ 测试浏览器</button>
         <span id="testBrowserVoiceResult" class="test-result"></span>
       </div>
+      </div>
     </div>
 
     <!-- 云端语音 -->
-    <div class="section">
+    <div class="section" id="cloudTtsSection">
       <div class="section-title">云端语音 (Edge TTS)</div>
       <div class="setting-row">
         <label id="lblCloudEndpoint">服务器</label>

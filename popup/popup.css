@@ -140,6 +140,38 @@ body {
   margin-bottom: 10px;
 }
 
+/* 引擎切换 */
+.engine-switch {
+  display: flex;
+  gap: 0;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #d0d0d0;
+}
+.engine-option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #666;
+  background: #f8f8f8;
+  transition: background 0.12s;
+}
+.engine-option input[type="radio"] {
+  margin: 0;
+  accent-color: #4a6cf7;
+}
+.engine-option:has(input:checked) {
+  background: #e8eef9;
+  color: #4a6cf7;
+  font-weight: 600;
+}
+
 /* 设置行 */
 .setting-row {
   display: flex;

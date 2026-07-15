@@ -65,6 +65,19 @@ function localize() {
   setText('testBtn', _('testTranslateBtn'));
 }
 
+/** 根据引擎选择显示/隐藏对应区域 */
+function updateEngineSections(engine) {
+  const browserSection = document.getElementById('browserTtsSection');
+  const cloudSection = document.getElementById('cloudTtsSection');
+  if (engine === 'cloud') {
+    if (browserSection) browserSection.style.display = 'none';
+    if (cloudSection) cloudSection.style.display = '';
+  } else {
+    if (browserSection) browserSection.style.display = '';
+    if (cloudSection) cloudSection.style.display = 'none';
+  }
+}
+
 /** 获取当前活动标签页 */
 function getCurrentTab() {
   return new Promise((resolve) => {
@@ -166,6 +179,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 填充设置值
     document.getElementById('ttsSpeed').value = settings.ttsSpeed;
     document.getElementById('ttsSpeedLabel').textContent = settings.ttsSpeed + 'x';
+
+    // 引擎切换
+    const engine = settings.ttsEngine || 'browser';
+    document.querySelector(`input[name="ttsEngine"][value="${engine}"]`).checked = true;
+    updateEngineSections(engine);
+
+    // 引擎切换事件
+    document.querySelectorAll('input[name="ttsEngine"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        updateEngineSections(e.target.value);
+        autoSave();
+      });
+    });
 
     // 从 HTTP 端点加载云端语音（手机端不需要 CA 证书）
     document.getElementById('cloudTtsEndpoint').value = settings.cloudTtsEndpoint || 'http://powerplus.blogsyte.com:5001';
@@ -441,6 +467,7 @@ function testVoiceFromPopup(type, btn, resultEl) {
 // 保存设置
 function saveSettings(silent) {
   const settings = {
+    ttsEngine: document.querySelector('input[name="ttsEngine"]:checked')?.value || 'browser',
     ttsSpeed: parseFloat(document.getElementById('ttsSpeed').value),
     ttsVoice: document.getElementById('ttsVoice').value || '',
     // 云端 Edge TTS
