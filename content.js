@@ -223,16 +223,21 @@ function createSelectionPlayBtn() {
     const sel = window.getSelection().toString().trim();
     if (sel) {
       hideSelectionPlayBtn();
-      // 用选区位置定位翻译弹窗，而非按钮位置
+      // 优先用缓存的选区位置，防止点击后选区丢失
       let posX, posY;
-      try {
-        const selRange = window.getSelection().getRangeAt(0);
-        const selRect = selRange.getBoundingClientRect();
-        posX = selRect.left;
-        posY = selRect.top;
-      } catch(err) {
-        posX = window._readmateMouseX;
-        posY = window._readmateMouseY;
+      if (_savedSelectionRect && _savedSelectionRect.width > 0) {
+        posX = _savedSelectionRect.left;
+        posY = _savedSelectionRect.top;
+      } else {
+        try {
+          const selRange = window.getSelection().getRangeAt(0);
+          const selRect = selRange.getBoundingClientRect();
+          posX = selRect.left;
+          posY = selRect.top;
+        } catch(err) {
+          posX = window._readmateMouseX;
+          posY = window._readmateMouseY;
+        }
       }
       loadSettings().then(async () => {
         if (!settings.aiEndpoint || !settings.aiApiKey) {
@@ -262,6 +267,9 @@ function suppressSelectionBtn() {
   setTimeout(() => { _selectionBtnSuppressed = false; }, 500);
 }
 
+// 提前缓存选区位置，防止点击按钮后选区丢失导致弹窗跑到 (0,0)
+let _savedSelectionRect = null;
+
 function showSelectionPlayBtn(x, y) {
   if (!selectionPlayBtn) createSelectionPlayBtn();
   const btn = selectionPlayBtn;
@@ -269,6 +277,13 @@ function showSelectionPlayBtn(x, y) {
   // 容器约62px宽(两个30px按钮+分隔)，防止超出边界
   btn.style.left = Math.min(x, window.innerWidth - 70) + 'px';
   btn.style.top = Math.max(5, y) + 'px';
+  // 缓存当前选区位置
+  try {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      _savedSelectionRect = sel.getRangeAt(0).getBoundingClientRect();
+    }
+  } catch(e) {}
   DebugLog.add('Selection play btn shown at (' + x + ', ' + y + ')');
 }
 
