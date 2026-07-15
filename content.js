@@ -266,8 +266,8 @@ function showSelectionPlayBtn(x, y) {
   if (!selectionPlayBtn) createSelectionPlayBtn();
   const btn = selectionPlayBtn;
   btn.style.display = 'flex';
-  // 容器约62px宽(两个30px按钮+分隔)，防止超出边界
-  btn.style.left = Math.min(x, window.innerWidth - 70) + 'px';
+  // 容器约70px宽(两个32px圆+gap)，防止超出边界
+  btn.style.left = Math.min(x, window.innerWidth - 80) + 'px';
   btn.style.top = Math.max(5, y) + 'px';
   DebugLog.add('Selection play btn shown at (' + x + ', ' + y + ')');
 }

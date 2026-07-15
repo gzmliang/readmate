@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ReadMate / 读伴",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "网页朗读助手 — 浏览器原生语音朗读+AI翻译，读外语新闻轻松跟上",
   "permissions": [
     "contextMenus",
