@@ -194,11 +194,14 @@ function hideFAB() {
 
 function createSelectionPlayBtn() {
   if (selectionPlayBtn) return;
-  selectionPlayBtn = document.createElement('button');
+  selectionPlayBtn = document.createElement('div');
   selectionPlayBtn.id = 'readmate-selection-play';
-  selectionPlayBtn.textContent = '▶';
-  selectionPlayBtn.title = '朗读选中文字';
-  selectionPlayBtn.addEventListener('click', (e) => {
+
+  const playBtn = document.createElement('button');
+  playBtn.className = 'readmate-sel-btn readmate-sel-play';
+  playBtn.textContent = '▶';
+  playBtn.title = '朗读选中文字';
+  playBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     const sel = window.getSelection().toString().trim();
     if (sel) {
@@ -208,6 +211,37 @@ function createSelectionPlayBtn() {
       loadSettings().then(() => startReading(sel));
     }
   });
+
+  const translateBtn = document.createElement('button');
+  translateBtn.className = 'readmate-sel-btn readmate-sel-translate';
+  translateBtn.textContent = '🌐';
+  translateBtn.title = '翻译选中文字';
+  translateBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const sel = window.getSelection().toString().trim();
+    if (sel) {
+      hideSelectionPlayBtn();
+      const rect = translateBtn.getBoundingClientRect();
+      window._readmateMouseX = rect.left;
+      window._readmateMouseY = rect.top;
+      loadSettings().then(async () => {
+        if (!settings.aiEndpoint || !settings.aiApiKey) {
+          showTranslation('⚠️ 请先在设置中配置 AI 翻译（端点 + API Key）', true, rect.left, rect.top);
+          DebugLog.add('Selection translate: no AI config');
+          return;
+        }
+        const translation = await translateText(sel);
+        if (translation) {
+          showTranslation(translation, false, rect.left, rect.top);
+        } else {
+          showTranslation('⚠️ 翻译失败，请检查 API 配置', true, rect.left, rect.top);
+        }
+      });
+    }
+  });
+
+  selectionPlayBtn.appendChild(playBtn);
+  selectionPlayBtn.appendChild(translateBtn);
   document.body.appendChild(selectionPlayBtn);
 }
 
@@ -215,8 +249,9 @@ function showSelectionPlayBtn(x, y) {
   if (!selectionPlayBtn) createSelectionPlayBtn();
   const btn = selectionPlayBtn;
   btn.style.display = 'flex';
-  btn.style.left = Math.min(x, window.innerWidth - 50) + 'px';
-  btn.style.top = Math.min(y, window.innerHeight - 50) + 'px';
+  // 容器宽度约80px(两个36px按钮+gap)，防止超出右边界
+  btn.style.left = Math.min(x, window.innerWidth - 90) + 'px';
+  btn.style.top = Math.max(5, y) + 'px';
   DebugLog.add('Selection play btn shown at (' + x + ', ' + y + ')');
 }
 
@@ -226,7 +261,7 @@ function hideSelectionPlayBtn() {
 
 // ====== 文字选中弹出播放按钮（支持桌面鼠标+手机触屏）======
 document.addEventListener('mouseup', (e) => {
-  if (e.target && e.target.id === 'readmate-selection-play') return;
+  if (e.target && e.target.closest && e.target.closest('#readmate-selection-play')) return;
   if (e.target && e.target.closest && e.target.closest('#readmate-translation-panel')) return;
   if (e.target && e.target.closest && e.target.closest('#readmate-bar')) return;
 
@@ -246,7 +281,7 @@ document.addEventListener('mouseup', (e) => {
 });
 
 document.addEventListener('mousedown', (e) => {
-  if (e.target && e.target.id !== 'readmate-selection-play') {
+  if (e.target && e.target.closest && !e.target.closest('#readmate-selection-play')) {
     hideSelectionPlayBtn();
   }
 });
@@ -273,7 +308,7 @@ document.addEventListener('touchend', () => {
 
 // 点击页面其他地方隐藏橙色按钮（手机适配）
 document.addEventListener('touchstart', (e) => {
-  if (!e.target || e.target.id !== 'readmate-selection-play') {
+  if (!e.target || !(e.target.closest && e.target.closest('#readmate-selection-play'))) {
     hideSelectionPlayBtn();
   }
 }, { passive: true });
