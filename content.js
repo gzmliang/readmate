@@ -331,6 +331,54 @@ function updateSummaryDialogI18n() {
   }
 }
 
+function updateFloatingBarI18n() {
+  if (!floatingBar) return;
+  const modeSel = floatingBar.querySelector('#readmate-voice-mode-select');
+  if (modeSel) {
+    modeSel.title = _t('lblVoiceMode', '播放模式');
+    const optOrig = modeSel.querySelector('option[value="original"]');
+    if (optOrig) optOrig.textContent = _t('modeOriginal', '🔊 仅读原文');
+    const optTrans = modeSel.querySelector('option[value="translated"]');
+    if (optTrans) optTrans.textContent = _t('modeTranslated', '🌐 直接读译文');
+    const optBi = modeSel.querySelector('option[value="bilingual"]');
+    if (optBi) optBi.textContent = _t('modeBilingual', '🔄 双语交替读');
+  }
+
+  const prevBtn = floatingBar.querySelector('#readmate-prev-sentence');
+  if (prevBtn) prevBtn.title = _t('btnPrev', '上一句');
+  const playBtn = floatingBar.querySelector('#readmate-play-btn');
+  if (playBtn) playBtn.title = _t('btnPlay', '播放/暂停');
+  const nextBtn = floatingBar.querySelector('#readmate-next-sentence');
+  if (nextBtn) nextBtn.title = _t('btnNext', '下一句');
+  const stopBtn = floatingBar.querySelector('#readmate-stop-btn');
+  if (stopBtn) stopBtn.title = _t('btnStop', '停止');
+
+  const biLabel = floatingBar.querySelector('#readmate-bilingual-label');
+  if (biLabel) biLabel.title = _t('lblEnableBilingual', '双语翻译 (不勾选省Token)');
+  const biText = floatingBar.querySelector('#readmate-bilingual-text');
+  if (biText) biText.textContent = _t('lblBilingual', '双语');
+
+  const subLabel = floatingBar.querySelector('#readmate-subtitles-label');
+  if (subLabel) subLabel.title = _t('lblBilingualSubtitles', '字幕显示');
+  const subText = floatingBar.querySelector('#readmate-subtitles-text');
+  if (subText) subText.textContent = _t('lblSubtitles', '字幕');
+
+  const summaryBtn = floatingBar.querySelector('#readmate-summary-btn');
+  if (summaryBtn) summaryBtn.title = _t('fabSummaryTip', 'AI 双语摘要');
+}
+
+/** 智能文本语言检测辅助函数 */
+function detectTextLanguage(txt) {
+  if (!txt || !txt.trim()) return 'en-US';
+  if (window.ContentExtractor && typeof ContentExtractor.detectLanguage === 'function') {
+    return ContentExtractor.detectLanguage(txt);
+  }
+  if (typeof TextUtils !== 'undefined' && typeof TextUtils.detectLanguage === 'function') {
+    return TextUtils.detectLanguage(txt);
+  }
+  return 'en-US';
+}
+
 function createFAB() {
   if (fabContainer) return;
   fabContainer = document.createElement('div');
@@ -424,13 +472,13 @@ function createFloatingBar() {
       </div>
 
       <div class="readmate-bar-right">
-        <label class="readmate-chk-toggle" title="${_t('lblEnableBilingual', '双语翻译 (不勾选省Token)')}">
+        <label class="readmate-chk-toggle" id="readmate-bilingual-label" title="${_t('lblEnableBilingual', '双语翻译 (不勾选省Token)')}">
           <input type="checkbox" id="readmate-bilingual-chk" ${enableBilingual ? 'checked' : ''}>
-          <span>${_t('lblBilingual', '双语')}</span>
+          <span id="readmate-bilingual-text">${_t('lblBilingual', '双语')}</span>
         </label>
-        <label class="readmate-sub-toggle" title="${_t('lblBilingualSubtitles', '字幕显示')}">
+        <label class="readmate-sub-toggle" id="readmate-subtitles-label" title="${_t('lblBilingualSubtitles', '字幕显示')}">
           <input type="checkbox" id="readmate-sub-chk" ${showBilingualSubtitles ? 'checked' : ''}>
-          <span>${_t('lblSubtitles', '字幕')}</span>
+          <span id="readmate-subtitles-text">${_t('lblSubtitles', '字幕')}</span>
         </label>
         <button class="readmate-btn readmate-btn-summary" id="readmate-summary-btn" title="${_t('fabSummaryTip', 'AI 双语摘要')}">⚡</button>
         <button class="readmate-btn" id="readmate-debug-btn" title="Debug" style="display:none">🐛</button>
@@ -1210,9 +1258,9 @@ async function startReading(text, forceLang = null, voiceModeOverride = null) {
     detectedDocLang = forceLang;
   } else {
     try {
-      detectedDocLang = ContentExtractor.detectLanguage ? ContentExtractor.detectLanguage(text) : 'en-US';
+      detectedDocLang = detectTextLanguage(text);
     } catch(e) {
-      detectedDocLang = 'zh-CN';
+      detectedDocLang = 'en-US';
     }
   }
   DebugLog.add(`Detected doc language: ${detectedDocLang}`);
@@ -1445,9 +1493,7 @@ function showSummaryCard(summaryList) {
       const item = summaryList[idx];
       const targetLangCode = LANG_NAME_TO_CODE[settings.translateTarget] || 'zh-CN';
       if (type === 'orig') {
-        const itemDocLang = (window.ContentExtractor && typeof ContentExtractor.detectLanguage === 'function' && item.original)
-          ? ContentExtractor.detectLanguage(item.original)
-          : (detectedDocLang || 'en-US');
+        const itemDocLang = detectTextLanguage(item.original);
         startReading(item.original, itemDocLang, 'original');
       } else {
         startReading(item.translated, targetLangCode, 'original');
@@ -1467,18 +1513,16 @@ function showSummaryCard(summaryList) {
       }
     });
     enableBilingual = true;
-    const firstOrigLang = (window.ContentExtractor && typeof ContentExtractor.detectLanguage === 'function' && origSentences[0])
-      ? ContentExtractor.detectLanguage(origSentences[0])
-      : detectedDocLang;
-    startReading(origSentences.join('\n\n'), firstOrigLang, 'bilingual');
+    const allOrigText = origSentences.join('\n\n');
+    const firstOrigLang = detectTextLanguage(allOrigText);
+    startReading(allOrigText, firstOrigLang, 'bilingual');
   };
 
   summaryDialog.querySelector('#readmate-summary-play-orig').onclick = () => {
     const origSentences = summaryList.map(item => item.original).filter(Boolean);
-    const origLang = (window.ContentExtractor && typeof ContentExtractor.detectLanguage === 'function' && origSentences[0])
-      ? ContentExtractor.detectLanguage(origSentences[0])
-      : detectedDocLang;
-    startReading(origSentences.join('\n\n'), origLang, 'original');
+    const allOrigText = origSentences.join('\n\n');
+    const origLang = detectTextLanguage(allOrigText);
+    startReading(allOrigText, origLang, 'original');
   };
 
   summaryDialog.querySelector('#readmate-summary-play-trans').onclick = () => {
@@ -1613,11 +1657,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             updateFABI18n();
             updateSelectionBtnI18n();
             updateSummaryDialogI18n();
-            if (floatingBar && isPlaying) {
-              floatingBar.remove();
-              floatingBar = null;
-              showBar();
-            }
+            updateFloatingBarI18n();
           });
         }
         DebugLog.add(`Settings updated live via broadcast: mode=${readVoiceMode}, bilingual=${enableBilingual}, speed=${settings.ttsSpeed}x`);
@@ -1629,11 +1669,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         updateFABI18n();
         updateSelectionBtnI18n();
         updateSummaryDialogI18n();
-        if (floatingBar) {
-          floatingBar.remove();
-          floatingBar = null;
-          if (isPlaying) showBar();
-        }
+        updateFloatingBarI18n();
       });
       sendResponse({ ok: true });
       break;

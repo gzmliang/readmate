@@ -164,7 +164,7 @@
     "description": "Summary button"
   },
   "lblSubtitles": {
-    "message": "Lyrics",
+    "message": "Subtitles",
     "description": "Subtitles label"
   },
   "btnPrev": {
@@ -302,5 +302,13 @@
   "toastModeChanged": {
     "message": "Mode changed: ",
     "description": "Mode changed"
+  },
+  "lblBilingual": {
+    "message": "Bilingual",
+    "description": "Bilingual toggle label"
+  },
+  "lblEnableBilingual": {
+    "message": "Bilingual translation (saves tokens when off)",
+    "description": "Bilingual toggle tooltip"
   }
 }

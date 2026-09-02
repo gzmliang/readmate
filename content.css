@@ -103,8 +103,8 @@
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
   color: #f1f5f9;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  width: 580px;
-  max-width: 94vw;
+  width: 630px;
+  max-width: 95vw;
   overflow: hidden;
   animation: readmate-card-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -126,19 +126,21 @@
   padding: 10px 16px;
   cursor: move;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 8px;
 }
 
 .readmate-bar-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .readmate-progress {
   font-size: 11px;
   color: #94a3b8;
   font-weight: 600;
-  min-width: 38px;
+  min-width: 34px;
 }
 
 /* 语音流模式下拉 */
@@ -153,6 +155,7 @@
   outline: none;
   cursor: pointer;
   transition: all 0.15s;
+  max-width: 140px;
 }
 
 .readmate-mode-select:hover {
@@ -168,7 +171,8 @@
 .readmate-bar-center {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .readmate-btn {
@@ -217,6 +221,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .readmate-btn-feature {
@@ -325,8 +330,8 @@
 
 .readmate-summary-content {
   position: relative;
-  width: 520px;
-  max-width: 90vw;
+  width: 600px;
+  max-width: 94vw;
   max-height: 85vh;
   background: #1e293b;
   color: #f8fafc;
@@ -339,25 +344,30 @@
 }
 
 .readmate-summary-head {
-  padding: 14px 20px;
+  padding: 12px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 0;
 }
 
 .readmate-summary-title {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
   color: #facc15;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .readmate-summary-head-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 /* 顶部视图切换胶囊 */
@@ -369,6 +379,7 @@
   border-radius: 20px;
   padding: 2px;
   gap: 2px;
+  flex-shrink: 0;
 }
 
 .readmate-summary-tab {
@@ -377,11 +388,12 @@
   color: #94a3b8;
   font-size: 11px;
   font-weight: 500;
-  padding: 3px 10px;
+  padding: 3px 8px;
   border-radius: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
+  white-space: nowrap;
 }
 
 .readmate-summary-tab:hover {

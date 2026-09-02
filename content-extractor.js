@@ -563,8 +563,41 @@ const ContentExtractor = (() => {
     return candidates.slice(0, 25);
   }
 
-  /** 智能语言检测：结合 HTML 声明与文本特征判断语言代码 */
+  /** 智能语言检测：以实际正文文本特征为主准绳，结合 HTML 声明判断语种代码 */
   function detectLanguage(sampleText) {
+    // 1. 优先提取实际文本样本（优先使用传入文本，否则提取页面正文文本）
+    let text = (sampleText || '').trim();
+    if (!text && document.body) {
+      text = (document.body.innerText || '').substring(0, 1000);
+    }
+
+    if (text && text.length >= 5) {
+      const hangul = (text.match(/[\uac00-\ud7af\u1100-\u11ff]/g) || []).length;
+      const kana = (text.match(/[\u3040-\u30ff]/g) || []).length;
+      const cjk = (text.match(/[\u4e00-\u9fa5]/g) || []).length;
+      const cyrillic = (text.match(/[\u0400-\u04ff]/g) || []).length;
+      const latin = (text.match(/[a-zA-Z]/g) || []).length;
+
+      // 只要含韩文字符（优先精准锁定韩语）
+      if (hangul >= 3 || (hangul > 0 && hangul >= cjk)) return 'ko-KR';
+      // 只要含日文假名（优先精准锁定日语）
+      if (kana >= 3) return 'ja-JP';
+      // 中文汉字
+      if (cjk >= 5) return 'zh-CN';
+      // 俄语西里尔字母
+      if (cyrillic >= 5) return 'ru-RU';
+      // 拉丁语系（英语/德语/法语/西语等）
+      if (latin >= 10) {
+        if (/[äöüßÄÖÜ]/.test(text) || /\b(der|die|das|und|ist|nicht|für|mit|ein|eine)\b/i.test(text)) return 'de-DE';
+        if (/[éèêëàâùûôîïçÉÈÊËÀÂÙÛÔÎÏÇ]/.test(text) || /\b(le|la|les|des|est|une|dans|pour|avec|que)\b/i.test(text)) return 'fr-FR';
+        if (/[áéíóúñ¿¡ÁÉÍÓÚÑ]/.test(text) || /\b(el|la|los|las|por|para|con|una|del|que)\b/i.test(text)) return 'es-ES';
+        if (/\b(il|la|lo|gli|che|sono|per|con|del|della)\b/i.test(text)) return 'it-IT';
+        if (/[ãõáéíóúçÃÕÁÉÍÓÚÇ]/.test(text) || /\b(não|com|para|uma|dos|das|que)\b/i.test(text)) return 'pt-PT';
+        return 'en-US';
+      }
+    }
+
+    // 2. 只有文本样本不足或无法区分时，才回退参考 HTML 声明
     const htmlLang = (document.documentElement.lang || document.body?.getAttribute('lang') || '').toLowerCase();
     if (htmlLang.startsWith('zh')) return 'zh-CN';
     if (htmlLang.startsWith('ja')) return 'ja-JP';
@@ -576,18 +609,6 @@ const ContentExtractor = (() => {
     if (htmlLang.startsWith('it')) return 'it-IT';
     if (htmlLang.startsWith('pt')) return 'pt-PT';
     if (htmlLang.startsWith('en')) return 'en-US';
-
-    // 文本特征统计
-    const text = (sampleText || document.body?.innerText || '').substring(0, 500);
-    const cjk = (text.match(/[\u4e00-\u9fa5]/g) || []).length;
-    const kana = (text.match(/[\u3040-\u30ff]/g) || []).length;
-    const hangul = (text.match(/[\uac00-\ud7af]/g) || []).length;
-    const cyrillic = (text.match(/[\u0400-\u04ff]/g) || []).length;
-
-    if (kana > 5) return 'ja-JP';
-    if (hangul > 5) return 'ko-KR';
-    if (cjk > 10) return 'zh-CN';
-    if (cyrillic > 10) return 'ru-RU';
 
     return 'en-US';
   }

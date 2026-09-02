@@ -252,5 +252,13 @@
   "selTranslateTip": {
     "message": "Translate Selected Text",
     "description": "Selection translate tooltip"
+  },
+  "lblBilingual": {
+    "message": "Двуязычный",
+    "description": "Двуязычный"
+  },
+  "lblEnableBilingual": {
+    "message": "Двуязычный перевод (экономит токены при выключении)",
+    "description": "Tooltip двуязычный"
   }
 }

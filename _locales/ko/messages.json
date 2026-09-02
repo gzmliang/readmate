@@ -252,5 +252,13 @@
   "selTranslateTip": {
     "message": "Translate Selected Text",
     "description": "Selection translate tooltip"
+  },
+  "lblBilingual": {
+    "message": "이중 언어",
+    "description": "이중 언어 토글"
+  },
+  "lblEnableBilingual": {
+    "message": "이중 언어 번역 (해제 시 토큰 절약)",
+    "description": "이중 언어 툴팁"
   }
 }

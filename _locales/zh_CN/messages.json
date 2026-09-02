@@ -302,5 +302,13 @@
   "toastModeChanged": {
     "message": "模式已切换: ",
     "description": "模式切换提示"
+  },
+  "lblBilingual": {
+    "message": "双语",
+    "description": "双语勾选标签"
+  },
+  "lblEnableBilingual": {
+    "message": "双语翻译 (不勾选省Token)",
+    "description": "双语勾选提示"
   }
 }

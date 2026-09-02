@@ -252,5 +252,13 @@
   "selTranslateTip": {
     "message": "Translate Selected Text",
     "description": "Selection translate tooltip"
+  },
+  "lblBilingual": {
+    "message": "Bilingue",
+    "description": "Bilingue"
+  },
+  "lblEnableBilingual": {
+    "message": "Traduction bilingue (économise des tokens si désactivé)",
+    "description": "Tooltip bilingue"
   }
 }

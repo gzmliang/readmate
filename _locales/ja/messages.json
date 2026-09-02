@@ -302,5 +302,13 @@
   "selTranslateTip": {
     "message": "Translate Selected Text",
     "description": "Selection translate tooltip"
+  },
+  "lblBilingual": {
+    "message": "バイリンガル",
+    "description": "バイリンガル切替"
+  },
+  "lblEnableBilingual": {
+    "message": "バイリンガル翻訳 (オフでToken節約)",
+    "description": "バイリンガル切替ヒント"
   }
 }
