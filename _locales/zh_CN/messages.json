@@ -4,7 +4,7 @@
     "description": "应用名称"
   },
   "appDesc": {
-    "message": "网页朗读助手 — 浏览器原生语音朗读+AI翻译",
+    "message": "网页朗读助手 — 原生语音+Edge TTS+AI翻译与双语摘要",
     "description": "应用描述"
   },
   "menuReadSelection": {
@@ -12,215 +12,295 @@
     "description": "右键菜单：朗读选中文本"
   },
   "menuReadPage": {
-    "message": "朗读页面",
+    "message": "朗读此页面",
     "description": "右键菜单：朗读页面"
   },
   "menuTranslateSelection": {
     "message": "翻译选中文本",
     "description": "右键菜单：翻译选中文本"
   },
-
+  "btnReadPage": {
+    "message": "▶ 朗读此页",
+    "description": "朗读此页按钮"
+  },
+  "btnStop": {
+    "message": "⏹ 停止",
+    "description": "停止按钮"
+  },
+  "shortcutTip": {
+    "message": "快捷键：Ctrl+Shift+P 朗读，Ctrl+Shift+S 停止",
+    "description": "快捷键提示"
+  },
+  "refreshTip": {
+    "message": "💡 若刚安装或更新插件，请刷新一次网页即可生效",
+    "description": "刷新页面提示"
+  },
+  "sectionVoiceStream": {
+    "message": "朗读语音流模式",
+    "description": "语音流模式区块标题"
+  },
+  "lblVoiceMode": {
+    "message": "播放模式",
+    "description": "播放模式标签"
+  },
+  "modeOriginal": {
+    "message": "🔊 仅读原文 (外语/原汁原味)",
+    "description": "仅读原文"
+  },
+  "modeTranslated": {
+    "message": "🌐 直接读译文 (外文变母语广播)",
+    "description": "直接读译文"
+  },
+  "modeBilingual": {
+    "message": "🔄 双语交替读 (句句对照/学外语)",
+    "description": "双语交替读"
+  },
+  "lblBilingualSubtitles": {
+    "message": "双语字幕",
+    "description": "双语字幕标签"
+  },
+  "chkShowSubtitles": {
+    "message": "在控制条显示双语字幕",
+    "description": "显示双语字幕勾选"
+  },
   "ttsEngineSection": {
-    "message": "🗣️ 朗读引擎",
+    "message": "语音朗读引擎",
     "description": "设置面板：朗读引擎区块标题"
   },
-  "engineLabel": {
-    "message": "引擎",
-    "description": "设置面板：引擎下拉框标签"
+  "engineBrowser": {
+    "message": "🔊 浏览器原生",
+    "description": "浏览器原生"
   },
-  "engineWebSpeech": {
-    "message": "浏览器原生语音 (Web Speech)",
-    "description": "设置面板：引擎选项-浏览器原生语音"
-  },
-  "engineEdgeTts": {
-    "message": "Edge TTS (本地服务器)",
-    "description": "设置面板：引擎选项-Edge TTS"
-  },
-  "engineCustom": {
-    "message": "自定义 TTS (OpenAI 兼容)",
-    "description": "设置面板：引擎选项-自定义TTS"
+  "engineCloud": {
+    "message": "☁️ 云端 Edge TTS",
+    "description": "云端语音"
   },
   "speedLabel": {
     "message": "语速",
-    "description": "设置面板：语速滑块标签"
+    "description": "语速标签"
   },
   "voiceLabel": {
     "message": "语音",
-    "description": "设置面板：语音选择标签"
-  },
-  "voiceAuto": {
-    "message": "自动检测",
-    "description": "设置面板：语音下拉-自动检测"
+    "description": "语音标签"
   },
   "voiceAutoLang": {
-    "message": "自动检测（按页面语言）",
-    "description": "设置面板：语音下拉完整选项"
+    "message": "自动匹配 (按页面语言)",
+    "description": "自动匹配语音"
   },
-  "localVoiceSuffix": {
-    "message": " (本地)",
-    "description": "语音选项后缀-本地语音"
+  "btnTestBrowser": {
+    "message": "▶ 测试浏览器",
+    "description": "测试浏览器按钮"
   },
-
-  "edgeTtsSection": {
-    "message": "🔧 Edge TTS 配置",
-    "description": "设置面板：Edge TTS配置区块标题"
+  "cloudTtsSection": {
+    "message": "云端语音 (Edge TTS)",
+    "description": "云端语音标题"
   },
-  "edgeTtsVoiceLabel": {
-    "message": "语音",
-    "description": "设置面板：Edge TTS语音选择标签"
+  "lblCloudEndpoint": {
+    "message": "服务器地址",
+    "description": "服务器地址"
   },
-  "loadingVoices": {
-    "message": "加载语音列表...",
-    "description": "Edge TTS语音加载中提示"
+  "lblCloudVoice": {
+    "message": "云端音色",
+    "description": "云端音色标签"
   },
-  "noVoicesAvailable": {
-    "message": "无可用语音",
-    "description": "Edge TTS无可用语音提示"
+  "optCloudAuto": {
+    "message": "⚡ 自动选择 (推荐)",
+    "description": "自动选择最佳音色"
   },
-  "selectVoiceHint": {
-    "message": "-- 请选择语音 --",
-    "description": "Edge TTS语音下拉默认选项"
+  "btnTestCloud": {
+    "message": "☁️ 测试云端",
+    "description": "测试云端按钮"
   },
-  "configEndpointFirst": {
-    "message": "请先配置端点",
-    "description": "Edge TTS未配置端点提示"
+  "aiSectionTitle": {
+    "message": "AI 服务商与摘要",
+    "description": "AI区块标题"
   },
-  "loadVoicesFailed": {
-    "message": "加载失败，请检查端点",
-    "description": "Edge TTS语音加载失败提示"
+  "lblProvider": {
+    "message": "服务商预设",
+    "description": "服务商预设标签"
   },
-
-  "customTtsSection": {
-    "message": "🔧 自定义 TTS 配置",
-    "description": "设置面板：自定义TTS配置区块标题"
+  "lblEndpoint": {
+    "message": "API 端点",
+    "description": "API 端点"
   },
-  "endpointLabel": {
-    "message": "端点",
-    "description": "设置面板：端点输入框标签"
-  },
-  "apiKeyLabel": {
+  "lblApiKey": {
     "message": "API Key",
-    "description": "设置面板：API Key输入框标签"
+    "description": "API Key"
   },
-  "modelLabel": {
+  "lblModel": {
     "message": "模型",
-    "description": "设置面板：模型输入框标签"
+    "description": "模型标签"
   },
-  "customTtsVoiceLabel": {
-    "message": "语音",
-    "description": "设置面板：自定义TTS语音输入框标签"
+  "lblTargetLanguage": {
+    "message": "目标翻译语言",
+    "description": "目标翻译语言标签"
   },
-
-  "aiTranslateSection": {
-    "message": "🌐 AI 翻译",
-    "description": "设置面板：AI翻译区块标题"
+  "lblSummaryViewMode": {
+    "message": "默认摘要呈现",
+    "description": "默认摘要呈现标签"
   },
-  "targetLanguageLabel": {
-    "message": "目标语言",
-    "description": "设置面板：目标语言下拉标签"
+  "lblHighlight": {
+    "message": "朗读高亮",
+    "description": "朗读高亮标签"
   },
-  "langZhCn": {
-    "message": "简体中文",
-    "description": "设置面板：目标语言-简体中文"
+  "btnTestAi": {
+    "message": "测试 AI 连接",
+    "description": "测试AI按钮"
   },
-  "langEn": {
-    "message": "English",
-    "description": "设置面板：目标语言-English"
+  "btnSave": {
+    "message": "保存设置",
+    "description": "保存设置按钮"
   },
-  "langJa": {
-    "message": "日本語",
-    "description": "设置面板：目标语言-日语"
-  },
-  "langKo": {
-    "message": "한국어",
-    "description": "设置面板：目标语言-韩语"
-  },
-  "langFr": {
-    "message": "Français",
-    "description": "设置面板：目标语言-法语"
-  },
-  "langDe": {
-    "message": "Deutsch",
-    "description": "设置面板：目标语言-德语"
-  },
-  "langEs": {
-    "message": "Español",
-    "description": "设置面板：目标语言-西班牙语"
-  },
-  "autoTranslateLabel": {
-    "message": "朗读时自动翻译每个句子",
-    "description": "设置面板：自动翻译复选框标签"
-  },
-
-  "otherSection": {
-    "message": "⚙️ 其他",
-    "description": "设置面板：其他设置区块标题"
-  },
-  "highlightLabel": {
-    "message": "朗读时高亮当前句子",
-    "description": "设置面板：句子高亮复选框标签"
-  },
-
-  "saveButton": {
-    "message": "💾 保存设置",
-    "description": "设置面板：保存按钮"
-  },
-  "testTranslateBtn": {
-    "message": "🔄 测试翻译",
-    "description": "设置面板：测试翻译按钮"
-  },
-  "savingStatus": {
-    "message": "⏳ 保存中...",
-    "description": "设置面板：保存中状态"
+  "btnFullOptions": {
+    "message": "⚙ 完整设置",
+    "description": "完整设置按钮"
   },
   "savedStatus": {
-    "message": "✅ 已保存",
-    "description": "设置面板：保存成功状态"
+    "message": "✓ 已保存",
+    "description": "保存成功"
   },
-  "saveFailedStatus": {
-    "message": "❌ 保存失败",
-    "description": "设置面板：保存失败状态"
+  "btnSummary": {
+    "message": "⚡ 摘要",
+    "description": "摘要按钮"
   },
-  "fillEndpointKeyWarning": {
-    "message": "⚠️ 请先填写端点和 API Key",
-    "description": "设置面板：填写端点和API Key提示"
+  "lblSubtitles": {
+    "message": "字幕",
+    "description": "字幕标签"
   },
-  "testingStatus": {
-    "message": "⏳ 测试中...",
-    "description": "设置面板：测试翻译进行中"
+  "btnPrev": {
+    "message": "上一句",
+    "description": "上一句"
   },
-
-  "uiLanguageLabel": {
-    "message": "界面语言",
-    "description": "设置面板：界面语言下拉标签"
-  },
-  "langAuto": {
-    "message": "自动（跟随浏览器）",
-    "description": "设置面板：界面语言-自动"
-  },
-  "langEnglish": {
-    "message": "English",
-    "description": "设置面板：界面语言-English"
-  },
-  "langChinese": {
-    "message": "中文",
-    "description": "设置面板：界面语言-中文"
-  },
-
-  "playPauseTitle": {
+  "btnPlay": {
     "message": "播放/暂停",
-    "description": "浮动朗读条：播放暂停按钮提示"
+    "description": "播放/暂停"
   },
-  "stopTitle": {
-    "message": "停止",
-    "description": "浮动朗读条：停止按钮提示"
+  "btnNext": {
+    "message": "下一句",
+    "description": "下一句"
   },
-  "translateTitle": {
-    "message": "翻译当前句",
-    "description": "浮动朗读条：翻译按钮提示"
+  "summaryCardTitle": {
+    "message": "⚡ AI 双语核心要闻摘要",
+    "description": "摘要弹窗标题"
   },
-  "closeTitle": {
-    "message": "关闭",
-    "description": "浮动朗读条：关闭按钮提示"
+  "summaryTabBilingual": {
+    "message": "🔄 双语",
+    "description": "双语对照模式标签"
+  },
+  "summaryTabBilingualTip": {
+    "message": "双语对照模式",
+    "description": "双语对照模式提示"
+  },
+  "summaryTabOriginal": {
+    "message": "📄 原文",
+    "description": "仅看原文标签"
+  },
+  "summaryTabOriginalTip": {
+    "message": "仅看原文 (纯净沉浸)",
+    "description": "仅看原文提示"
+  },
+  "summaryTabTranslated": {
+    "message": "🌐 译文",
+    "description": "仅看译文标签"
+  },
+  "summaryTabTranslatedTip": {
+    "message": "仅看译文 (母语速览)",
+    "description": "仅看译文提示"
+  },
+  "summaryRegenerateTip": {
+    "message": "重新生成摘要",
+    "description": "重新生成摘要按钮提示"
+  },
+  "summaryMinimizeTip": {
+    "message": "最小化",
+    "description": "最小化摘要弹窗提示"
+  },
+  "summaryCloseTip": {
+    "message": "关闭 (ESC)",
+    "description": "关闭摘要弹窗提示"
+  },
+  "summaryPlayBilingual": {
+    "message": "🔄 连播摘要 (双语)",
+    "description": "双语交替读摘要按钮"
+  },
+  "summaryPlayBilingualTip": {
+    "message": "双语交替读摘要",
+    "description": "双语交替读摘要按钮提示"
+  },
+  "summaryPlayOrig": {
+    "message": "🔊 读原文",
+    "description": "仅读原文摘要按钮"
+  },
+  "summaryPlayOrigTip": {
+    "message": "仅读原文摘要",
+    "description": "仅读原文摘要提示"
+  },
+  "summaryPlayTrans": {
+    "message": "🌐 读译文",
+    "description": "直接读译文摘要按钮"
+  },
+  "summaryPlayTransTip": {
+    "message": "直接读译文摘要",
+    "description": "直接读译文摘要提示"
+  },
+  "readOriginal": {
+    "message": "读原文",
+    "description": "读原文按钮提示"
+  },
+  "readTranslated": {
+    "message": "读译文",
+    "description": "读译文按钮提示"
+  },
+  "playAllSummary": {
+    "message": "▶ 连播摘要 (双语)",
+    "description": "连播摘要按钮"
+  },
+  "copyMarkdown": {
+    "message": "📋 复制 Markdown",
+    "description": "复制Markdown按钮"
+  },
+  "fabSummaryTip": {
+    "message": "AI 双语摘要",
+    "description": "右下角AI双语摘要悬浮按钮提示"
+  },
+  "fabPlayTip": {
+    "message": "朗读当前文章 (Ctrl+Shift+P)",
+    "description": "右下角朗读文章悬浮按钮提示"
+  },
+  "selPlayTip": {
+    "message": "朗读选中文字",
+    "description": "划选朗读按钮提示"
+  },
+  "selTranslateTip": {
+    "message": "翻译选中文字",
+    "description": "划选翻译按钮提示"
+  },
+  "toastTextTooShort": {
+    "message": "⚠️ 正文过短（<50字），无法朗读",
+    "description": "正文过短提示"
+  },
+  "toastGeneratingSummary": {
+    "message": "⚡ 正在由 AI 提炼详细双语核心要闻...",
+    "description": "生成摘要时的提示"
+  },
+  "toastSummaryFailed": {
+    "message": "❌ 摘要生成失败，请检查 AI 配置",
+    "description": "生成摘要失败时的提示"
+  },
+  "toastCopied": {
+    "message": "✓ 已复制到剪贴板",
+    "description": "已复制"
+  },
+  "toastArticleFinished": {
+    "message": "🎉 当前文章已朗读完毕",
+    "description": "文章读完提示"
+  },
+  "toastNeedsApiKey": {
+    "message": "⚠️ 请先在插件设置中填写 AI API Key",
+    "description": "需要填Key"
+  },
+  "toastModeChanged": {
+    "message": "模式已切换: ",
+    "description": "模式切换提示"
   }
 }

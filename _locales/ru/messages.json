@@ -1,0 +1,256 @@
+{
+  "appName": {
+    "message": "ReadMate"
+  },
+  "appDesc": {
+    "message": "Веб-помощник TTS — Озвучивание + AI-перевод и двуязычное резюме"
+  },
+  "menuReadSelection": {
+    "message": "Озвучить выделенное"
+  },
+  "menuReadPage": {
+    "message": "Озвучить эту страницу"
+  },
+  "menuTranslateSelection": {
+    "message": "Перевести выделенное"
+  },
+  "btnReadPage": {
+    "message": "▶ Озвучить страницу"
+  },
+  "btnStop": {
+    "message": "⏹ Стоп"
+  },
+  "shortcutTip": {
+    "message": "Горячие клавиши: Ctrl+Shift+P — чтение, Ctrl+Shift+S — стоп"
+  },
+  "sectionVoiceStream": {
+    "message": "Режим голосового потока"
+  },
+  "lblVoiceMode": {
+    "message": "Режим воспроизведения"
+  },
+  "modeOriginal": {
+    "message": "🔊 Только оригинал (Оригинальное аудио)"
+  },
+  "modeTranslated": {
+    "message": "🌐 Только перевод (Русская озвучка)"
+  },
+  "modeBilingual": {
+    "message": "🔄 Двуязычное чередование (По предложениям)"
+  },
+  "lblBilingualSubtitles": {
+    "message": "Субтитры"
+  },
+  "chkShowSubtitles": {
+    "message": "Показывать двуязычные субтитры на панели"
+  },
+  "ttsEngineSection": {
+    "message": "Движок озвучивания"
+  },
+  "engineBrowser": {
+    "message": "🔊 Браузер по умолчанию"
+  },
+  "engineCloud": {
+    "message": "☁️ Облачный Edge TTS"
+  },
+  "speedLabel": {
+    "message": "Скорость"
+  },
+  "voiceLabel": {
+    "message": "Голос"
+  },
+  "voiceAutoLang": {
+    "message": "Автоопределение"
+  },
+  "btnTestBrowser": {
+    "message": "▶ Тест браузера"
+  },
+  "cloudTtsSection": {
+    "message": "Облачный голос (Edge TTS)"
+  },
+  "lblCloudEndpoint": {
+    "message": "Адрес сервера"
+  },
+  "lblCloudVoice": {
+    "message": "Облачный голос"
+  },
+  "optCloudAuto": {
+    "message": "⚡ Автовыбор (Рекомендуется)"
+  },
+  "btnTestCloud": {
+    "message": "☁️ Тест облака"
+  },
+  "aiSectionTitle": {
+    "message": "Настройки AI и краткое содержание"
+  },
+  "lblProvider": {
+    "message": "Провайдер"
+  },
+  "lblEndpoint": {
+    "message": "Конечная точка API"
+  },
+  "lblApiKey": {
+    "message": "Ключ API"
+  },
+  "lblModel": {
+    "message": "Модель"
+  },
+  "lblTargetLanguage": {
+    "message": "Язык перевода"
+  },
+  "lblHighlight": {
+    "message": "Подсветка предложений"
+  },
+  "btnTestAi": {
+    "message": "Тест подключения AI"
+  },
+  "btnSave": {
+    "message": "Сохранить настройки"
+  },
+  "btnFullOptions": {
+    "message": "⚙ Все настройки"
+  },
+  "savedStatus": {
+    "message": "✓ Сохранено"
+  },
+  "btnSummary": {
+    "message": "⚡ Резюме"
+  },
+  "lblSubtitles": {
+    "message": "Субтитры"
+  },
+  "btnPrev": {
+    "message": "Назад"
+  },
+  "btnPlay": {
+    "message": "Воспроизведение/Пауза"
+  },
+  "btnNext": {
+    "message": "Вперед"
+  },
+  "summaryCardTitle": {
+    "message": "⚡ AI Двуязычное ключевое резюме",
+    "description": "Summary card header title"
+  },
+  "readOriginal": {
+    "message": "Слушать оригинал",
+    "description": "Read original summary tooltip"
+  },
+  "readTranslated": {
+    "message": "Слушать перевод",
+    "description": "Read translated summary tooltip"
+  },
+  "playAllSummary": {
+    "message": "▶ Воспроизвести все (Двуязычно)"
+  },
+  "copyMarkdown": {
+    "message": "📋 Копировать Markdown"
+  },
+  "toastTextTooShort": {
+    "message": "⚠️ Текст слишком короткий (<50 символов) для чтения"
+  },
+  "toastGeneratingSummary": {
+    "message": "⚡ AI создает подробное резюме...",
+    "description": "Toast when generating summary"
+  },
+  "toastSummaryFailed": {
+    "message": "❌ Ошибка создания резюме, проверьте настройки AI",
+    "description": "Toast summary failed"
+  },
+  "toastCopied": {
+    "message": "✓ Скопировано в буфер обмена"
+  },
+  "toastArticleFinished": {
+    "message": "🎉 Чтение страницы завершено"
+  },
+  "toastNeedsApiKey": {
+    "message": "⚠️ Сначала укажите ключ AI API в настройках"
+  },
+  "toastModeChanged": {
+    "message": "Режим изменен на: "
+  },
+  "refreshTip": {
+    "message": "💡 Если расширение только что обновлено, обновите страницу",
+    "description": "Refresh page hint"
+  },
+  "lblSummaryViewMode": {
+    "message": "Default Summary View",
+    "description": "Default summary presentation view"
+  },
+  "summaryTabBilingual": {
+    "message": "🔄 Двуязычный",
+    "description": "Summary tab bilingual"
+  },
+  "summaryTabBilingualTip": {
+    "message": "Двуязычный режим сопоставления",
+    "description": "Summary tab bilingual tooltip"
+  },
+  "summaryTabOriginal": {
+    "message": "📄 Оригинал",
+    "description": "Summary tab original"
+  },
+  "summaryTabOriginalTip": {
+    "message": "Только оригинал (Погружение)",
+    "description": "Summary tab original tooltip"
+  },
+  "summaryTabTranslated": {
+    "message": "🌐 Перевод",
+    "description": "Summary tab translated"
+  },
+  "summaryTabTranslatedTip": {
+    "message": "Только перевод (Быстрый просмотр)",
+    "description": "Summary tab translated tooltip"
+  },
+  "summaryRegenerateTip": {
+    "message": "Сгенерировать заново",
+    "description": "Regenerate summary tooltip"
+  },
+  "summaryMinimizeTip": {
+    "message": "Свернуть",
+    "description": "Minimize summary tooltip"
+  },
+  "summaryCloseTip": {
+    "message": "Закрыть (ESC)",
+    "description": "Close summary tooltip"
+  },
+  "summaryPlayBilingual": {
+    "message": "🔄 Воспроизвести резюме (Двуязычный)",
+    "description": "Play bilingual summary button"
+  },
+  "summaryPlayBilingualTip": {
+    "message": "Двуязычное воспроизведение резюме",
+    "description": "Play bilingual summary tooltip"
+  },
+  "summaryPlayOrig": {
+    "message": "🔊 Слушать оригинал",
+    "description": "Play original summary button"
+  },
+  "summaryPlayOrigTip": {
+    "message": "Слушать только оригинальное резюме",
+    "description": "Play original summary tooltip"
+  },
+  "summaryPlayTrans": {
+    "message": "🌐 Слушать перевод",
+    "description": "Play translated summary button"
+  },
+  "summaryPlayTransTip": {
+    "message": "Слушать только переведенное резюме",
+    "description": "Play translated summary tooltip"
+  },
+  "fabSummaryTip": {
+    "message": "AI Двуязычное резюме",
+    "description": "FAB AI summary button tooltip"
+  },
+  "fabPlayTip": {
+    "message": "Читать текущую статью (Ctrl+Shift+P)",
+    "description": "FAB play button tooltip"
+  },
+  "selPlayTip": {
+    "message": "Read Selected Text",
+    "description": "Selection play tooltip"
+  },
+  "selTranslateTip": {
+    "message": "Translate Selected Text",
+    "description": "Selection translate tooltip"
+  }
+}

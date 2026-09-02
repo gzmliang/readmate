@@ -1,14 +1,13 @@
-// ReadMate / 读伴 — Content Script
-// 浮动朗读条、Web Speech TTS、阅读模式（自动去广告）、高亮、翻译、连续朗读
-// 调试日志：点击浮动条上的 🐛 按钮
+// ReadMate / 读伴 v2.0 — Content Script
+// 专注单篇听读：多语种双核朗读（仅原文/直接读译文/双语交替）、动态双语歌词字幕条、AI 3句双语摘要、断点续听
 
-// ====== 调试日志 ======
+// ====== 调试日志系统 ======
 const DebugLog = {
   logs: [],
   add(msg) {
     const t = new Date().toLocaleTimeString();
     this.logs.push(`[${t}] ${msg}`);
-    if (this.logs.length > 200) this.logs.splice(0, 50);
+    if (this.logs.length > 250) this.logs.splice(0, 50);
     console.log('[ReadMate]', msg);
   },
   copy() {
@@ -21,746 +20,537 @@ const DebugLog = {
   }
 };
 
-DebugLog.add('Content script loaded');
+DebugLog.add('ReadMate v2.0 content script loaded');
 
-// ====== 状态变量 ======
+// ====== 全局状态 ======
 let settings = {};
 let floatingBar = null;
 let isPlaying = false;
 let isPaused = false;
 let currentUtterance = null;
+let currentAudio = null;
+let interruptCurrentPlayback = null;
 let currentSentences = [];
 let currentSentenceIndex = 0;
-let currentMode = null;
+let currentMode = null; // 'page', 'selection', 'summary'
 let selectionText = '';
-let userStopped = false; // 用户主动停止标记
+let userStopped = false;
+let stopImmediate = false;
+let lastHighlightEnd = 0;
+let detectedDocLang = 'en-US'; // 当前页面自动检测到的语种
+let cachedArticleText = ''; // 页面锚定正文缓存，严防点重播时跳到相关推荐
 
-// ====== 连续朗读（跨页面持久化）======
-const CONTINUOUS_KEY = 'readmate_continuous';
-let continuousMode = true; // 默认开启
+// 双语字幕与翻译预取缓存（LRU/Map）
+const translationCache = new Map();
+let translationPrefetchQueue = [];
 
-// 页面加载时检测是否需要自动朗读（仅限连续模式跳转过来的页面）
-chrome.storage.session.get('readmate_auto_read', (result) => {
-  if (result.readmate_auto_read === true) {
-    chrome.storage.session.remove('readmate_auto_read');
-    DebugLog.add('Auto-read triggered by continuous mode navigation');
-    continuousMode = true;
-    loadSettings().then(() => {
-      autoReadPage();
-    });
-  } else {
-    // 正常打开页面 — 只加载连续模式状态，不自动朗读
-    chrome.storage.local.get(CONTINUOUS_KEY, (result) => {
-      continuousMode = result[CONTINUOUS_KEY] !== false;
-      DebugLog.add('Continuous mode from storage: ' + continuousMode + ' (no auto-read)');
-    });
-  }
-});
+// 朗读语音流模式：'original' (仅原文), 'translated' (仅译文), 'bilingual' (双语交替)
+let readVoiceMode = 'original';
+let enableBilingual = false; // 默认不开启双语翻译（省Token模式）
+let showBilingualSubtitles = true;
 
-/** 持久化连续模式到 storage */
-function setContinuousMode(enabled) {
-  continuousMode = enabled;
-  chrome.storage.local.set({ [CONTINUOUS_KEY]: enabled }, () => {
-    DebugLog.add('Continuous mode saved: ' + enabled);
-  });
-  // 更新按钮状态
-  const btn = document.getElementById('readmate-continuous-btn');
-  if (btn) {
-    btn.style.opacity = enabled ? '1' : '0.4';
-    btn.title = enabled ? '连续朗读 (开启)' : '连续朗读 (关闭)';
-  }
-}
+// ====== 语种与 Edge TTS 顶级音色映射表 ======
+const VOICE_MAP = {
+  'zh-CN': 'zh-CN-XiaoxiaoNeural',
+  'zh': 'zh-CN-XiaoxiaoNeural',
+  'en-US': 'en-US-JennyNeural',
+  'en': 'en-US-JennyNeural',
+  'ja-JP': 'ja-JP-NanamiNeural',
+  'ja': 'ja-JP-NanamiNeural',
+  'ko-KR': 'ko-KR-SunHiNeural',
+  'ko': 'ko-KR-SunHiNeural',
+  'fr-FR': 'fr-FR-DeniseNeural',
+  'fr': 'fr-FR-DeniseNeural',
+  'de-DE': 'de-DE-KatjaNeural',
+  'de': 'de-DE-KatjaNeural',
+  'es-ES': 'es-ES-ElviraNeural',
+  'es': 'es-ES-ElviraNeural',
+  'ru-RU': 'ru-RU-SvetlanaNeural',
+  'ru': 'ru-RU-SvetlanaNeural',
+  'it-IT': 'it-IT-ElsaNeural',
+  'it': 'it-IT-ElsaNeural',
+  'pt-PT': 'pt-BR-FranciscaNeural',
+  'pt': 'pt-BR-FranciscaNeural',
+};
 
-// ====== 选中文字浮动播放按钮 ======
-let selectionPlayBtn = null;
-
-// ====== 手机端悬浮朗读按钮 ======
-let fabButton = null;
-
-/** 检测是否为移动端（触屏 + 窄屏） */
-function isMobile() {
-  return ('ontouchstart' in window) || (window.innerWidth < 768);
-}
-
-function createFAB() {
-  if (fabButton) return;
-
-  fabButton = document.createElement('button');
-  fabButton.id = 'readmate-fab';
-  fabButton.textContent = '▶';
-  fabButton.title = '朗读此页';
-  fabButton.addEventListener('click', async (e) => {
-    e.stopPropagation();
-    if (suppressNextClick) { suppressNextClick = false; return; }
-    if (isPlaying) return;
-    DebugLog.add('FAB clicked');
-
-    // 内容提取：去广告，只读正文
-    let pageText;
-    const content = extractReadableContent();
-    if (content && content.success) {
-      pageText = content.text;
-      DebugLog.add('FAB extracted: ' + pageText.length + ' chars (title: ' + (content.title || '') + ')');
-    } else {
-      pageText = document.body.innerText || '';
-      DebugLog.add('FAB fallback to body: ' + pageText.length + ' chars');
+/** 根据语言代码与偏好，智能获取最佳云端音色（严格按语言智能匹配，避免跨语言错配如中文音色读英文） */
+function getBestVoiceForLang(langCode, customVoice = '') {
+  const shortCode = (langCode || 'en').split('-')[0].toLowerCase();
+  // 仅当用户指定的音色前缀与当前目标语言匹配时才使用 customVoice
+  if (customVoice) {
+    const vLower = customVoice.toLowerCase();
+    if (vLower.startsWith(shortCode)) {
+      return customVoice;
     }
-    if (pageText.trim().length < 50) {
-      DebugLog.add('FAB: page too short');
+  }
+  return VOICE_MAP[langCode] || VOICE_MAP[shortCode] || (shortCode === 'zh' ? 'zh-CN-XiaoxiaoNeural' : 'en-US-JennyNeural');
+}
+
+/** 获取浏览器本地最匹配的高质量语音对象（严格校验语种匹配） */
+function getBestBrowserVoice(langCode, customVoiceName = '') {
+  if (!window.speechSynthesis) return null;
+  const voices = window.speechSynthesis.getVoices() || [];
+  if (voices.length === 0) return null;
+
+  const short = (langCode || 'en').split('-')[0].toLowerCase();
+  if (customVoiceName) {
+    const matched = voices.find(v => v.name === customVoiceName);
+    if (matched && matched.lang.toLowerCase().startsWith(short)) {
+      return matched;
+    }
+  }
+
+  // 1. 优先匹配完全相同的 locale 且推荐 Natural/Online 声音
+  let candidate = voices.find(v => v.lang.toLowerCase() === (langCode || 'en').toLowerCase() && (v.name.includes('Natural') || v.name.includes('Online')));
+  if (candidate) return candidate;
+
+  // 2. 匹配语言前缀且推荐 Natural
+  candidate = voices.find(v => v.lang.toLowerCase().startsWith(short) && (v.name.includes('Natural') || v.name.includes('Online')));
+  if (candidate) return candidate;
+
+  // 3. 匹配完全相同的 locale
+  candidate = voices.find(v => v.lang.toLowerCase() === (langCode || 'en').toLowerCase());
+  if (candidate) return candidate;
+
+  // 4. 匹配语言前缀
+  candidate = voices.find(v => v.lang.toLowerCase().startsWith(short));
+  if (candidate) return candidate;
+
+  return null;
+}
+
+/** 语言名称映射 */
+const LANG_NAME_TO_CODE = {
+  'Simplified Chinese': 'zh-CN',
+  'English': 'en-US',
+  'Japanese': 'ja-JP',
+  'Korean': 'ko-KR',
+  'French': 'fr-FR',
+  'German': 'de-DE',
+  'Spanish': 'es-ES',
+  'Russian': 'ru-RU',
+  'Italian': 'it-IT',
+  'Portuguese': 'pt-PT',
+};
+
+// ====== 多语言国际化（i18n）系统 ======
+let i18nMessages = {};
+async function loadContentI18n(lang) {
+  const targetLang = lang || settings.uiLanguage || 'zh_CN';
+  const effectiveLang = (targetLang === 'auto') ? (navigator.language.startsWith('zh') ? 'zh_CN' : navigator.language.startsWith('ja') ? 'ja' : 'en') : targetLang;
+
+  // 1. 优先向 background 请求加载语言字典（完全避开 Content Script 沙箱限制）
+  try {
+    const resp = await new Promise((resolve) => {
+      chrome.runtime.sendMessage({ action: 'getI18nMessages', lang: effectiveLang }, (res) => {
+        if (chrome.runtime.lastError || !res || !res.ok) {
+          resolve(null);
+        } else {
+          resolve(res.messages);
+        }
+      });
+    });
+    if (resp && Object.keys(resp).length > 0) {
+      i18nMessages = resp;
       return;
     }
+  } catch(e) {}
 
-    hideFAB();
-
-    // 加载设置（带超时，不行就默认值）
-    try {
-      await Promise.race([
-        loadSettings(),
-        new Promise(r => setTimeout(() => { DebugLog.add('Settings timeout, using defaults'); r(); }, 2000))
-      ]);
-    } catch(e) {
-      DebugLog.add('Settings error, using defaults: ' + e.message);
+  // 2. 备用本地 fetch
+  try {
+    const url = chrome.runtime.getURL(`_locales/${effectiveLang}/messages.json`);
+    const resp = await fetch(url);
+    const data = await resp.json();
+    i18nMessages = {};
+    for (const [k, v] of Object.entries(data)) {
+      i18nMessages[k] = v.message;
     }
-    if (!settings || !settings.ttsSpeed) {
-      settings = { ttsSpeed: 1.0, ttsVoice: '', ttsEngine: 'browser', cloudTtsEndpoint: '', cloudTtsVoice: '', highlightEnabled: true };
-    }
-
-    currentMode = 'page';
-    startReading(pageText);
-  });
-
-  document.body.appendChild(fabButton);
-  DebugLog.add('FAB created (simplified)');
-
-  // 拖拽支持 + 长按打开设置
-  let isDragging = false, startX, startY, origX, origY;
-  let longPressTimer = null;
-  let suppressNextClick = false;
-
-  fabButton.addEventListener('touchstart', (e) => {
-    if (isPlaying) return;
-    const touch = e.touches[0];
-    isDragging = true;
-    startX = touch.clientX;
-    startY = touch.clientY;
-    origX = fabButton.offsetLeft;
-    origY = fabButton.offsetTop;
-    if (!origX && !origY) {
-      const rect = fabButton.getBoundingClientRect();
-      origX = rect.left;
-      origY = rect.top;
-    }
-    // 设置入口：打开选项页（直接URL方式，兼容Kiwi）
-    longPressTimer = setTimeout(() => {
-      suppressNextClick = true;
-      isDragging = false;
-      DebugLog.add('FAB long-press: opening settings');
-      const optsUrl = chrome.runtime.getURL('options/options.html');
-      window.open(optsUrl, '_blank');
-    }, 600);
-  }, { passive: true });
-
-  fabButton.addEventListener('touchmove', (e) => {
-    if (!isDragging) return;
-    const touch = e.touches[0];
-    const dx = Math.abs(touch.clientX - startX);
-    const dy = Math.abs(touch.clientY - startY);
-    if (dx > 10 || dy > 10) {
-      clearTimeout(longPressTimer);
-    }
-    fabButton.style.left = (origX + touch.clientX - startX) + 'px';
-    fabButton.style.top = (origY + touch.clientY - startY) + 'px';
-    fabButton.style.right = 'auto';
-    fabButton.style.bottom = 'auto';
-  }, { passive: true });
-
-  fabButton.addEventListener('touchend', () => {
-    clearTimeout(longPressTimer);
-    isDragging = false;
-  }, { passive: true });
-}
-
-function showFAB() {
-  if (!fabButton) createFAB();
-  if (fabButton) {
-    fabButton.style.display = 'flex';
-    DebugLog.add('FAB shown');
+  } catch (e) {
+    // 保持当前字典
   }
 }
 
-function hideFAB() {
-  if (fabButton) fabButton.style.display = 'none';
+function _t(key, fallback = '') {
+  return i18nMessages[key] || fallback || key;
 }
+
+// ====== 设置加载与同步 ======
+function loadSettings() {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({ action: 'getSettings' }, async (saved) => {
+      settings = saved || {};
+      readVoiceMode = settings.readVoiceMode || 'original';
+      enableBilingual = !!settings.enableBilingual;
+      showBilingualSubtitles = settings.showBilingualSubtitles !== false;
+      await loadContentI18n(settings.uiLanguage);
+      DebugLog.add(`Settings loaded: mode=${readVoiceMode}, bilingual=${enableBilingual}, speed=${settings.ttsSpeed}x, lang=${settings.uiLanguage}`);
+      resolve(settings);
+    });
+  });
+}
+
+function updateSelectionBtnI18n() {
+  if (!selectionPlayBtn) return;
+  const playBtn = selectionPlayBtn.querySelector('#readmate-sel-play-btn');
+  if (playBtn) playBtn.title = _t('selPlayTip', '朗读选中文字');
+  const transBtn = selectionPlayBtn.querySelector('#readmate-sel-trans-btn');
+  if (transBtn) transBtn.title = _t('selTranslateTip', '翻译选中文字');
+}
+
+// ====== 选中文字悬浮播放按钮 ======
+let selectionPlayBtn = null;
 
 function createSelectionPlayBtn() {
   if (selectionPlayBtn) return;
   selectionPlayBtn = document.createElement('div');
-  selectionPlayBtn.id = 'readmate-selection-play';
-
-  const playBtn = document.createElement('button');
-  playBtn.className = 'readmate-sel-btn readmate-sel-play';
-  playBtn.textContent = '▶';
-  playBtn.title = '朗读选中文字';
-  playBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    suppressSelectionBtn();
-    const sel = window.getSelection().toString().trim();
-    if (sel) {
-      selectionText = sel;
-      currentMode = 'selection';
-      hideSelectionPlayBtn();
-      loadSettings().then(() => startReading(sel));
-    }
-  });
-
-  const translateBtn = document.createElement('button');
-  translateBtn.className = 'readmate-sel-btn readmate-sel-translate';
-  translateBtn.textContent = '译';
-  translateBtn.title = '翻译选中文字';
-  translateBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    suppressSelectionBtn();
-    const sel = window.getSelection().toString().trim();
-    if (sel) {
-      hideSelectionPlayBtn();
-      // 用选区位置定位翻译弹窗，而非按钮位置
-      let posX, posY;
-      try {
-        const selRange = window.getSelection().getRangeAt(0);
-        const selRect = selRange.getBoundingClientRect();
-        posX = selRect.left;
-        posY = selRect.top;
-      } catch(err) {
-        posX = window._readmateMouseX;
-        posY = window._readmateMouseY;
-      }
-      loadSettings().then(async () => {
-        if (!settings.aiEndpoint || !settings.aiApiKey) {
-          showTranslation('⚠️ 请先在设置中配置 AI 翻译（端点 + API Key）', true, posX, posY);
-          DebugLog.add('Selection translate: no AI config');
-          return;
-        }
-        const translation = await translateText(sel);
-        if (translation) {
-          showTranslation(translation, false, posX, posY);
-        } else {
-          showTranslation('⚠️ 翻译失败，请检查 API 配置', true, posX, posY);
-        }
-      });
-    }
-  });
-
-  selectionPlayBtn.appendChild(playBtn);
-  selectionPlayBtn.appendChild(translateBtn);
+  selectionPlayBtn.id = 'readmate-sel-btn-group';
+  selectionPlayBtn.innerHTML = `
+    <button class="readmate-sel-btn readmate-sel-play" id="readmate-sel-play-btn" title="${_t('selPlayTip', '朗读选中文字')}">▶</button>
+    <button class="readmate-sel-btn readmate-sel-translate" id="readmate-sel-trans-btn" title="${_t('selTranslateTip', '翻译选中文字')}">🌐</button>
+  `;
   document.body.appendChild(selectionPlayBtn);
+
+  selectionPlayBtn.querySelector('#readmate-sel-play-btn').onclick = (e) => {
+    e.stopPropagation();
+    if (selectionText) {
+      hideSelectionBtn();
+      currentMode = 'selection';
+      startReading(selectionText);
+    }
+  };
+
+  selectionPlayBtn.querySelector('#readmate-sel-trans-btn').onclick = (e) => {
+    e.stopPropagation();
+    if (selectionText) {
+      window._readmateMouseX = e.clientX;
+      window._readmateMouseY = e.clientY;
+      hideSelectionBtn();
+      translateAndShow(selectionText);
+    }
+  };
 }
 
-// 防止点击按钮后 touchend/mouseup 重新弹出
-let _selectionBtnSuppressed = false;
-function suppressSelectionBtn() {
-  _selectionBtnSuppressed = true;
-  setTimeout(() => { _selectionBtnSuppressed = false; }, 500);
+function showSelectionBtn(x, y) {
+  createSelectionPlayBtn();
+  const pad = 12;
+  let left = x + pad;
+  let top = y + pad;
+  if (left + 70 > window.innerWidth) left = x - 70;
+  if (top + 40 > window.innerHeight) top = y - 40;
+  selectionPlayBtn.style.left = `${left}px`;
+  selectionPlayBtn.style.top = `${top}px`;
+  selectionPlayBtn.style.display = 'flex';
 }
 
-function showSelectionPlayBtn(x, y) {
-  if (!selectionPlayBtn) createSelectionPlayBtn();
-  const btn = selectionPlayBtn;
-  btn.style.display = 'flex';
-  // 容器约70px宽(两个32px圆+gap)，防止超出边界
-  btn.style.left = Math.min(x, window.innerWidth - 80) + 'px';
-  btn.style.top = Math.max(5, y) + 'px';
-  DebugLog.add('Selection play btn shown at (' + x + ', ' + y + ')');
-}
-
-function hideSelectionPlayBtn() {
+function hideSelectionBtn() {
   if (selectionPlayBtn) selectionPlayBtn.style.display = 'none';
 }
 
-// ====== 文字选中弹出播放按钮（支持桌面鼠标+手机触屏）======
+// 划词监听
 document.addEventListener('mouseup', (e) => {
-  if (_selectionBtnSuppressed) return;
-  if (e.target && e.target.closest && e.target.closest('#readmate-selection-play')) return;
-  if (e.target && e.target.closest && e.target.closest('#readmate-translation-panel')) return;
-  if (e.target && e.target.closest && e.target.closest('#readmate-bar')) return;
-
+  if (e.target.closest('#readmate-sel-btn-group') || e.target.closest('#readmate-bar') || e.target.closest('#readmate-fab-container')) {
+    return;
+  }
   setTimeout(() => {
     const sel = window.getSelection();
-    const text = sel ? sel.toString().trim() : '';
-    if (text && text.length > 0 && text.length < 5000) {
-      const range = sel.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-      if (rect && rect.width > 0) {
-        showSelectionPlayBtn(rect.right + 5, rect.top - 10);
-      }
+    const txt = sel ? sel.toString().trim() : '';
+    if (txt && txt.length >= 2) {
+      selectionText = txt;
+      showSelectionBtn(e.clientX, e.clientY);
     } else {
-      hideSelectionPlayBtn();
+      hideSelectionBtn();
     }
-  }, 200);
+  }, 10);
 });
 
-document.addEventListener('mousedown', (e) => {
-  if (e.target && e.target.closest && !e.target.closest('#readmate-selection-play')) {
-    hideSelectionPlayBtn();
+// ====== 极简悬浮圆钮（FAB 回归单一极简 ▶ 按钮）======
+let fabContainer = null;
+let suppressNextFabClick = false;
+
+function updateFABI18n() {
+  if (!fabContainer) return;
+  const summaryBtn = fabContainer.querySelector('#readmate-fab-summary');
+  if (summaryBtn) summaryBtn.title = _t('fabSummaryTip', 'AI 双语摘要');
+  const playBtn = fabContainer.querySelector('#readmate-fab-play');
+  if (playBtn) playBtn.title = _t('fabPlayTip', '朗读当前文章 (Ctrl+Shift+P)');
+}
+
+function updateSummaryDialogI18n() {
+  if (!summaryDialog) return;
+  const titleEl = summaryDialog.querySelector('.readmate-summary-title');
+  if (titleEl) titleEl.textContent = _t('summaryCardTitle', '⚡ AI 双语核心要闻摘要');
+
+  const tabBi = summaryDialog.querySelector('.readmate-summary-tab[data-view="bilingual"]');
+  if (tabBi) {
+    tabBi.textContent = _t('summaryTabBilingual', '🔄 双语');
+    tabBi.title = _t('summaryTabBilingualTip', '双语对照模式');
   }
-});
-
-// 手机端：选中文字后弹出橙色播放按钮
-document.addEventListener('touchend', () => {
-  if (_selectionBtnSuppressed) return;
-  // 延迟等待系统选中完成
-  setTimeout(() => {
-    const sel = window.getSelection();
-    const text = sel ? sel.toString().trim() : '';
-    if (text && text.length > 0 && text.length < 5000) {
-      try {
-        const range = sel.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        if (rect && rect.width > 0) {
-          showSelectionPlayBtn(rect.right + 5, rect.top - 10);
-        }
-      } catch(e) {
-        // 某些选区可能没有 range
-      }
-    }
-  }, 300);
-});
-
-// 点击页面其他地方隐藏橙色按钮（手机适配）
-document.addEventListener('touchstart', (e) => {
-  if (!e.target || !(e.target.closest && e.target.closest('#readmate-selection-play'))) {
-    hideSelectionPlayBtn();
+  const tabOrig = summaryDialog.querySelector('.readmate-summary-tab[data-view="original"]');
+  if (tabOrig) {
+    tabOrig.textContent = _t('summaryTabOriginal', '📄 原文');
+    tabOrig.title = _t('summaryTabOriginalTip', '仅看原文 (纯净沉浸)');
   }
-}, { passive: true });
+  const tabTrans = summaryDialog.querySelector('.readmate-summary-tab[data-view="translated"]');
+  if (tabTrans) {
+    tabTrans.textContent = _t('summaryTabTranslated', '🌐 译文');
+    tabTrans.title = _t('summaryTabTranslatedTip', '仅看译文 (母语速览)');
+  }
 
-// ====== 初始化 ======
-function loadSettings() {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage({ action: 'getSettings' }, (s) => {
-      settings = s;
-      DebugLog.add('Settings loaded: speed=' + s.ttsSpeed + ' voice=' + (s.ttsVoice || 'auto') + ' ai=' + (s.aiApiKey ? '✓' : '✗'));
-      resolve(s);
-    });
+  const regenBtn = summaryDialog.querySelector('#readmate-summary-regen-btn');
+  if (regenBtn) regenBtn.title = _t('summaryRegenerateTip', '重新生成摘要');
+  const minBtn = summaryDialog.querySelector('#readmate-summary-min-btn');
+  if (minBtn) minBtn.title = _t('summaryMinimizeTip', '最小化');
+  const closeBtn = summaryDialog.querySelector('#readmate-summary-close-btn');
+  if (closeBtn) closeBtn.title = _t('summaryCloseTip', '关闭 (ESC)');
+
+  summaryDialog.querySelectorAll('.readmate-summary-play-btn[data-type="orig"]').forEach(btn => {
+    btn.title = _t('readOriginal', '读原文');
   });
-}
-
-// ====== Web Speech TTS（唯一引擎）=====
-async function speakText(text, onSentenceChange) {
-  DebugLog.add('speakText: length=' + text.length);
-
-  const sentences = TextUtils.splitSentences(text);
-  if (sentences.length === 0) {
-    DebugLog.add('No sentences to speak');
-    return;
-  }
-  // === 断句调试日志 ===
-  DebugLog.add('=== SPLIT DEBUG ===');
-  DebugLog.add('Text preview: "' + text.substring(0, 120) + '..."');
-  DebugLog.add('Total sentences: ' + sentences.length);
-  sentences.forEach((s, i) => {
-    const excerpt = s.length > 80 ? s.substring(0, 80) + '...' : s;
-    DebugLog.add('  [' + i + '] (' + s.length + 'c) "' + excerpt + '"');
+  summaryDialog.querySelectorAll('.readmate-summary-play-btn[data-type="trans"]').forEach(btn => {
+    btn.title = _t('readTranslated', '读译文');
   });
-  DebugLog.add('=== END SPLIT DEBUG ===');
 
-  DebugLog.add('Sentences: ' + sentences.length);
-  currentSentences = sentences;
-  currentSentenceIndex = 0;
-  isPlaying = true;
-  isPaused = false;
-
-  if (!window.speechSynthesis) {
-    DebugLog.add('ERROR: speechSynthesis not available');
-    return;
+  const playBiBtn = summaryDialog.querySelector('#readmate-summary-play-bilingual');
+  if (playBiBtn) {
+    playBiBtn.textContent = _t('summaryPlayBilingual', '🔄 连播摘要 (双语)');
+    playBiBtn.title = _t('summaryPlayBilingualTip', '双语交替读摘要');
   }
-
-  // 预构建第一句 utterance（后面的在播放中提前构建）
-  let prebuilt = buildUtterance(sentences[0]);
-
-  for (let i = 0; i < sentences.length; i++) {
-    if (!isPlaying) { DebugLog.add('Stopped at sentence ' + i); break; }
-    if (isPaused) {
-      await new Promise(r => setTimeout(r, 200));
-      i--;
-      continue;
-    }
-
-    currentSentenceIndex = i;
-    highlightSentence(i);
-    onSentenceChange?.(i, sentences.length, sentences[i]);
-    updateBarProgress(i + 1, sentences.length);
-
-    DebugLog.add('Speaking sentence ' + (i + 1) + '/' + sentences.length + ': "' + sentences[i].substring(0, 40) + '..."');
-
-    // speak() 是同步返回的，不会阻塞
-    const playPromise = speakUtterance(prebuilt);
-
-    // 【预构建】当前句正在播放时，提前准备好下一句的 utterance
-    if (i + 1 < sentences.length) {
-      prebuilt = buildUtterance(sentences[i + 1]);
-    }
-
-    // 等待当前句播完
-    await playPromise;
-
-    if (!isPlaying) break;
-
-    if (settings.autoTranslate && i + 1 < sentences.length) {
-      translateText(sentences[i + 1]).then(t => {
-        if (t) showInlineTranslation(i + 1, t);
-      });
-    }
+  const playOrigBtn = summaryDialog.querySelector('#readmate-summary-play-orig');
+  if (playOrigBtn) {
+    playOrigBtn.textContent = _t('summaryPlayOrig', '🔊 读原文');
+    playOrigBtn.title = _t('summaryPlayOrigTip', '仅读原文摘要');
   }
-
-  isPlaying = false;
-  hideBar();
-  DebugLog.add('speakText done');
-
-  // 连续朗读模式：读完找下一篇（用户主动停止的不触发）
-  if (continuousMode && currentMode === 'page' && !userStopped) {
-    DebugLog.add('Continuous mode: looking for next article...');
-    showTranslation('🔁 当前篇读完，寻找下一篇...', true);
-    setTimeout(() => {
-      findAndNavigateNext();
-    }, 1500);
+  const playTransBtn = summaryDialog.querySelector('#readmate-summary-play-trans');
+  if (playTransBtn) {
+    playTransBtn.textContent = _t('summaryPlayTrans', '🌐 读译文');
+    playTransBtn.title = _t('summaryPlayTransTip', '直接读译文摘要');
+  }
+  const copyMdBtn = summaryDialog.querySelector('#readmate-summary-copy-md');
+  if (copyMdBtn) {
+    copyMdBtn.textContent = _t('copyMarkdown', '📋 复制 Markdown');
   }
 }
 
-// ====== 预构建 Utterance（数字标准化+语音设置，提前准备好）======
-function buildUtterance(text) {
-  const speechText = NumberNormalizer.needsNormalization(text)
-    ? NumberNormalizer.normalize(text)
-    : text;
-  const utterance = new SpeechSynthesisUtterance(speechText);
-  utterance.rate = settings.ttsSpeed || 1.0;
-  utterance.pitch = 1.0;
-  utterance.volume = 1.0;
+function createFAB() {
+  if (fabContainer) return;
+  fabContainer = document.createElement('div');
+  fabContainer.id = 'readmate-fab-container';
+  fabContainer.innerHTML = `
+    <button id="readmate-fab-summary" class="readmate-fab-btn readmate-fab-btn-sm" title="${_t('fabSummaryTip', 'AI 双语摘要')}">⚡</button>
+    <button id="readmate-fab-play" class="readmate-fab-btn" title="${_t('fabPlayTip', '朗读当前文章 (Ctrl+Shift+P)')}">▶</button>
+  `;
+  document.body.appendChild(fabContainer);
 
-  if (settings.ttsVoice) {
-    const voices = window.speechSynthesis.getVoices();
-    const matched = voices.find(v => v.name === settings.ttsVoice);
-    if (matched) {
-      utterance.voice = matched;
-      utterance.lang = matched.lang;
-    }
-  }
-  return utterance;
-}
-
-/** 播放一个已构建好的 Utterance，返回 onend promise */
-function speakUtterance(utterance) {
-  return new Promise((resolve) => {
-    try {
-      currentUtterance = utterance;
-      let resolved = false;
-      function done() { if (!resolved) { resolved = true; resolve(); } }
-
-      utterance.onend = done;
-      utterance.onerror = (e) => {
-        DebugLog.add('speak error: ' + (e.error || 'unknown'));
-        done();
-      };
-
-      // 注意：不要在这里调 cancel()！Android Chrome 上 cancel 会干扰下一句
-      window.speechSynthesis.speak(utterance);
-
-      // 轮询 fallback：Android 上 onend 不可靠，用 speaking 状态兜底
-      let phase = 'wait_start';
-      function pollSpeaking() {
-        if (resolved) return;
-        const s = window.speechSynthesis.speaking;
-        if (phase === 'wait_start') {
-          if (s) { phase = 'wait_end'; DebugLog.add('speak poll: started'); }
-        } else if (phase === 'wait_end') {
-          if (!s) { DebugLog.add('speak poll: finished'); setTimeout(done, 100); return; }
-        }
-        setTimeout(pollSpeaking, 200);
-      }
-      setTimeout(pollSpeaking, 300);
-    } catch (e) {
-      DebugLog.add('speakUtterance exception: ' + e.message);
-      resolve();
-    }
+  const summaryBtn = fabContainer.querySelector('#readmate-fab-summary');
+  summaryBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    generateAISummary();
   });
-}
 
-// ====== 云端 Edge TTS（通过 background 代理请求）======
-let _proxyReqId = 0;
-
-function proxyFetch(url, options) {
-  const requestId = 'req_' + (++_proxyReqId);
-  return new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage({ action: 'proxyFetch', url, options, requestId }, (resp) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
-        return;
-      }
-      if (!resp.ok) {
-        reject(new Error(resp.error || 'proxy fetch failed'));
-        return;
-      }
-      chrome.storage.local.get(resp.storageKey, (items) => {
-        const stored = items[resp.storageKey];
-        if (!stored || !stored.bytes) {
-          reject(new Error('Audio data not found'));
-          return;
-        }
-        const blob = new Blob([new Uint8Array(stored.bytes)], { type: 'audio/mpeg' });
-        chrome.storage.local.remove(resp.storageKey, () => {});
-        resolve(blob);
-      });
-    });
-  });
-}
-
-async function speakWithCloudTTS(text, onSentenceChange) {
-  const endpoint = (settings.cloudTtsEndpoint || 'http://powerplus.blogsyte.com:5001').replace(/\/+$/, '') + '/tts';
-  const bufferSize = settings.ttsBuffer || 1; // 预读句数
-  DebugLog.add('Cloud TTS: ' + endpoint + ' voice=' + (settings.cloudTtsVoice || 'default') + ' buffer=' + bufferSize);
-
-  const sentences = TextUtils.splitSentences(text);
-  if (sentences.length === 0) return;
-  // === 断句调试日志 ===
-  DebugLog.add('=== SPLIT DEBUG ===');
-  DebugLog.add('Text preview: "' + text.substring(0, 120) + '..."');
-  DebugLog.add('Total sentences: ' + sentences.length);
-  sentences.forEach((s, i) => {
-    const excerpt = s.length > 80 ? s.substring(0, 80) + '...' : s;
-    DebugLog.add('  [' + i + '] (' + s.length + 'c) "' + excerpt + '"');
-  });
-  DebugLog.add('=== END SPLIT DEBUG ===');
-  currentSentences = sentences;
-  currentSentenceIndex = 0;
-  isPlaying = true;
-  isPaused = false;
-
-  /** 获取朗读用文本（数字标准化） */
-  function getSpeechText(sentence) {
-    return NumberNormalizer.needsNormalization(sentence)
-      ? NumberNormalizer.normalize(sentence)
-      : sentence;
-  }
-
-  // 预取缓存：URL对象
-  const prefetched = {};
-
-  /** 后台预取一句 */
-  function prefetchOne(idx) {
-    if (idx >= sentences.length || prefetched[idx]) return;
-    DebugLog.add('Cloud TTS prefetch: sentence ' + (idx + 1));
-    proxyFetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text: getSpeechText(sentences[idx]),
-        voice: settings.cloudTtsVoice || 'zh-CN-XiaoxiaoNeural',
-        rate: `+${Math.round((settings.ttsSpeed - 1) * 100)}%`,
-      }),
-    }).then(blob => {
-      prefetched[idx] = URL.createObjectURL(blob);
-      DebugLog.add('Cloud TTS prefetched: sentence ' + (idx + 1));
-    }).catch(e => {
-      DebugLog.add('Cloud TTS prefetch error: ' + e.message);
-    });
-  }
-
-  // 先预取第一批
-  for (let b = 0; b <= bufferSize && b < sentences.length; b++) {
-    prefetchOne(b);
-  }
-
-  let i = 0;
-  DebugLog.add('Cloud TTS: entering loop, ' + sentences.length + ' sentences');
-  while (isPlaying && i < sentences.length) {
-    if (isPaused) { await new Promise(r => setTimeout(r, 200)); continue; }
-    currentSentenceIndex = i;
-    DebugLog.add('Cloud TTS: playing sentence ' + (i + 1));
-    highlightSentence(i);
-    onSentenceChange?.(i, sentences.length, sentences[i]);
-    updateBarProgress(i + 1, sentences.length);
-
-    try {
-      // 如果已经预取好了，直接用；否则同步等
-      let audioUrl = prefetched[i];
-      if (!audioUrl) {
-        DebugLog.add('Cloud TTS: buffer miss, fetching sync');
-        const fetchPromise = proxyFetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            text: getSpeechText(sentences[i]),
-            voice: settings.cloudTtsVoice || 'zh-CN-XiaoxiaoNeural',
-            rate: `+${Math.round((settings.ttsSpeed - 1) * 100)}%`,
-          }),
-        });
-        // 15秒超时保护
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('TTS request timeout (15s)')), 15000)
-        );
-        const blob = await Promise.race([fetchPromise, timeoutPromise]);
-        audioUrl = URL.createObjectURL(blob);
-      }
-
-      // 播放当前句的同时预取后续句
-      for (let b = 1; b <= bufferSize; b++) {
-        prefetchOne(i + b);
-      }
-
-      const audio = new Audio(audioUrl);
-      await new Promise((resolve, reject) => {
-        audio.onended = () => { DebugLog.add('Cloud TTS sentence ' + (i + 1) + ' done'); resolve(); };
-        audio.onerror = (e) => { DebugLog.add('Cloud TTS error: ' + e.message); reject(e); };
-        audio.play().catch(reject);
-      });
-      URL.revokeObjectURL(audioUrl);
-      delete prefetched[i];
-    } catch (e) {
-      DebugLog.add('Cloud TTS error: ' + e.message);
-    }
-    i++;
-  }
-  isPlaying = false;
-  hideBar();
-  DebugLog.add('Cloud TTS done');
-
-  // 清理残留预取
-  for (const key in prefetched) {
-    URL.revokeObjectURL(prefetched[key]);
-  }
-
-  // 连续朗读
-  if (continuousMode && currentMode === 'page' && !userStopped) {
-    setTimeout(() => { findAndNavigateNext(); }, 1500);
-  }
-}
-
-// ====== AI 翻译代理 ======
-function proxyTranslate(text) {
-  return new Promise((resolve) => {
-    if (!settings.aiEndpoint || !settings.aiApiKey) {
-      DebugLog.add('Translate skipped: no AI config');
-      resolve(null);
+  const btn = fabContainer.querySelector('#readmate-fab-play');
+  btn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (suppressNextFabClick) { suppressNextFabClick = false; return; }
+    if (isPlaying) {
+      togglePlayPause();
       return;
     }
-    chrome.runtime.sendMessage({
-      action: 'proxyTranslate',
-      endpoint: settings.aiEndpoint.replace(/\/+$/, '') + '/chat/completions',
-      apiKey: settings.aiApiKey,
-      model: settings.aiModel || 'gpt-3.5-turbo',
-      text,
-      targetLang: settings.translateTarget || 'Simplified Chinese',
-    }, (resp) => {
-      if (chrome.runtime.lastError || !resp?.ok) {
-        DebugLog.add('Translate proxy error: ' + (chrome.runtime.lastError?.message || resp?.error || 'unknown'));
-        resolve(null);
-        return;
+    DebugLog.add('Single FAB clicked: reading current page');
+
+    let pageText = cachedArticleText;
+    if (!pageText) {
+      try {
+        const content = ContentExtractor.extract(document);
+        if (content && content.success && content.text && content.text.trim().length >= 30) {
+          pageText = content.text;
+          cachedArticleText = pageText;
+          DebugLog.add(`Extracted article: ${pageText.length} chars (title: ${content.title || ''})`);
+        }
+      } catch(e) {
+        DebugLog.add('ContentExtractor error: ' + e.message);
       }
-      DebugLog.add('Translate OK: "' + (resp.text || '').substring(0, 40) + '..."');
-      resolve(resp.text);
-    });
+    }
+
+    if (!pageText || pageText.trim().length < 30) {
+      pageText = document.body.innerText || '';
+      DebugLog.add(`Fallback body text: ${pageText.length} chars`);
+    }
+
+    if (pageText.trim().length < 30) {
+      showTranslation(_t('toastTextTooShort', '⚠️ 正文过短（<30字），无法朗读'), true);
+      return;
+    }
+
+    currentMode = 'page';
+    hideFAB();
+    startReading(pageText);
   });
 }
-async function translateText(text) {
-  return proxyTranslate(text);
+
+function showFAB() {
+  if (!fabContainer) createFAB();
+  if (fabContainer) fabContainer.style.display = 'flex';
 }
 
-// ====== UI：浮动朗读条 ======
+function hideFAB() {
+  if (fabContainer) fabContainer.style.display = 'none';
+}
+
+// ====== 浮动朗读控制条（双层歌词卡片式） ======
 function createFloatingBar() {
   if (floatingBar) return;
-  DebugLog.add('Creating floating bar');
-
+  DebugLog.add('Entering createFloatingBar...');
   floatingBar = document.createElement('div');
   floatingBar.id = 'readmate-bar';
+  floatingBar.className = 'readmate-card-bar';
+
   floatingBar.innerHTML = `
-    <div class="readmate-bar-inner">
+    <!-- 上层：主控制行 -->
+    <div class="readmate-bar-main">
       <div class="readmate-bar-left">
         <span class="readmate-progress">0/0</span>
+        <select class="readmate-mode-select" id="readmate-voice-mode-select" title="${_t('lblVoiceMode', '播放模式')}">
+          <option value="original">${_t('modeOriginal', '🔊 仅读原文')}</option>
+          <option value="translated">${_t('modeTranslated', '🌐 直接读译文')}</option>
+          <option value="bilingual">${_t('modeBilingual', '🔄 双语交替读')}</option>
+        </select>
       </div>
+
       <div class="readmate-bar-center">
-        <button class="readmate-btn" id="readmate-play-btn" title="播放/暂停">⏸</button>
-        <button class="readmate-btn" id="readmate-stop-btn" title="停止">⏹</button>
+        <button class="readmate-btn" id="readmate-prev-sentence" title="${_t('btnPrev', '上一句')}">⏮</button>
+        <button class="readmate-btn readmate-btn-main" id="readmate-play-btn" title="${_t('btnPlay', '播放/暂停')}">⏸</button>
+        <button class="readmate-btn" id="readmate-next-sentence" title="${_t('btnNext', '下一句')}">⏭</button>
+        <button class="readmate-btn readmate-btn-stop" id="readmate-stop-btn" title="${_t('btnStop', '停止')}">⏹</button>
       </div>
+
       <div class="readmate-bar-right">
-        <button class="readmate-btn" id="readmate-continuous-btn" title="连续朗读">🔁</button>
-        <button class="readmate-btn" id="readmate-translate-btn" title="翻译当前句">🌐</button>
-        <button class="readmate-btn" id="readmate-close-btn" title="关闭">✕</button>
-        <button class="readmate-btn" id="readmate-debug-btn" title="调试日志">🐛</button>
+        <label class="readmate-chk-toggle" title="${_t('lblEnableBilingual', '双语翻译 (不勾选省Token)')}">
+          <input type="checkbox" id="readmate-bilingual-chk" ${enableBilingual ? 'checked' : ''}>
+          <span>${_t('lblBilingual', '双语')}</span>
+        </label>
+        <label class="readmate-sub-toggle" title="${_t('lblBilingualSubtitles', '字幕显示')}">
+          <input type="checkbox" id="readmate-sub-chk" ${showBilingualSubtitles ? 'checked' : ''}>
+          <span>${_t('lblSubtitles', '字幕')}</span>
+        </label>
+        <button class="readmate-btn readmate-btn-summary" id="readmate-summary-btn" title="${_t('fabSummaryTip', 'AI 双语摘要')}">⚡</button>
+        <button class="readmate-btn" id="readmate-debug-btn" title="Debug" style="display:none">🐛</button>
+        <button class="readmate-btn readmate-btn-close" id="readmate-close-btn" title="Close">✕</button>
       </div>
     </div>
-    <div class="readmate-current-text"></div>
-    <div class="readmate-page-info" id="readmate-page-info" style="display:none"></div>
-    <div id="readmate-debug-panel" style="display:none;max-height:200px;overflow:auto;padding:8px 12px;font-size:11px;font-family:monospace;border-top:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.2);color:#aaa;">
+
+    <!-- 下层：动态双语字幕区（可勾选折叠） -->
+    <div class="readmate-subtitles-wrap" id="readmate-subtitles-wrap" style="${showBilingualSubtitles ? '' : 'display:none;'}">
+      <div class="readmate-sub-original" id="readmate-sub-original" title="Original"></div>
+      <div class="readmate-sub-translated" id="readmate-sub-translated" title="Translated"></div>
+    </div>
+
+    <!-- 调试面板 -->
+    <div id="readmate-debug-panel" style="display:none;max-height:160px;overflow:auto;padding:8px 12px;font-size:11px;font-family:monospace;border-top:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.25);color:#aaa;">
       <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-        <span>调试日志</span>
-        <span id="readmate-debug-count" style="cursor:pointer" title="复制日志">0 条</span>
+        <span>Debug Log</span>
+        <span id="readmate-debug-count" style="cursor:pointer" title="Copy">0</span>
       </div>
       <div id="readmate-debug-body"></div>
     </div>
   `;
+
   document.body.appendChild(floatingBar);
 
-  floatingBar.querySelector('#readmate-play-btn').onclick = togglePlayPause;
-  floatingBar.querySelector('#readmate-stop-btn').onclick = stopReading;
-  floatingBar.querySelector('#readmate-close-btn').onclick = stopReading;
-  floatingBar.querySelector('#readmate-continuous-btn').onclick = () => {
-    setContinuousMode(!continuousMode);
-    showTranslation(continuousMode ? '🔁 连续朗读已开启 — 读完自动下一篇' : '🔁 连续朗读已关闭', true);
-  };
-  floatingBar.querySelector('#readmate-translate-btn').onclick = (e) => {
-    window._readmateMouseX = e.clientX;
-    window._readmateMouseY = e.clientY;
-    translateCurrentSentence();
-  };
-  floatingBar.querySelector('#readmate-debug-btn').onclick = toggleDebugPanel;
-  document.getElementById('readmate-debug-count')?.addEventListener('click', copyDebugLogs);
+  try {
+    // 绑定事件
+    floatingBar.querySelector('#readmate-play-btn').onclick = togglePlayPause;
+    floatingBar.querySelector('#readmate-stop-btn').onclick = () => stopReading(true);
+    floatingBar.querySelector('#readmate-close-btn').onclick = () => stopReading(true);
+    floatingBar.querySelector('#readmate-prev-sentence').onclick = prevSentence;
+    floatingBar.querySelector('#readmate-next-sentence').onclick = nextSentence;
+    floatingBar.querySelector('#readmate-summary-btn').onclick = generateAISummary;
 
-  // 初始化连续模式按钮状态
-  const contBtn = document.getElementById('readmate-continuous-btn');
-  if (contBtn) {
-    contBtn.style.opacity = continuousMode ? '1' : '0.4';
-    contBtn.title = continuousMode ? '连续朗读 (开启)' : '连续朗读 (关闭)';
+    // 语音流模式切换（立即清空旧缓存，秒级生效）
+    const modeSel = floatingBar.querySelector('#readmate-voice-mode-select');
+    modeSel.value = readVoiceMode;
+    modeSel.onchange = (e) => {
+      readVoiceMode = e.target.value;
+      // 若选择了直接读译文或双语交替，自动激活双语开关
+      if (readVoiceMode !== 'original' && !enableBilingual) {
+        enableBilingual = true;
+        const biChk = floatingBar.querySelector('#readmate-bilingual-chk');
+        if (biChk) biChk.checked = true;
+        chrome.runtime.sendMessage({ action: 'saveSettings', settings: { enableBilingual: true } });
+      }
+      audioPrefetchCache.clear(); // 清空旧模式预读缓存
+      chrome.runtime.sendMessage({ action: 'saveSettings', settings: { readVoiceMode } });
+      showTranslation(`${_t('toastModeChanged', '模式已切换: ')}${modeSel.options[modeSel.selectedIndex].text}`, true);
+      // 如果正在播放，打断当前句，立即用新模式重播当前句
+      if (isPlaying && interruptCurrentPlayback) {
+        interruptCurrentPlayback();
+      }
+    };
+
+    // 双语翻译独立开关（勾选才翻译，0 Token 默认纯净原文）
+    const biChk = floatingBar.querySelector('#readmate-bilingual-chk');
+    if (biChk) {
+      biChk.onchange = (e) => {
+        enableBilingual = e.target.checked;
+        chrome.runtime.sendMessage({ action: 'saveSettings', settings: { enableBilingual } });
+        if (enableBilingual) {
+          showTranslation('🌐 已开启双语翻译', true);
+          // 正在播放时，立即在后台异步预取当前句翻译
+          if (isPlaying && currentSentences.length > 0) {
+            const curOrig = currentSentences[currentSentenceIndex];
+            if (curOrig && !translationCache.has(curOrig)) {
+              fetchTranslation(curOrig).then(t => {
+                if (isPlaying && currentSentenceIndex < currentSentences.length) {
+                  updateSubtitleDisplay(curOrig, t);
+                }
+              });
+            }
+          }
+        } else {
+          showTranslation('📄 已关闭翻译 (纯原文省Token模式)', true);
+          // 若之前处于仅读译文或双语模式，自动切回仅读原文
+          if (readVoiceMode !== 'original') {
+            readVoiceMode = 'original';
+            modeSel.value = 'original';
+            chrome.runtime.sendMessage({ action: 'saveSettings', settings: { readVoiceMode: 'original' } });
+          }
+          const transEl = floatingBar.querySelector('#readmate-sub-translated');
+          if (transEl) transEl.textContent = '';
+        }
+      };
+    }
+
+    // 字幕折叠开关
+    const subChk = floatingBar.querySelector('#readmate-sub-chk');
+    if (subChk) {
+      subChk.onchange = (e) => {
+        showBilingualSubtitles = e.target.checked;
+        const wrap = floatingBar.querySelector('#readmate-subtitles-wrap');
+        if (wrap) wrap.style.display = showBilingualSubtitles ? '' : 'none';
+        chrome.runtime.sendMessage({ action: 'saveSettings', settings: { showBilingualSubtitles } });
+      };
+    }
+
+    // 调试日志
+    floatingBar.querySelector('#readmate-debug-btn').onclick = toggleDebugPanel;
+    document.getElementById('readmate-debug-count')?.addEventListener('click', copyDebugLogs);
+
+    makeDraggable(floatingBar);
+  } catch(e) {
+    DebugLog.add('createFloatingBar setup error: ' + e.message);
   }
-
-  makeDraggable(floatingBar);
-  DebugLog.add('Floating bar created');
-}
-
-function toggleDebugPanel() {
-  const panel = document.getElementById('readmate-debug-panel');
-  if (panel) {
-    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-    if (panel.style.display === 'block') refreshDebugPanel();
-  }
-}
-
-function refreshDebugPanel() {
-  const body = document.getElementById('readmate-debug-body');
-  const count = document.getElementById('readmate-debug-count');
-  if (body) body.innerHTML = DebugLog.getHTML();
-  if (count) count.textContent = DebugLog.logs.length + ' 条 (点击复制)';
-}
-
-function copyDebugLogs() {
-  const text = DebugLog.copy();
-  const count = document.getElementById('readmate-debug-count');
-  if (count) count.textContent = '已复制! ' + DebugLog.logs.length + ' 条';
-  setTimeout(() => {
-    if (count) count.textContent = DebugLog.logs.length + ' 条 (点击复制)';
-  }, 2000);
-}
-
-let debugTimer = null;
-function startDebugTimer() {
-  stopDebugTimer();
-  debugTimer = setInterval(refreshDebugPanel, 500);
-}
-function stopDebugTimer() {
-  if (debugTimer) { clearInterval(debugTimer); debugTimer = null; }
+  DebugLog.add('Floating bar created successfully');
 }
 
 function showBar() {
+  DebugLog.add('showBar() called');
   if (!floatingBar) createFloatingBar();
-  floatingBar.classList.add('readmate-active');
-  hideFAB(); // 朗读中隐藏悬浮按钮
+  if (floatingBar) {
+    document.body.appendChild(floatingBar);
+    floatingBar.classList.add('readmate-active');
+    floatingBar.style.display = 'flex';
+    floatingBar.style.zIndex = '2147483647';
+  }
+  hideFAB();
   startDebugTimer();
   refreshDebugPanel();
 }
@@ -769,599 +559,1107 @@ function hideBar() {
   stopDebugTimer();
   if (floatingBar) {
     floatingBar.classList.remove('readmate-active');
-    floatingBar.querySelector('.readmate-current-text').textContent = '';
+    floatingBar.style.display = 'none';
+    updateSubtitleDisplay('', '');
   }
   clearHighlights();
   currentSentences = [];
   currentSentenceIndex = 0;
-  showFAB(); // 朗读结束恢复悬浮按钮
+  showFAB();
 }
 
-function updateBarProgress(current, total) {
+function updateBarProgress(cur, total) {
   const el = floatingBar?.querySelector('.readmate-progress');
-  if (el) el.textContent = `${current}/${total}`;
+  if (el) el.textContent = `${cur}/${total}`;
 }
 
-function updateCurrentText(text) {
-  const el = floatingBar?.querySelector('.readmate-current-text');
-  if (el) el.textContent = text;
+function updateSubtitleDisplay(original, translated) {
+  if (!floatingBar) return;
+  const origEl = floatingBar.querySelector('#readmate-sub-original');
+  const transEl = floatingBar.querySelector('#readmate-sub-translated');
+  if (origEl) origEl.textContent = original || '';
+  if (transEl) transEl.textContent = translated || (original ? '正在翻译...' : '');
 }
 
-// ====== 播放控制 ======
+// ====== 拖拽移动支持（排除交互元素与标签，防止阻止复选框默认点击） ======
+function makeDraggable(el) {
+  let isDragging = false, startX, startY, origLeft, origTop;
+  const handle = el.querySelector('.readmate-bar-main');
+  if (!handle) return;
+
+  handle.addEventListener('mousedown', (e) => {
+    // 忽略所有可交互元素（按钮、下拉框、复选框、label文本标签等）
+    if (e.target.closest('button, select, input, label, a, .readmate-chk-toggle, .readmate-sub-toggle, .readmate-btn')) return;
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    const rect = el.getBoundingClientRect();
+    origLeft = rect.left;
+    origTop = rect.top;
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    el.style.left = `${origLeft + dx}px`;
+    el.style.top = `${origTop + dy}px`;
+    el.style.transform = 'none';
+    el.style.bottom = 'auto';
+  });
+
+  document.addEventListener('mouseup', () => { isDragging = false; });
+}
+
+// ====== 调试面板 ======
+function toggleDebugPanel() {
+  const p = document.getElementById('readmate-debug-panel');
+  if (p) p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+function refreshDebugPanel() {
+  const b = document.getElementById('readmate-debug-body');
+  const c = document.getElementById('readmate-debug-count');
+  if (b) b.innerHTML = DebugLog.getHTML();
+  if (c) c.textContent = `${DebugLog.logs.length} 条 (点击复制)`;
+}
+function copyDebugLogs() {
+  DebugLog.copy();
+  showTranslation('✓ 调试日志已复制', true);
+}
+let debugTimer = null;
+function startDebugTimer() { stopDebugTimer(); debugTimer = setInterval(refreshDebugPanel, 600); }
+function stopDebugTimer() { if (debugTimer) { clearInterval(debugTimer); debugTimer = null; } }
+
+// ====== 播放控制与秒停 ======
 function togglePlayPause() {
   if (isPaused) {
     isPaused = false;
-    floatingBar.querySelector('#readmate-play-btn').textContent = '⏸';
-    window.speechSynthesis.resume();
-    DebugLog.add('Resumed');
+    const playBtn = floatingBar?.querySelector('#readmate-play-btn');
+    if (playBtn) playBtn.textContent = '⏸';
+    if (currentAudio) {
+      currentAudio.play().catch(e => DebugLog.add('Resume audio error: ' + e.message));
+    } else if (window.speechSynthesis) {
+      window.speechSynthesis.resume();
+    }
+    DebugLog.add(`Playback resumed at sentence ${currentSentenceIndex + 1}`);
   } else if (isPlaying) {
     isPaused = true;
-    floatingBar.querySelector('#readmate-play-btn').textContent = '▶';
-    window.speechSynthesis.pause();
-    DebugLog.add('Paused');
+    const playBtn = floatingBar?.querySelector('#readmate-play-btn');
+    if (playBtn) playBtn.textContent = '▶';
+    if (currentAudio) {
+      currentAudio.pause();
+    } else if (window.speechSynthesis) {
+      window.speechSynthesis.pause();
+    }
+    DebugLog.add(`Playback paused at sentence ${currentSentenceIndex + 1}`);
   }
 }
 
-function stopReading() {
+function cancelPlayback() {
+  DebugLog.add('cancelPlayback invoked: forcing instant stop');
   isPlaying = false;
   isPaused = false;
-  userStopped = true; // 标记用户主动停止
-  stopImmediate = true; // 让 speakSentence 的 poll 立刻退出
-  window.speechSynthesis.cancel();
-  hideBar();
-  DebugLog.add('Stopped (user)');
-}
-
-// ====== 句子高亮（改进版：覆盖整句，跨元素边界正确，避免重复图片 caption 跳转）======
-let highlightSpans = [];
-let lastHighlightEnd = 0; // 上次高亮结束位置，用于避免重复文字跳回开头
-let stopImmediate = false; // 立即停止信号，让 speakSentence 的 poll 立刻退出
-
-function highlightSentence(index) {
+  stopImmediate = true;
+  if (interruptCurrentPlayback) {
+    try { interruptCurrentPlayback(); } catch(e) {}
+    interruptCurrentPlayback = null;
+  }
+  if (currentAudio) {
+    try {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      currentAudio.src = '';
+    } catch(e) {}
+    currentAudio = null;
+  }
+  if (window.speechSynthesis) {
+    try { window.speechSynthesis.cancel(); } catch(e) {}
+  }
+  audioPrefetchCache.clear();
   clearHighlights();
-  if (!settings.highlightEnabled) return;
-  const sentence = currentSentences[index];
-  if (!sentence) return;
-
-  const textNodes = getTextNodesInBody();
-  const fullText = textNodes.map(n => n.textContent).join('');
-
-  // 用整句前200字匹配，从上一次高亮结束位置往后搜（避免重复 caption 跳回开头）
-  const searchText = sentence.trim().substring(0, 200);
-  let startIdx = fullText.indexOf(searchText, lastHighlightEnd);
-  if (startIdx < 0) {
-    // 后面没找到，回溯全文搜索
-    startIdx = fullText.indexOf(searchText);
-  }
-
-  // 精确匹配失败时降级到前30字
-  if (startIdx < 0) {
-    const shortText = sentence.trim().substring(0, 30);
-    startIdx = fullText.indexOf(shortText, lastHighlightEnd);
-    if (startIdx < 0) {
-      startIdx = fullText.indexOf(shortText);
-    }
-    if (startIdx < 0) {
-      DebugLog.add('Highlight: text not found for "' + shortText + '"');
-      return;
-    }
-    DebugLog.add('Highlight: fuzzy match at ' + startIdx);
-  }
-
-  // 确定高亮终止位置
-  const endIdx = Math.min(startIdx + sentence.trim().length, fullText.length);
-  lastHighlightEnd = endIdx; // 记录本次位置，下一句从这往后搜
-  applyHighlight(textNodes, startIdx, endIdx);
 }
 
-/** 在文本节点序列上应用高亮（分割文本节点避免跨元素失败） */
-function applyHighlight(textNodes, startIdx, endIdx) {
-  let charCount = 0;
+function stopReading(isUser = true) {
+  cancelPlayback();
+  if (isUser) {
+    userStopped = true;
+    DebugLog.add('Stopped by user');
+  }
+  hideBar();
+}
 
-  for (const node of textNodes) {
-    const nodeLen = node.textContent.length;
-    const nodeStart = charCount;
-    const nodeEnd = charCount + nodeLen;
+function prevSentence() {
+  if (currentSentenceIndex > 0) {
+    currentSentenceIndex -= 2; // 跳到上一句（循环步进 +1）
+    if (interruptCurrentPlayback) interruptCurrentPlayback();
+  }
+}
 
-    if (nodeEnd > startIdx && nodeStart < endIdx) {
-      // 此节点包含需要高亮的部分
-      const rangeStart = Math.max(0, startIdx - nodeStart);
-      const rangeEnd = Math.min(nodeLen, endIdx - nodeStart);
-      const text = node.textContent;
+function nextSentence() {
+  if (currentSentenceIndex < currentSentences.length - 1) {
+    if (interruptCurrentPlayback) interruptCurrentPlayback();
+  }
+}
 
-      if (rangeStart <= 0 && rangeEnd >= nodeLen) {
-        // 整个节点都高亮
-        const span = document.createElement('span');
-        span.className = 'readmate-highlight';
-        node.parentNode.insertBefore(span, node);
-        span.appendChild(node);
-        highlightSpans.push(span);
+// ====== 翻译预取流水线（确保读译文和双语无延迟） ======
+async function fetchTranslation(text) {
+  if (!text || !text.trim()) return '';
+  if (translationCache.has(text)) return translationCache.get(text);
+
+  const targetLang = settings.translateTarget || 'Simplified Chinese';
+  const apiKey = settings.aiApiKey || 'liang-gemini-proxy-2026';
+  const endpoint = settings.aiEndpoint || 'http://192.168.199.159:28080/v1';
+  const model = settings.aiModel || 'gemini-3.7-flash-high';
+
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({
+      action: 'proxyTranslate',
+      endpoint,
+      apiKey,
+      model,
+      text,
+      targetLang,
+    }, (resp) => {
+      const translated = (resp && resp.ok && resp.text) ? resp.text.trim() : '';
+      if (translated) translationCache.set(text, translated);
+      resolve(translated);
+    });
+  });
+}
+
+// ====== 预读机制：翻译与云端 TTS 双重预读流水线 ======
+const audioPrefetchCache = new Map(); // key -> Promise<dataUrl>
+
+function getTtsAudioKey(text, voice, speed) {
+  return `${voice}__${Math.round(((speed || 1.0) - 1) * 100)}%__${text}`;
+}
+
+function prefetchTtsAudio(endpoint, text, voice, speed) {
+  if (!text || !text.trim()) return null;
+  const speechText = getSpeechText(text);
+  const key = getTtsAudioKey(speechText, voice, speed);
+  if (audioPrefetchCache.has(key)) {
+    return audioPrefetchCache.get(key);
+  }
+  DebugLog.add(`Prefetching TTS audio for: "${speechText.substring(0, 25)}..."`);
+  const promise = proxyFetchTTS(endpoint, {
+    text: speechText,
+    voice,
+    rate: `+${Math.round(((speed || 1.0) - 1) * 100)}%`,
+  }).catch(err => {
+    DebugLog.add(`Audio prefetch failed for "${speechText.substring(0, 25)}": ${err.message}`);
+    audioPrefetchCache.delete(key);
+    return null;
+  });
+  audioPrefetchCache.set(key, promise);
+  return promise;
+}
+
+async function getOrFetchTtsAudio(endpoint, text, voice, speed) {
+  const speechText = getSpeechText(text);
+  const key = getTtsAudioKey(speechText, voice, speed);
+  if (audioPrefetchCache.has(key)) {
+    DebugLog.add(`TTS prefetch HIT for "${speechText.substring(0, 25)}..."`);
+    const cached = await audioPrefetchCache.get(key);
+    if (cached) return cached;
+  }
+  DebugLog.add(`TTS prefetch MISS, fetching now: "${speechText.substring(0, 25)}..."`);
+  return await proxyFetchTTS(endpoint, {
+    text: speechText,
+    voice,
+    rate: `+${Math.round(((speed || 1.0) - 1) * 100)}%`,
+  });
+}
+
+/** 双重流水线预读：向前滑动预取 bufferSize 句的翻译与音频 */
+function prefetchAhead(sentences, startIndex, bufferSize, ttsEndpoint, origVoice, transVoice, ttsSpeed, useCloud) {
+  for (let b = 1; b <= bufferSize; b++) {
+    const idx = startIndex + b;
+    if (idx < 0 || idx >= sentences.length) continue;
+    const nextOrig = sentences[idx];
+
+    // 1. 原文 TTS 音频预取（模式为“仅读原文”或“双语交替”）
+    if (useCloud && (readVoiceMode === 'original' || readVoiceMode === 'bilingual')) {
+      prefetchTtsAudio(ttsEndpoint, nextOrig, origVoice, ttsSpeed);
+    }
+
+    // 2. 译文预取（必须开启双语 且（需要显示双语字幕 或 朗读包含译文））
+    if (enableBilingual && (readVoiceMode !== 'original' || showBilingualSubtitles)) {
+      if (translationCache.has(nextOrig)) {
+        const trans = translationCache.get(nextOrig);
+        if (useCloud && trans && (readVoiceMode === 'translated' || readVoiceMode === 'bilingual')) {
+          prefetchTtsAudio(ttsEndpoint, trans, transVoice, ttsSpeed);
+        }
       } else {
-        // 部分高亮：分割文本节点
-        const parent = node.parentNode;
-        const before = document.createTextNode(text.substring(0, rangeStart));
-        const highlight = document.createElement('span');
-        highlight.className = 'readmate-highlight';
-        highlight.textContent = text.substring(rangeStart, rangeEnd);
-        const after = document.createTextNode(text.substring(rangeEnd));
-
-        parent.insertBefore(before, node);
-        parent.insertBefore(highlight, node);
-        parent.insertBefore(after, node);
-        parent.removeChild(node);
-        highlightSpans.push(highlight);
+        fetchTranslation(nextOrig).then(trans => {
+          if (useCloud && trans && (readVoiceMode === 'translated' || readVoiceMode === 'bilingual')) {
+            prefetchTtsAudio(ttsEndpoint, trans, transVoice, ttsSpeed);
+          }
+        }).catch(() => {});
       }
     }
-    charCount += nodeLen;
-    if (charCount >= endIdx) break;
   }
-
-  // 滚动到第一个高亮元素
-  if (highlightSpans.length > 0) {
-    highlightSpans[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-  DebugLog.add('Highlighted ' + highlightSpans.length + ' spans for sentence');
 }
 
+/** 异步预取后续 2 句的翻译 */
+function prefetchTranslations(sentences, startIndex) {
+  for (let b = 1; b <= 2; b++) {
+    const idx = startIndex + b;
+    if (idx < sentences.length && !translationCache.has(sentences[idx])) {
+      fetchTranslation(sentences[idx]);
+    }
+  }
+}
+
+// ====== 云端 Edge TTS 播放代理 ======
+let _proxyReqId = 0;
+function proxyFetchTTS(endpoint, payload) {
+  const requestId = 'req_' + (++_proxyReqId);
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({ action: 'proxyFetch', url: endpoint, options: {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }, requestId }, (resp) => {
+      if (chrome.runtime.lastError) {
+        DebugLog.add('proxyFetch runtime error: ' + chrome.runtime.lastError.message);
+        return reject(new Error(chrome.runtime.lastError.message));
+      }
+      DebugLog.add('proxyFetch raw resp: ' + JSON.stringify(resp || {}));
+      if (!resp?.ok || !resp.dataUrl) {
+        DebugLog.add('proxyFetch response error: ' + (resp?.error || 'no dataUrl'));
+        return reject(new Error(resp?.error || 'proxy fetch failed'));
+      }
+
+      DebugLog.add('proxyFetch success with dataUrl, length=' + resp.dataUrl.length);
+      resolve(resp.dataUrl);
+    });
+  });
+}
+
+// ====== 终极朗读发音文本净化器（严防 Edge TTS 念出 Markdown、怪符号、斜杠、无声字符） ======
+function getSpeechText(sentence) {
+  if (!sentence || typeof sentence !== 'string') return '';
+  let s = sentence;
+  // 1. 去除网址 URL（http/https），防止 TTS 念一长串字母和斜杠
+  s = s.replace(/https?:\/\/\S+/gi, '');
+  // 2. 去除 Markdown 链接格式 [文字](链接) -> 保留文字
+  s = s.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+  // 3. 去除 HTML 标签残留
+  s = s.replace(/<[^>]+>/g, '');
+  // 4. 去除所有 Emoji 与特殊装饰符号、图符
+  s = s.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF\u2300-\u23FF•·※✦✧○●■□▲▼◆◇→←↑↓✓✔✕✖©®™]/g, ' ');
+  // 5. 去除 Markdown 粗体、斜体、删除线、行内代码、标题标记：**text**, *text*, __text__, ~~text~~, `code`, #
+  s = s.replace(/[*_~`#]+/g, '');
+  // 6. 去除箭头符 -> => <-
+  s = s.replace(/[-=]>\s*|<\s*[-=]/g, ' ');
+  // 7. 去除行首列表、引用与编号标记：- , + , * , > , 1. 
+  s = s.replace(/^[\s>+\-]+/gm, '');
+  // 8. 处理斜杠：非数字分数情况下的斜杠（如 A/B, and/or）替换为逗号停顿，严防读成 "slash" 或 "斜杠"
+  s = s.replace(/(?<!\d)\/|\/(?!\d)/g, ', ');
+  // 9. 去除竖线、反斜杠、波浪线、插入符、等号等特殊排版符号
+  s = s.replace(/[|\\^=~_]+/g, ' ');
+  // 10. 处理括号（保留括号内文字，移除括号符号本身）
+  s = s.replace(/[()\[\]{}【】（）「」《》]/g, ' ');
+  // 11. 连续破折号转为自然逗号停顿
+  s = s.replace(/[-—]{2,}/g, ', ');
+  // 12. 规范化连续标点符号（如 ???, !!! -> ?, !）
+  s = s.replace(/([!?,.。！？])\1+/g, '$1');
+  // 13. 数字朗读友好化（仅当含有数字时）
+  if (typeof NumberNormalizer !== 'undefined' && NumberNormalizer.needsNormalization && NumberNormalizer.needsNormalization(s)) {
+    try { s = NumberNormalizer.normalize(s); } catch(e) {}
+  }
+  // 14. 压缩连续空白
+  s = s.replace(/\s+/g, ' ').trim();
+  return s || sentence;
+}
+
+/** 播放音频（标准 Blob ObjectURL / 原生精准 onended 触发 / 动态时长 + 心跳防死锁） */
+function playAudioUrl(url) {
+  return new Promise((resolve) => {
+    if (stopImmediate || !isPlaying) return resolve();
+    let done = false;
+    let heartbeatTimer = null;
+    let activePlaySeconds = 0;
+    let maxAllowedSeconds = 60; // 初始默认保底 60 秒（待音频元数据返回后自适应调整）
+    let lastTime = 0;
+    let stallCount = 0;
+
+    function finish() {
+      if (!done) {
+        done = true;
+        if (heartbeatTimer) {
+          clearInterval(heartbeatTimer);
+          heartbeatTimer = null;
+        }
+        if (currentAudio) {
+          try {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+            currentAudio.src = '';
+          } catch(e) {}
+          currentAudio = null;
+        }
+        interruptCurrentPlayback = null;
+        resolve();
+      }
+    }
+
+    const audio = new Audio(url);
+    currentAudio = audio;
+
+    interruptCurrentPlayback = () => {
+      finish();
+    };
+
+    audio.onended = () => {
+      DebugLog.add('Audio onended naturally');
+      finish();
+    };
+
+    audio.onerror = (e) => {
+      DebugLog.add('Audio onerror fired: ' + (audio.error ? audio.error.message : ''));
+      finish();
+    };
+
+    // 动态感知音频真实总时长：以真实 duration 为基准，加 15 秒缓冲，长句绝不提前掐断
+    const syncDuration = () => {
+      if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration) && audio.duration > 0) {
+        maxAllowedSeconds = Math.max(20, Math.round(audio.duration) + 15);
+        DebugLog.add(`Audio metadata loaded, duration=${audio.duration.toFixed(1)}s, maxAllowed=${maxAllowedSeconds}s`);
+      }
+    };
+
+    audio.addEventListener('loadedmetadata', syncDuration);
+    audio.addEventListener('durationchange', syncDuration);
+    audio.addEventListener('canplay', syncDuration);
+
+    // 播放心跳与活性监控器（每 1 秒巡检一次）
+    // 1. 用户暂停时不计入播放时长与卡顿计数；
+    // 2. 只要音频在推进（currentTime 增加），就代表播放绝对健康；
+    // 3. 只有当非暂停状态下进度条连续 8 秒寸步不前，或播放活跃时间达到上限，才做容错恢复
+    heartbeatTimer = setInterval(() => {
+      if (done) return;
+      if (isPaused) {
+        stallCount = 0;
+        return;
+      }
+
+      if (!audio.paused) {
+        activePlaySeconds++;
+
+        if (audio.currentTime > lastTime + 0.05) {
+          lastTime = audio.currentTime;
+          stallCount = 0;
+        } else if (audio.currentTime > 0) {
+          stallCount++;
+          if (stallCount >= 8) {
+            DebugLog.add('Audio playback stalled for 8s, auto recovering');
+            finish();
+            return;
+          }
+        } else if (audio.currentTime === 0 && activePlaySeconds >= 15) {
+          DebugLog.add('Audio failed to buffer/play within 15s, skipping');
+          finish();
+          return;
+        }
+
+        if (activePlaySeconds >= maxAllowedSeconds) {
+          DebugLog.add(`Audio reached max dynamic safety threshold (${maxAllowedSeconds}s), completing`);
+          finish();
+          return;
+        }
+      }
+    }, 1000);
+
+    audio.play().catch(err => {
+      DebugLog.add('Audio play error: ' + err.message);
+      finish();
+    });
+  });
+}
+
+/** 播放单个 Utterance（浏览器原生 TTS，双语智能音色匹配） */
+function playSpeechUtterance(text, lang, customVoiceName = '') {
+  return new Promise((resolve) => {
+    if (stopImmediate || !isPlaying) return resolve();
+    if (!window.speechSynthesis) return resolve();
+    const utterance = new SpeechSynthesisUtterance(text);
+    const speed = settings.ttsSpeed || 1.0;
+    utterance.rate = speed;
+    utterance.lang = lang || 'zh-CN';
+
+    const matchedVoice = getBestBrowserVoice(lang, customVoiceName);
+    if (matchedVoice) {
+      utterance.voice = matchedVoice;
+    }
+
+    let done = false;
+    let timer = null;
+    function finish() {
+      if (!done) {
+        done = true;
+        if (timer) clearTimeout(timer);
+        interruptCurrentPlayback = null;
+        resolve();
+      }
+    }
+
+    interruptCurrentPlayback = () => {
+      try { window.speechSynthesis.cancel(); } catch(e) {}
+      finish();
+    };
+
+    utterance.onend = finish;
+    utterance.onerror = finish;
+    window.speechSynthesis.speak(utterance);
+
+    // 针对无声卡/模拟环境的自适应时长保底：
+    // 按文本长度和语速动态计算，提供充沛余量（最少 6 秒，最多 180 秒），绝不粗暴截断
+    const isZh = (typeof TextUtils !== 'undefined' && TextUtils.isChinese) ? TextUtils.isChinese(text) : /[\u4e00-\u9fa5]/.test(text);
+    const units = isZh ? text.length : text.split(/\s+/).filter(Boolean).length;
+    const estMs = Math.round((units * 450) / speed) + 10000;
+    const estDuration = Math.max(6000, Math.min(180000, estMs));
+
+    timer = setTimeout(() => {
+      if (!done) {
+        DebugLog.add(`SpeechUtterance safety timeout reached (${Math.round(estDuration / 1000)}s)`);
+        finish();
+      }
+    }, estDuration);
+  });
+}
+
+// ====== 核心朗读执行调度器（多语种双核引擎 + 绝对可用保底 + 双重预读流水线） ======
+async function playSentencesFlow(sentences) {
+  currentSentences = sentences;
+  isPlaying = true;
+  isPaused = false;
+  showBar();
+  DebugLog.add(`playSentencesFlow started: ${sentences.length} sentences`);
+
+  const useCloud = (settings.ttsEngine !== 'browser') && settings.cloudTtsEndpoint && settings.cloudTtsEndpoint.includes('://');
+  const ttsEndpoint = (settings.cloudTtsEndpoint || 'http://192.168.199.159:5001').replace(/\/+$/, '') + '/tts';
+  const targetLangCode = LANG_NAME_TO_CODE[settings.translateTarget] || 'zh-CN';
+  const bufferSize = settings.ttsBuffer || 2;
+  const currentSpeed = settings.ttsSpeed || 1.0;
+
+  // 原文音色与译文音色匹配（附带强制保底与双语自动映射）
+  let origVoice = useCloud ? getBestVoiceForLang(detectedDocLang, settings.cloudTtsVoiceOrig || settings.cloudTtsVoice) : '';
+  let transVoice = useCloud ? getBestVoiceForLang(targetLangCode, settings.cloudTtsVoiceTrans) : '';
+  if (!origVoice) origVoice = (detectedDocLang && detectedDocLang.startsWith('zh')) ? 'zh-CN-XiaoxiaoNeural' : 'en-US-JennyNeural';
+  if (!transVoice) transVoice = (targetLangCode && targetLangCode.startsWith('en')) ? 'en-US-JennyNeural' : 'zh-CN-XiaoxiaoNeural';
+
+  DebugLog.add(`TTS Config: useCloud=${useCloud}, endpoint=${ttsEndpoint}, origVoice=${origVoice}, buffer=${bufferSize}`);
+
+  // 1. 预先启动开篇几句的预读流水线
+  prefetchAhead(sentences, -1, bufferSize + 1, ttsEndpoint, origVoice, transVoice, currentSpeed, useCloud);
+
+  for (let i = 0; i < sentences.length; i++) {
+    DebugLog.add(`Loop top: i=${i}, isPlaying=${isPlaying}, stopImmediate=${stopImmediate}`);
+    if (!isPlaying || stopImmediate) break;
+    while (isPaused) {
+      await new Promise(r => setTimeout(r, 150));
+      if (!isPlaying || stopImmediate) break;
+    }
+    if (!isPlaying || stopImmediate) break;
+
+    currentSentenceIndex = i;
+    const origSentence = sentences[i];
+    DebugLog.add(`Playing sentence ${i + 1}/${sentences.length}: "${origSentence.substring(0, 30)}..."`);
+    updateBarProgress(i + 1, sentences.length);
+    highlightSentence(i);
+
+    // 2. 保持预读流水线滑动向前推荐后续 bufferSize 句
+    prefetchAhead(sentences, i, bufferSize, ttsEndpoint, origVoice, transVoice, currentSpeed, useCloud);
+
+    // 3. 准备当前句译文（仅在开启双语时才请求 AI，不开启 0 Token 消耗）
+    let transSentence = translationCache.get(origSentence) || '';
+    if (enableBilingual && !transSentence && (readVoiceMode !== 'original' || showBilingualSubtitles)) {
+      updateSubtitleDisplay(origSentence, _t('toastGeneratingSummary', 'Translating...'));
+      try {
+        transSentence = await Promise.race([
+          fetchTranslation(origSentence),
+          new Promise(r => setTimeout(() => r(''), 3000))
+        ]);
+      } catch(e) {
+        transSentence = '';
+      }
+    }
+    if (!isPlaying || stopImmediate) break;
+    updateSubtitleDisplay(origSentence, enableBilingual ? transSentence : '');
+
+    // 4. 根据模式决定播放流（完全采用发音净化后的文本）
+    const speechOrig = getSpeechText(origSentence);
+    try {
+      if (readVoiceMode === 'original') {
+        // 1. 仅读原文
+        if (useCloud) {
+          try {
+            const dataUrl = await getOrFetchTtsAudio(ttsEndpoint, speechOrig, origVoice, currentSpeed);
+            if (dataUrl && isPlaying && !stopImmediate) {
+              await playAudioUrl(dataUrl);
+            }
+          } catch(e) {
+            DebugLog.add('Cloud TTS failed, fallback: ' + e.message);
+            if (isPlaying && !stopImmediate) {
+              await playSpeechUtterance(speechOrig, detectedDocLang, settings.ttsVoiceOrig || settings.ttsVoice);
+            }
+          }
+        } else {
+          if (isPlaying && !stopImmediate) {
+            await playSpeechUtterance(speechOrig, detectedDocLang, settings.ttsVoiceOrig || settings.ttsVoice);
+          }
+        }
+      } else if (readVoiceMode === 'translated') {
+        // 2. 直接读译文
+        const speechText = getSpeechText(transSentence || origSentence);
+        if (useCloud) {
+          try {
+            const dataUrl = await getOrFetchTtsAudio(ttsEndpoint, speechText, transVoice, currentSpeed);
+            if (dataUrl && isPlaying && !stopImmediate) {
+              await playAudioUrl(dataUrl);
+            }
+          } catch(e) {
+            DebugLog.add('Cloud TTS failed, fallback: ' + e.message);
+            if (isPlaying && !stopImmediate) {
+              await playSpeechUtterance(speechText, targetLangCode, settings.ttsVoiceTrans);
+            }
+          }
+        } else {
+          if (isPlaying && !stopImmediate) {
+            await playSpeechUtterance(speechText, targetLangCode, settings.ttsVoiceTrans);
+          }
+        }
+      } else if (readVoiceMode === 'bilingual') {
+        // 3. 双语交替读（先读原文，再读译文）
+        // 原文句
+        if (useCloud) {
+          try {
+            const dataUrlOrig = await getOrFetchTtsAudio(ttsEndpoint, speechOrig, origVoice, currentSpeed);
+            if (dataUrlOrig && isPlaying && !stopImmediate) {
+              await playAudioUrl(dataUrlOrig);
+            }
+          } catch(e) {
+            if (isPlaying && !stopImmediate) {
+              await playSpeechUtterance(speechOrig, detectedDocLang, settings.ttsVoiceOrig || settings.ttsVoice);
+            }
+          }
+        } else {
+          if (isPlaying && !stopImmediate) {
+            await playSpeechUtterance(speechOrig, detectedDocLang, settings.ttsVoiceOrig || settings.ttsVoice);
+          }
+        }
+
+        if (!isPlaying || stopImmediate) break;
+
+        // 稍微停顿 250ms
+        await new Promise(r => setTimeout(r, 250));
+
+        if (!isPlaying || stopImmediate) break;
+
+        // 译文句
+        const speechTrans = getSpeechText(transSentence);
+        if (speechTrans && isPlaying && !stopImmediate) {
+          if (useCloud) {
+            try {
+              const dataUrlTrans = await getOrFetchTtsAudio(ttsEndpoint, speechTrans, transVoice, currentSpeed);
+              if (dataUrlTrans && isPlaying && !stopImmediate) {
+                await playAudioUrl(dataUrlTrans);
+              }
+            } catch(e) {
+              if (isPlaying && !stopImmediate) {
+                await playSpeechUtterance(speechTrans, targetLangCode, settings.ttsVoiceTrans);
+              }
+            }
+          } else {
+            if (isPlaying && !stopImmediate) {
+              await playSpeechUtterance(speechTrans, targetLangCode, settings.ttsVoiceTrans);
+            }
+          }
+        }
+      }
+    } catch(e) {
+      DebugLog.add(`Sentence error at ${i + 1}: ${e.message}`);
+    }
+
+    if (!isPlaying || stopImmediate) break;
+  }
+
+  const finishedNaturally = isPlaying && !stopImmediate;
+  isPlaying = false;
+  hideBar();
+  if (finishedNaturally) {
+    showTranslation(_t('toastArticleFinished', '🎉 当前文章已朗读完毕'), true);
+  }
+}
+
+// ====== 主入口：启动文章朗读 ======
+async function startReading(text, forceLang = null, voiceModeOverride = null) {
+  if (!text || !text.trim()) return;
+  DebugLog.add('== startReading v2.0 ==');
+  await loadSettings();
+
+  if (voiceModeOverride) {
+    readVoiceMode = voiceModeOverride;
+  }
+
+  // 语种自动检测（支持显式指定，如摘要读译文时强行锁定为目标语言）
+  if (forceLang) {
+    detectedDocLang = forceLang;
+  } else {
+    try {
+      detectedDocLang = ContentExtractor.detectLanguage ? ContentExtractor.detectLanguage(text) : 'en-US';
+    } catch(e) {
+      detectedDocLang = 'zh-CN';
+    }
+  }
+  DebugLog.add(`Detected doc language: ${detectedDocLang}`);
+
+  cancelPlayback();
+  stopImmediate = false;
+  userStopped = false;
+
+  let cleanText = text;
+  try {
+    cleanText = TextUtils.preprocess(text, {
+      stripHtml: true,
+      stripPinyin: true,
+      stripFootnotes: true,
+      stripDecorative: true,
+      collapseWhitespace: true,
+      cleanCjk: false,
+    });
+  } catch(e) {
+    cleanText = text;
+  }
+
+  let sentences = [];
+  try {
+    sentences = TextUtils.splitSentences(cleanText);
+  } catch(e) {
+    sentences = [cleanText];
+  }
+
+  if (!sentences || sentences.length === 0) return;
+
+  // 过滤掉纯标点符号或空白的无效句子
+  sentences = sentences.filter(s => {
+    const cleaned = getSpeechText(s);
+    return cleaned && cleaned.replace(/[\s.,!?;:，。！？；：'"`~—\-_/\\|]+/g, '').length > 0;
+  });
+
+  if (sentences.length === 0) return;
+
+  DebugLog.add(`Ready to play: ${sentences.length} sentences`);
+  playSentencesFlow(sentences);
+}
+
+// ====== ⚡ AI 双语核心要闻摘要系统 ======
+let summaryDialog = null;
+let cachedSummaryList = null;
+
+function updateFABSummaryState() {
+  const summaryBtn = fabContainer?.querySelector('#readmate-fab-summary');
+  if (summaryBtn) {
+    if (cachedSummaryList && cachedSummaryList.length > 0) {
+      summaryBtn.classList.add('has-summary');
+    } else {
+      summaryBtn.classList.remove('has-summary');
+    }
+  }
+}
+
+function closeSummaryDialog() {
+  const dialogs = document.querySelectorAll('#readmate-summary-dialog, .readmate-summary-mask');
+  dialogs.forEach(el => el.remove());
+  summaryDialog = null;
+  document.removeEventListener('keydown', handleSummaryKeydown);
+  updateFABSummaryState();
+}
+
+function minimizeSummaryDialog() {
+  if (summaryDialog) {
+    summaryDialog.style.display = 'none';
+  }
+  updateFABSummaryState();
+}
+
+function handleSummaryKeydown(e) {
+  if (e.key === 'Escape' || e.keyCode === 27) {
+    closeSummaryDialog();
+  }
+}
+
+async function generateAISummary(forceRefresh = false) {
+  // 如果已存在最小化的弹窗且非强制刷新，直接展开
+  if (!forceRefresh && summaryDialog && summaryDialog.style.display === 'none') {
+    summaryDialog.style.display = '';
+    return;
+  }
+
+  // 如果当前页面已有摘要缓存且非强制刷新，秒开展示
+  if (!forceRefresh && cachedSummaryList && cachedSummaryList.length > 0) {
+    showSummaryCard(cachedSummaryList);
+    return;
+  }
+
+  closeSummaryDialog();
+  await loadSettings();
+  const apiKey = settings.aiApiKey || 'liang-gemini-proxy-2026';
+  const endpoint = settings.aiEndpoint || 'http://192.168.199.159:28080/v1';
+  const model = settings.aiModel || 'gemini-3.1-flash-lite';
+
+  showTranslation(_t('toastGeneratingSummary', '⚡ 正在由 AI 提炼详细双语核心要闻...'), true);
+
+  let pageText = '';
+  try {
+    const content = ContentExtractor.extract(document);
+    pageText = (content && content.success && content.text) ? content.text : (document.body.innerText || '');
+  } catch(e) {
+    pageText = document.body.innerText || '';
+  }
+
+  chrome.runtime.sendMessage({
+    action: 'proxySummarize',
+    endpoint: endpoint,
+    apiKey: apiKey,
+    model: model,
+    text: pageText,
+    targetLang: settings.translateTarget || 'Simplified Chinese',
+    docLang: detectedDocLang,
+  }, (resp) => {
+    if (!resp?.ok || !Array.isArray(resp.summary) || resp.summary.length === 0) {
+      closeSummaryDialog();
+      showTranslation(_t('toastSummaryFailed', '❌ 摘要生成失败: ') + (resp?.error || ''), true);
+      return;
+    }
+    cachedSummaryList = resp.summary;
+    updateFABSummaryState();
+    showSummaryCard(resp.summary);
+  });
+}
+
+/** 弹出精致的多语种/原文/译文摘要卡片 */
+function showSummaryCard(summaryList) {
+  closeSummaryDialog();
+
+  summaryDialog = document.createElement('div');
+  summaryDialog.id = 'readmate-summary-dialog';
+  summaryDialog.innerHTML = `
+    <div class="readmate-summary-mask" id="readmate-summary-mask"></div>
+    <div class="readmate-summary-content">
+      <div class="readmate-summary-head">
+        <div class="readmate-summary-title">${_t('summaryCardTitle', '⚡ AI 核心要闻摘要')}</div>
+        <div class="readmate-summary-head-right">
+          <div class="readmate-summary-tabs" id="readmate-summary-tabs">
+            <button class="readmate-summary-tab" data-view="bilingual" title="${_t('summaryTabBilingualTip', '双语对照模式')}">${_t('summaryTabBilingual', '🔄 双语')}</button>
+            <button class="readmate-summary-tab" data-view="original" title="${_t('summaryTabOriginalTip', '仅看原文 (纯净沉浸)')}">${_t('summaryTabOriginal', '📄 原文')}</button>
+            <button class="readmate-summary-tab" data-view="translated" title="${_t('summaryTabTranslatedTip', '仅看译文 (母语速览)')}">${_t('summaryTabTranslated', '🌐 译文')}</button>
+          </div>
+          <div class="readmate-summary-window-actions">
+            <button class="readmate-summary-action-btn" id="readmate-summary-regen-btn" title="${_t('summaryRegenerateTip', '重新生成摘要')}">🔄</button>
+            <button class="readmate-summary-action-btn" id="readmate-summary-min-btn" title="${_t('summaryMinimizeTip', '最小化')}">一</button>
+            <button class="readmate-summary-action-btn readmate-summary-close" id="readmate-summary-close-btn" title="${_t('summaryCloseTip', '关闭 (ESC)')}">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="readmate-summary-list">
+        ${summaryList.map((item, idx) => `
+          <div class="readmate-summary-item" data-idx="${idx}">
+            <div class="readmate-summary-idx">${idx + 1}</div>
+            <div class="readmate-summary-texts">
+              <div class="readmate-summary-orig">${item.original || ''}</div>
+              <div class="readmate-summary-trans">${item.translated || ''}</div>
+            </div>
+            <div class="readmate-summary-item-actions">
+              <button class="readmate-summary-play-btn" data-type="orig" title="${_t('readOriginal', '读原文')}">🗣️</button>
+              <button class="readmate-summary-play-btn" data-type="trans" title="${_t('readTranslated', '读译文')}">🌐</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="readmate-summary-foot">
+        <div class="readmate-summary-actions-left">
+          <button class="readmate-btn-primary" id="readmate-summary-play-bilingual" title="${_t('summaryPlayBilingualTip', '双语交替读摘要')}">${_t('summaryPlayBilingual', '🔄 连播摘要 (双语)')}</button>
+          <button class="readmate-btn-ghost" id="readmate-summary-play-orig" title="${_t('summaryPlayOrigTip', '仅读原文摘要')}">${_t('summaryPlayOrig', '🔊 读原文')}</button>
+          <button class="readmate-btn-ghost" id="readmate-summary-play-trans" title="${_t('summaryPlayTransTip', '直接读译文摘要')}">${_t('summaryPlayTrans', '🌐 读译文')}</button>
+        </div>
+        <button class="readmate-btn-ghost" id="readmate-summary-copy-md">${_t('copyMarkdown', '📋 复制 Markdown')}</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(summaryDialog);
+  document.addEventListener('keydown', handleSummaryKeydown);
+
+  // 切换呈现模式（双语 / 仅原文 / 仅译文）
+  function applySummaryView(viewMode) {
+    summaryDialog.setAttribute('data-view', viewMode);
+    summaryDialog.querySelectorAll('.readmate-summary-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.view === viewMode);
+    });
+
+    const btnBilingual = summaryDialog.querySelector('#readmate-summary-play-bilingual');
+    const btnOrig = summaryDialog.querySelector('#readmate-summary-play-orig');
+    const btnTrans = summaryDialog.querySelector('#readmate-summary-play-trans');
+
+    if (viewMode === 'original') {
+      if (btnOrig) btnOrig.className = 'readmate-btn-primary';
+      if (btnBilingual) btnBilingual.className = 'readmate-btn-ghost';
+      if (btnTrans) btnTrans.className = 'readmate-btn-ghost';
+    } else if (viewMode === 'translated') {
+      if (btnTrans) btnTrans.className = 'readmate-btn-primary';
+      if (btnBilingual) btnBilingual.className = 'readmate-btn-ghost';
+      if (btnOrig) btnOrig.className = 'readmate-btn-ghost';
+    } else {
+      if (btnBilingual) btnBilingual.className = 'readmate-btn-primary';
+      if (btnOrig) btnOrig.className = 'readmate-btn-ghost';
+      if (btnTrans) btnTrans.className = 'readmate-btn-ghost';
+    }
+  }
+
+  // 初始化应用默认呈现模式
+  const initialView = settings.defaultSummaryView || 'bilingual';
+  applySummaryView(initialView);
+
+  // 绑定模式切换点击事件
+  summaryDialog.querySelectorAll('.readmate-summary-tab').forEach(tab => {
+    tab.onclick = () => applySummaryView(tab.dataset.view);
+  });
+
+  // 操作按钮绑定（注意：不再绑定遮罩层点击关闭，防止误触）
+  summaryDialog.querySelector('#readmate-summary-regen-btn').onclick = () => generateAISummary(true);
+  summaryDialog.querySelector('#readmate-summary-min-btn').onclick = minimizeSummaryDialog;
+  summaryDialog.querySelector('#readmate-summary-close-btn').onclick = closeSummaryDialog;
+
+  // 单条点播
+  summaryDialog.querySelectorAll('.readmate-summary-play-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      const type = btn.dataset.type;
+      const itemEl = btn.closest('.readmate-summary-item');
+      const idx = parseInt(itemEl.dataset.idx);
+      const item = summaryList[idx];
+      const targetLangCode = LANG_NAME_TO_CODE[settings.translateTarget] || 'zh-CN';
+      if (type === 'orig') {
+        const itemDocLang = (window.ContentExtractor && typeof ContentExtractor.detectLanguage === 'function' && item.original)
+          ? ContentExtractor.detectLanguage(item.original)
+          : (detectedDocLang || 'en-US');
+        startReading(item.original, itemDocLang, 'original');
+      } else {
+        startReading(item.translated, targetLangCode, 'original');
+      }
+    };
+  });
+
+  // 连播全部（支持三种模式，不关闭弹窗，由用户手动关闭）
+  summaryDialog.querySelector('#readmate-summary-play-bilingual').onclick = () => {
+    const origSentences = [];
+    summaryList.forEach(item => {
+      if (item.original) {
+        origSentences.push(item.original);
+        if (item.translated) {
+          translationCache.set(item.original, item.translated);
+        }
+      }
+    });
+    enableBilingual = true;
+    const firstOrigLang = (window.ContentExtractor && typeof ContentExtractor.detectLanguage === 'function' && origSentences[0])
+      ? ContentExtractor.detectLanguage(origSentences[0])
+      : detectedDocLang;
+    startReading(origSentences.join('\n\n'), firstOrigLang, 'bilingual');
+  };
+
+  summaryDialog.querySelector('#readmate-summary-play-orig').onclick = () => {
+    const origSentences = summaryList.map(item => item.original).filter(Boolean);
+    const origLang = (window.ContentExtractor && typeof ContentExtractor.detectLanguage === 'function' && origSentences[0])
+      ? ContentExtractor.detectLanguage(origSentences[0])
+      : detectedDocLang;
+    startReading(origSentences.join('\n\n'), origLang, 'original');
+  };
+
+  summaryDialog.querySelector('#readmate-summary-play-trans').onclick = () => {
+    const targetLangCode = LANG_NAME_TO_CODE[settings.translateTarget] || 'zh-CN';
+    const transSentences = summaryList.map(item => item.translated).filter(Boolean);
+    startReading(transSentences.join('\n\n'), targetLangCode, 'original');
+  };
+
+  // 复制 Markdown
+  summaryDialog.querySelector('#readmate-summary-copy-md').onclick = () => {
+    const md = `# ${document.title || 'Summary'}\n\n` + summaryList.map((item, i) => `${i + 1}. **${item.original}**\n   *${item.translated}*`).join('\n\n');
+    navigator.clipboard?.writeText(md);
+    showTranslation(_t('toastCopied', '✓ 已复制到剪贴板'), true);
+  };
+}
+
+// ====== 句子高亮算法（宽松匹配 + 标题优先高亮） ======
+let highlightSpans = [];
+
 function clearHighlights() {
-  for (const span of highlightSpans) {
+  highlightSpans.forEach(span => {
     const parent = span.parentNode;
     if (parent) {
       while (span.firstChild) parent.insertBefore(span.firstChild, span);
       parent.removeChild(span);
       parent.normalize();
     }
-  }
+  });
   highlightSpans = [];
 }
 
-function getTextNodesInBody() {
-  const walker = document.createTreeWalker(
-    document.body, NodeFilter.SHOW_TEXT,
-    {
-      acceptNode: (node) => {
-        const parent = node.parentNode;
-        if (parent && (parent.tagName === 'SCRIPT' || parent.tagName === 'STYLE' ||
-            parent.tagName === 'NOSCRIPT' || parent.id === 'readmate-bar')) {
-          return NodeFilter.FILTER_REJECT;
-        }
-        return NodeFilter.FILTER_ACCEPT;
-      }
+function normalizeChar(ch) {
+  if (/[\s\u00A0\u3000\r\n\t]/.test(ch)) return ' ';
+  if (ch === '，') return ',';
+  if (ch === '。') return '.';
+  if (ch === '！') return '!';
+  if (ch === '？') return '?';
+  return ch.toLowerCase();
+}
+
+function highlightSentence(index) {
+  clearHighlights();
+  if (!settings.highlightEnabled || !currentSentences[index]) return;
+
+  const targetText = currentSentences[index].trim();
+  if (targetText.length < 3) return;
+
+  // 1. 优先在 H1/H2 中匹配标题
+  const headings = document.querySelectorAll('h1, h2, h3, [class*="headline"], [class*="title"]');
+  for (const h of headings) {
+    if (h.textContent.trim().includes(targetText.substring(0, 20))) {
+      h.classList.add('readmate-highlight-heading');
+      highlightSpans.push(h);
+      h.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
     }
-  );
-  const nodes = [];
+  }
+
+  // 2. 正文树状搜索并高亮
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      if (node.parentElement?.closest('#readmate-bar, #readmate-fab-container, #readmate-summary-dialog, script, style')) {
+        return NodeFilter.FILTER_REJECT;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+
+  const searchSnippet = targetText.substring(0, 30).replace(/\s+/g, '');
   let node;
-  while ((node = walker.nextNode())) nodes.push(node);
-  return nodes;
-}
-
-// ====== 翻译面板 ======
-function showTranslation(text, isInfo, posX, posY) {
-  let panel = document.getElementById('readmate-translation-panel');
-  if (!panel) {
-    panel = document.createElement('div');
-    panel.id = 'readmate-translation-panel';
-    panel.innerHTML = '<span id="readmate-translation-text" style="flex:1"></span><button id="readmate-translation-close" style="flex-shrink:0;margin-left:8px;background:none;border:none;color:#8b8b9e;cursor:pointer;font-size:14px;line-height:1;padding:0">✕</button>';
-    document.body.appendChild(panel);
-
-    document.getElementById('readmate-translation-close').onclick = () => {
-      panel.style.display = 'none';
-    };
-
-    document.addEventListener('click', (e) => {
-      if (panel.style.display !== 'none' && !panel.contains(e.target) && e.target.closest('#readmate-translate-btn') === null) {
-        panel.style.display = 'none';
-      }
-    });
-
-    let isDragging = false, startX, startY, origLeft, origTop;
-    function onMouseDown(e) {
-      if (e.target.id === 'readmate-translation-close') return;
-      isDragging = true;
-      startX = e.clientX; startY = e.clientY;
-      origLeft = panel.offsetLeft; origTop = panel.offsetTop;
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
-      e.preventDefault();
-    }
-    function onMouseMove(e) {
-      if (!isDragging) return;
-      panel.style.left = (origLeft + e.clientX - startX) + 'px';
-      panel.style.top = (origTop + e.clientY - startY) + 'px';
-      panel.style.right = 'auto'; panel.style.bottom = 'auto';
-    }
-    function onMouseUp() {
-      isDragging = false;
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-    }
-    panel.addEventListener('mousedown', onMouseDown);
-  }
-
-  document.getElementById('readmate-translation-text').textContent = text;
-  panel.classList.toggle('readmate-translation-info', !!isInfo);
-  panel.style.display = 'flex';
-  panel.style.alignItems = 'flex-start';
-  panel.style.gap = '4px';
-
-  if (posX !== undefined && posY !== undefined) {
-    const w = panel.offsetWidth || 300;
-    const h = panel.offsetHeight || 60;
-    let x = Math.max(10, Math.min(posX, window.innerWidth - w - 10));
-    let y = posY - h - 10;
-    if (y < 10) y = Math.min(posY + 20, window.innerHeight - h - 10);
-    panel.style.left = x + 'px'; panel.style.top = y + 'px';
-    panel.style.right = 'auto'; panel.style.bottom = 'auto';
-  } else {
-    panel.style.left = 'auto'; panel.style.right = '20px';
-    panel.style.bottom = '80px'; panel.style.top = 'auto';
-  }
-
-  if (isInfo) {
-    clearTimeout(panel._infoTimer);
-    panel._infoTimer = setTimeout(() => { panel.style.display = 'none'; }, 2000);
-  }
-}
-
-function showInlineTranslation(sentenceIndex, translation, posX, posY) {
-  if (!translation) return;
-  showTranslation(translation, false, posX, posY);
-}
-
-async function translateCurrentSentence() {
-  const text = currentSentences[currentSentenceIndex];
-  if (!text) { DebugLog.add('Translate: no current sentence'); return; }
-
-  let posX = window._readmateMouseX;
-  let posY = window._readmateMouseY;
-  if (posX === undefined) {
-    const btn = document.getElementById('readmate-translate-btn');
-    if (btn) {
-      const rect = btn.getBoundingClientRect();
-      posX = rect.left; posY = rect.top;
+  while ((node = walker.nextNode())) {
+    const nodeText = node.textContent.replace(/\s+/g, '');
+    if (nodeText.includes(searchSnippet)) {
+      const span = document.createElement('span');
+      span.className = 'readmate-highlight';
+      span.textContent = node.textContent;
+      node.parentNode.replaceChild(span, node);
+      highlightSpans.push(span);
+      span.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      break;
     }
   }
-  DebugLog.add('Translate pos: (' + posX + ', ' + posY + ')');
-
-  if (!settings.aiEndpoint || !settings.aiApiKey) {
-    showTranslation('⚠️ 请先在设置中配置 AI 翻译（端点 + API Key）', true, posX, posY);
-    DebugLog.add('Translate: no AI config');
-    return;
-  }
-  const translation = await translateText(text);
-  if (translation) {
-    showTranslation(translation, false, posX, posY);
-  } else {
-    showTranslation('⚠️ 翻译失败，请检查 API 配置', true, posX, posY);
-  }
 }
 
-// ====== 拖拽 ======
-function makeDraggable(el) {
-  let isDragging = false, startX, startY, origX, origY;
-  const header = el.querySelector('.readmate-bar-inner');
-
-  header.onmousedown = (e) => {
-    isDragging = true;
-    startX = e.clientX; startY = e.clientY;
-    origX = el.offsetLeft; origY = el.offsetTop;
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-    e.preventDefault();
-  };
-
-  function onMouseMove(e) {
-    if (!isDragging) return;
-    el.style.left = (origX + e.clientX - startX) + 'px';
-    el.style.top = (origY + e.clientY - startY) + 'px';
-    el.style.right = 'auto'; el.style.bottom = 'auto';
+// ====== 提示与小气泡（Toast） ======
+function showTranslation(text, isToast = false) {
+  let toast = document.getElementById('readmate-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'readmate-toast';
+    document.body.appendChild(toast);
   }
-
-  function onMouseUp() {
-    isDragging = false;
-    document.removeEventListener('mousemove', onMouseMove);
-    document.removeEventListener('mouseup', onMouseUp);
-  }
+  toast.textContent = text;
+  toast.style.display = 'block';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.style.display = 'none';
+  }, 2500);
 }
 
-// ====== 内容提取（阅读模式 — 始终开启）======
-
-/** 使用 ContentExtractor 提取正文，失败则回退 body.innerText */
-function extractReadableContent() {
-  const result = ContentExtractor.extract();
-  if (result.success) {
-    DebugLog.add('Content extracted: ' + result.wordCount + ' chars, title="' + (result.title || '').substring(0, 40) + '"');
-    if (result.fallback) {
-      DebugLog.add('Content extraction used fallback (full body text)');
-    }
-    return result;
-  }
-  DebugLog.add('Content extraction failed: ' + (result.error || 'unknown'));
-  return null;
+async function translateAndShow(text) {
+  showTranslation('🌐 正在翻译选中文本...', true);
+  const trans = await fetchTranslation(text);
+  if (trans) showTranslation(trans, true);
+  else showTranslation('❌ 翻译失败，请检查 AI 配置', true);
 }
 
-// ====== 消息监听 ======
+// ====== 初始化监听 ======
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (msg.action === 'ping') {
-    sendResponse({ ok: true, version: '1.2.1' });
-    return true;
-  }
-
   switch (msg.action) {
-    case 'testTts':
-      loadSettings().then(async () => {
-        settings.cloudTtsEndpoint = msg.cloudEndpoint || settings.cloudTtsEndpoint;
-        settings.cloudTtsVoice = msg.cloudVoice || settings.cloudTtsVoice;
-        settings.ttsVoice = msg.browserVoice || settings.ttsVoice;
-        settings.ttsSpeed = msg.speed || settings.ttsSpeed;
-
-        const testText = '你好，欢迎使用读伴朗读助手。This is a test of the TTS engine.';
-        DebugLog.add('testTts: using cloud=' + !!settings.cloudTtsEndpoint);
-
-        try {
-          if (settings.cloudTtsEndpoint && settings.cloudTtsEndpoint.includes('://')) {
-            const endpoint = settings.cloudTtsEndpoint.replace(/\/+$/, '') + '/tts';
-            const blob = await proxyFetch(endpoint, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                text: testText,
-                voice: settings.cloudTtsVoice || 'zh-CN-XiaoxiaoNeural',
-                rate: '+0%',
-              }),
-            });
-            const audioUrl = URL.createObjectURL(blob);
-            const audio = new Audio(audioUrl);
-            audio.onended = () => { URL.revokeObjectURL(audioUrl); sendResponse({ ok: true, engine: 'cloud' }); };
-            audio.onerror = (e) => { URL.revokeObjectURL(audioUrl); sendResponse({ ok: false, error: 'Cloud TTS音频播放失败' }); };
-            audio.play().catch(e => { sendResponse({ ok: false, error: 'Cloud TTS播放错误: ' + e.message }); });
-          } else if (window.speechSynthesis) {
-            speechSynthesis.cancel();
-            await new Promise(r => setTimeout(r, 100));
-            const utterance = new SpeechSynthesisUtterance(testText);
-            utterance.lang = 'zh-CN';
-            utterance.rate = settings.ttsSpeed || 1.0;
-            if (settings.ttsVoice) {
-              const voices = speechSynthesis.getVoices();
-              const found = voices.find(v => v.name === settings.ttsVoice);
-              if (found) utterance.voice = found;
+    case 'ping':
+      sendResponse({ ok: true });
+      break;
+    case 'settingsUpdated':
+      if (msg.settings) {
+        Object.assign(settings, msg.settings);
+        if (msg.settings.readVoiceMode) readVoiceMode = msg.settings.readVoiceMode;
+        if (msg.settings.enableBilingual !== undefined) {
+          enableBilingual = msg.settings.enableBilingual;
+          const biChk = floatingBar?.querySelector('#readmate-bilingual-chk');
+          if (biChk) biChk.checked = enableBilingual;
+        }
+        if (msg.settings.showBilingualSubtitles !== undefined) {
+          showBilingualSubtitles = msg.settings.showBilingualSubtitles;
+          const subChk = floatingBar?.querySelector('#readmate-sub-chk');
+          if (subChk) subChk.checked = showBilingualSubtitles;
+          const wrap = floatingBar?.querySelector('#readmate-subtitles-wrap');
+          if (wrap) wrap.style.display = showBilingualSubtitles ? '' : 'none';
+        }
+        if (msg.settings.uiLanguage) {
+          loadContentI18n(msg.settings.uiLanguage).then(() => {
+            updateFABI18n();
+            updateSelectionBtnI18n();
+            updateSummaryDialogI18n();
+            if (floatingBar && isPlaying) {
+              floatingBar.remove();
+              floatingBar = null;
+              showBar();
             }
-            utterance.onend = () => sendResponse({ ok: true, engine: 'browser' });
-            utterance.onerror = (e) => sendResponse({ ok: false, error: 'Browser TTS错误: ' + e.error });
-            speechSynthesis.speak(utterance);
-          } else {
-            sendResponse({ ok: false, error: '没有可用的语音引擎' });
-          }
-        } catch (e) {
-          sendResponse({ ok: false, error: e.message });
-        }
-      });
-      return true;
-
-    case 'readSelection':
-      loadSettings().then(() => {
-        selectionText = msg.text || '';
-        currentMode = 'selection';
-        DebugLog.add('readSelection: text length=' + selectionText.length);
-        startReading(selectionText);
-      });
-      break;
-
-    case 'readPage':
-      sendResponse({ ok: true }); // 先回复避免弹窗端超时报错
-      loadSettings().then(() => {
-        // 阅读模式始终开启：先用 extractor，失败 fallback
-        const content = extractReadableContent();
-        let pageText;
-        if (content && content.success) {
-          pageText = content.text;
-          const info = document.getElementById('readmate-page-info');
-          if (info) {
-            info.textContent = '📖 ' + (content.title || '') + ' · ' + (content.wordCount || 0) + '字';
-            info.style.display = 'block';
-            setTimeout(() => { info.style.display = 'none'; }, 5000);
-          }
-        } else {
-          pageText = document.body.innerText;
-          DebugLog.add('Using full body text as fallback');
-        }
-        currentMode = 'page';
-        DebugLog.add('readPage: text length=' + pageText.length);
-        startReading(pageText);
-      });
-      break;
-
-    case 'translateSelection':
-      loadSettings().then(() => {
-        if (msg.text) {
-          const sel = window.getSelection();
-          if (sel && sel.rangeCount > 0) {
-            const rect = sel.getRangeAt(0).getBoundingClientRect();
-            window._readmateMouseX = rect.left;
-            window._readmateMouseY = rect.top;
-          }
-          translateText(msg.text).then(t => {
-            if (t) showInlineTranslation(0, t, window._readmateMouseX, window._readmateMouseY);
           });
         }
-      });
-      break;
-
-    case 'stop':
-      stopReading();
-      break;
-
-    case 'toggleRead':
-      if (isPlaying) togglePlayPause();
-      break;
-
-    case 'copyToClipboard':
-      if (msg.text) {
-        navigator.clipboard.writeText(msg.text).then(() => {
-          showTranslation('✓ 已复制到剪贴板', true);
-          DebugLog.add('Copied ' + msg.text.length + ' chars to clipboard');
-        }).catch(() => {
-          const ta = document.createElement('textarea');
-          ta.value = msg.text;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand('copy');
-          document.body.removeChild(ta);
-          showTranslation('✓ 已复制到剪贴板', true);
-        });
+        DebugLog.add(`Settings updated live via broadcast: mode=${readVoiceMode}, bilingual=${enableBilingual}, speed=${settings.ttsSpeed}x`);
       }
+      sendResponse({ ok: true });
       break;
-
-    case 'exportMarkdown':
-      if (msg.text) exportToMarkdown(msg.text, msg.title, msg.url);
+    case 'uiLanguageChanged':
+      loadSettings().then(() => {
+        updateFABI18n();
+        updateSelectionBtnI18n();
+        updateSummaryDialogI18n();
+        if (floatingBar) {
+          floatingBar.remove();
+          floatingBar = null;
+          if (isPlaying) showBar();
+        }
+      });
+      sendResponse({ ok: true });
+      break;
+    case 'readPage':
+      createFAB();
+      document.getElementById('readmate-fab-play')?.click();
+      sendResponse({ ok: true });
+      break;
+    case 'summarizePage':
+      createFAB();
+      generateAISummary();
+      sendResponse({ ok: true });
+      break;
+    case 'stop':
+      stopReading(true);
+      sendResponse({ ok: true });
+      break;
+    case 'toggleRead':
+      togglePlayPause();
+      sendResponse({ ok: true });
       break;
   }
 });
 
-// ====== 导出功能 ======
-function exportToMarkdown(text, title, url) {
-  const now = new Date().toISOString().slice(0, 10);
-  const md = `# ${title || 'ReadMate Export'}\n\n${url ? `来源: ${url}\n\n` : ''}---\n\n${text}\n\n---\n*由 ReadMate / 读伴于 ${now} 导出*\n`;
-
-  navigator.clipboard.writeText(md).then(() => {
-    showTranslation('✓ Markdown 已复制到剪贴板', true);
-    DebugLog.add('Markdown exported: ' + md.length + ' chars');
-  }).catch(() => {
-    showTranslation('✓ Markdown 已准备好（字符数: ' + md.length + '）', true);
-  });
-}
-
-// ====== 连续朗读：寻找下一篇 ======
-function findAndNavigateNext() {
-  const nextLink = ContentExtractor.findNextPageLink();
-  if (nextLink) {
-    DebugLog.add('Found next page link: ' + nextLink.url);
-    showTranslation('➡️ 正在跳转到下一篇: ' + (nextLink.text || '下一篇文章'), true);
-    // 标记这是连续朗读跳转
-    chrome.storage.session.set({ readmate_auto_read: true }, () => {
-      setTimeout(() => { window.location.href = nextLink.url; }, 800);
-    });
-    return true;
-  }
-
-  const articles = ContentExtractor.findArticleLinks();
-  if (articles.length > 0) {
-    const currentUrl = window.location.href;
-    const nextArticle = articles.find(a => a.url !== currentUrl);
-    if (nextArticle) {
-      DebugLog.add('Found next article: ' + nextArticle.title);
-      showTranslation('➡️ 正在跳转: ' + (nextArticle.title || '下一篇文章'), true);
-      chrome.storage.session.set({ readmate_auto_read: true }, () => {
-        setTimeout(() => { window.location.href = nextArticle.url; }, 800);
-      });
-      return true;
-    }
-  }
-
-  DebugLog.add('No next page/article found');
-  showTranslation('🔚 没有找到下一篇，连续朗读结束', true);
-  setContinuousMode(false);
-  return false;
-}
-
-/** 连续朗读模式：页面加载后自动朗读 */
-async function autoReadPage() {
-  await loadSettings();
-  const content = extractReadableContent();
-  let pageText;
-  if (content && content.success) {
-    pageText = content.text;
-  } else {
-    pageText = document.body.innerText;
-  }
-  if (pageText && pageText.trim().length > 50) {
-    currentMode = 'page';
-    DebugLog.add('Auto-read: ' + pageText.length + ' chars');
-    startReading(pageText);
-  } else {
-    DebugLog.add('Auto-read skipped: page too short');
-    setContinuousMode(false);
-  }
-}
-
-// ====== 主朗读入口 ======
-async function startReading(text) {
-  if (!text || !text.trim()) { DebugLog.add('startReading: empty text'); return; }
-  DebugLog.add('== startReading ==');
-  // 记录原文前200字用于调试
-  DebugLog.add('RAW TEXT: "' + text.substring(0, 200) + (text.length > 200 ? '...' : '') + '"');
-
-  // 重置高亮追踪位置
-  lastHighlightEnd = 0;
-  stopImmediate = false; // 清除停止信号
-
-  // 文本预处理
-  const cleanText = TextUtils.preprocess(text, {
-    stripHtml: true,
-    stripPinyin: true,
-    stripFootnotes: true,
-    stripDecorative: true,
-    collapseWhitespace: true,
-    cleanCjk: false,
-  });
-  if (cleanText.length < text.length) {
-    DebugLog.add('Preprocessed: ' + text.length + ' → ' + cleanText.length + ' chars');
-  }
-  // 记录预处理后的文本内容
-  DebugLog.add('CLEAN TEXT: "' + cleanText.substring(0, 200) + (cleanText.length > 200 ? '...' : '') + '"');
-
-  // 语速验证
-  settings.ttsSpeed = TextUtils.validateSpeed(settings.ttsSpeed);
-  DebugLog.add('Validated speed: ' + settings.ttsSpeed + 'x');
-
-  stopReading();
-  await new Promise(r => setTimeout(r, 100));
-
-  userStopped = false; // 重置停止标记
-  showBar();
-  floatingBar.querySelector('#readmate-play-btn').textContent = '⏸';
-
-  console.log('[ReadMate] Starting...');
-  const startTime = Date.now();
-
-  // 选择引擎：ttsEngine='cloud'且端点有效才用云端
-  const useCloud = settings.ttsEngine === 'cloud' && settings.cloudTtsEndpoint && settings.cloudTtsEndpoint.includes('://');
-  DebugLog.add('Engine: ' + (useCloud ? 'Cloud TTS' : 'Web Speech') + ' (ttsEngine=' + (settings.ttsEngine || 'browser') + ')');
-
-  if (useCloud) {
-    await speakWithCloudTTS(cleanText, (idx, total, sentence) => {
-      updateCurrentText(sentence);
-    });
-  } else {
-    await speakText(cleanText, (idx, total, sentence) => {
-      updateCurrentText(sentence);
-    });
-  }
-
-  // 记录阅读统计
-  const elapsedMs = Date.now() - startTime;
-  ReadingStats.recordSession(cleanText, elapsedMs).then(result => {
-    DebugLog.add('Stats recorded: ' + result.chars + ' chars, ' + result.timeMs + 'ms');
-  }).catch(e => {
-    DebugLog.add('Stats error: ' + e.message);
-  });
-
-  DebugLog.add('== startReading done ==');
-}
-
-// ====== 初始化：页面语言检测 ======
-function initializePageDetection() {
-  const htmlLang = document.documentElement.lang || '';
-  if (htmlLang.startsWith('zh')) settings.ttsVoiceLang = 'zh-CN';
-  else if (htmlLang.startsWith('ja')) settings.ttsVoiceLang = 'ja-JP';
-  else if (htmlLang.startsWith('ko')) settings.ttsVoiceLang = 'ko-KR';
-  else settings.ttsVoiceLang = 'en-US';
-  DebugLog.add('Page language: ' + htmlLang + ' → voiceLang: ' + settings.ttsVoiceLang);
-}
-
+// 页面就绪：加载设置并创建悬浮按钮
 loadSettings().then(() => {
-  initializePageDetection();
-  // 始终显示悬浮朗读按钮
   createFAB();
   showFAB();
 });

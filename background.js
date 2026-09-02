@@ -1,5 +1,5 @@
 // ReadMate / 读伴 — Background Service Worker
-// 右键菜单、消息路由、设置存储、AI翻译代理、键盘快捷键、脚本注入
+// 右键菜单、消息路由、设置存储、AI翻译/摘要代理、键盘快捷键、脚本注入
 
 let readState = {
   isPlaying: false,
@@ -21,23 +21,13 @@ const CONTENT_CSS = ['content.css'];
 function injectScripts(tabId) {
   return new Promise(async (resolve, reject) => {
     try {
-      // 注入 CSS
       for (const css of CONTENT_CSS) {
         try {
-          await chrome.scripting.insertCSS({
-            target: { tabId },
-            files: [css],
-          });
-        } catch(e) {
-          // CSS 可能已存在，忽略
-        }
+          await chrome.scripting.insertCSS({ target: { tabId }, files: [css] });
+        } catch(e) {}
       }
-      // 注入 JS（按顺序）
       for (const js of CONTENT_FILES) {
-        await chrome.scripting.executeScript({
-          target: { tabId },
-          files: [js],
-        });
+        await chrome.scripting.executeScript({ target: { tabId }, files: [js] });
       }
       resolve(true);
     } catch (e) {
@@ -46,30 +36,17 @@ function injectScripts(tabId) {
   });
 }
 
-// ====== 右键菜单 ======
-chrome.runtime.onInstalled.addListener((details) => {
-  // 首次安装：设置连续模式默认开启
-  if (details.reason === 'install') {
-    chrome.storage.local.set({ readmate_continuous: true });
-    chrome.runtime.openOptionsPage();
-  } else if (details.reason === 'update') {
-    // 更新时确保连续模式存储存在
-    chrome.storage.local.get('readmate_continuous', (result) => {
-      if (result.readmate_continuous === undefined) {
-        chrome.storage.local.set({ readmate_continuous: true });
-      }
-    });
-  }
-
+// ====== 右键菜单与多语言更新 ======
+function updateContextMenus(lang) {
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
       id: 'read-selection',
-      title: chrome.i18n.getMessage('menuReadSelection'),
+      title: chrome.i18n.getMessage('menuReadSelection') || 'Read Selection',
       contexts: ['selection'],
     });
     chrome.contextMenus.create({
       id: 'read-page',
-      title: chrome.i18n.getMessage('menuReadPage'),
+      title: chrome.i18n.getMessage('menuReadPage') || 'Read Page',
       contexts: ['page'],
     });
     chrome.contextMenus.create({
@@ -79,30 +56,14 @@ chrome.runtime.onInstalled.addListener((details) => {
     });
     chrome.contextMenus.create({
       id: 'translate-selection',
-      title: chrome.i18n.getMessage('menuTranslateSelection'),
+      title: chrome.i18n.getMessage('menuTranslateSelection') || 'Translate Selection',
       contexts: ['selection'],
-    });
-    chrome.contextMenus.create({
-      id: 'separator-2',
-      type: 'separator',
-      contexts: ['selection', 'page'],
-    });
-    chrome.contextMenus.create({
-      id: 'copy-to-clipboard',
-      title: '复制朗读内容到剪贴板',
-      contexts: ['selection'],
-    });
-    chrome.contextMenus.create({
-      id: 'export-markdown',
-      title: '导出选中内容为 Markdown',
-      contexts: ['selection'],
-    });
-    chrome.contextMenus.create({
-      id: 'open-options',
-      title: chrome.i18n.getMessage('menuOpenOptions') || 'ReadMate 设置',
-      contexts: ['action'],
     });
   });
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+  updateContextMenus();
 });
 
 // ====== 右键菜单点击 ======
@@ -118,55 +79,28 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         pageUrl: info.pageUrl,
       });
       break;
-
     case 'read-page':
       chrome.tabs.sendMessage(tab.id, { action: 'readPage' });
       break;
-
     case 'translate-selection':
       chrome.tabs.sendMessage(tab.id, {
         action: 'translateSelection',
         text: info.selectionText,
       });
       break;
-
-    case 'copy-to-clipboard':
-      if (info.selectionText) {
-        chrome.tabs.sendMessage(tab.id, {
-          action: 'copyToClipboard',
-          text: info.selectionText,
-        });
-      }
-      break;
-
-    case 'export-markdown':
-      if (info.selectionText) {
-        chrome.tabs.sendMessage(tab.id, {
-          action: 'exportMarkdown',
-          text: info.selectionText,
-          title: tab.title || 'ReadMate Export',
-          url: info.pageUrl,
-        });
-      }
-      break;
-
-    case 'open-options':
-      chrome.runtime.openOptionsPage();
-      break;
   }
 });
 
-// ====== 键盘快捷键 ======
+// ====== 快捷键处理 ======
 chrome.commands.onCommand.addListener((command) => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (!tabs || tabs.length === 0) return;
     const tab = tabs[0];
-    if (!tab?.id) return;
     readState.tabId = tab.id;
 
     switch (command) {
       case 'read-selection':
-        chrome.tabs.sendMessage(tab.id, { action: 'readSelection' });
+        chrome.tabs.sendMessage(tab.id, { action: 'readSelectionShortcut' });
         break;
       case 'read-page':
         chrome.tabs.sendMessage(tab.id, { action: 'readPage' });
@@ -186,7 +120,37 @@ chrome.commands.onCommand.addListener((command) => {
 // ====== 消息处理 ======
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   switch (msg.action) {
-    // ====== 注入 content scripts ======
+    case 'getI18nMessages': {
+      const requestedLang = msg.lang || 'zh_CN';
+      const effectiveLang = (requestedLang === 'auto')
+        ? (navigator.language.startsWith('zh') ? 'zh_CN' : navigator.language.startsWith('ja') ? 'ja' : 'en')
+        : requestedLang;
+      const url = chrome.runtime.getURL(`_locales/${effectiveLang}/messages.json`);
+      fetch(url)
+        .then(r => r.json())
+        .then(data => {
+          const dict = {};
+          for (const [k, v] of Object.entries(data)) {
+            dict[k] = v.message;
+          }
+          sendResponse({ ok: true, messages: dict });
+        })
+        .catch(err => {
+          const fallbackUrl = chrome.runtime.getURL('_locales/zh_CN/messages.json');
+          fetch(fallbackUrl)
+            .then(r => r.json())
+            .then(data => {
+              const dict = {};
+              for (const [k, v] of Object.entries(data)) {
+                dict[k] = v.message;
+              }
+              sendResponse({ ok: true, messages: dict });
+            })
+            .catch(() => sendResponse({ ok: false, messages: {} }));
+        });
+      return true;
+    }
+
     case 'injectContent':
       injectScripts(msg.tabId)
         .then(() => sendResponse({ ok: true }))
@@ -198,53 +162,45 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         ttsSpeed: 1.0,
         ttsVoice: '',
         ttsVoiceLang: 'en-US',
-        ttsEngine: 'browser', // 'browser' 或 'cloud'
-        ttsBuffer: 1,        // 云端预读句数
-        // 云端 Edge TTS
-        cloudTtsEndpoint: 'http://powerplus.blogsyte.com:5001',
-        cloudTtsVoice: '',
-        // AI 翻译
-        aiEndpoint: 'https://api.deepseek.com/v1',
-        aiApiKey: '',
-        aiModel: 'deepseek-chat',
-        translateEnabled: true,
+        ttsEngine: 'cloud', // 默认优先云端 Edge TTS（音质最好）
+        ttsBuffer: 2,
+        readVoiceMode: 'original', // 'original', 'translated', 'bilingual'
+        showBilingualSubtitles: true,
+        // 云端 Edge TTS 服务端（默认指向本机 159 服务器）
+        cloudTtsEndpoint: 'http://192.168.199.159:5001',
+        cloudTtsVoice: '', // 保持空 = 智能双轨自动匹配
+        cloudTtsVoiceOrig: '', // 留空 = 原文语种智能匹配 (如 Jenny/美式)
+        cloudTtsVoiceTrans: '', // 留空 = 译文语种智能匹配 (如 Xiaoxiao/晓晓)
+        ttsVoiceOrig: '', // 浏览器本地原文声音
+        ttsVoiceTrans: '', // 浏览器本地译文声音
+        // 默认 AI 服务商配置（兼容 OpenAI 协议端点）
+        aiProvider: 'gemini',
+        aiEndpoint: 'http://192.168.199.159:28080/v1',
+        aiApiKey: 'liang-gemini-proxy-2026',
+        aiModel: 'gemini-3.1-flash-lite',
+        enableBilingual: false, // 默认不开启双语翻译（省 Token）
+        translateEnabled: false,
         translateTarget: 'Simplified Chinese',
+        defaultSummaryView: 'bilingual',
         highlightEnabled: true,
         autoTranslate: false,
         uiLanguage: 'auto',
         enableShortcuts: true,
         translateOnSelect: false,
       }, (settings) => {
-        // === 设置迁移：兼容 v1.2.0 的旧键名 ===
-        let changed = false;
-        if (!settings.cloudTtsEndpoint && settings.edgeTtsEndpoint) {
-          settings.cloudTtsEndpoint = settings.edgeTtsEndpoint;
-          changed = true;
-        }
-        if (!settings.cloudTtsVoice && settings.edgeTtsVoice) {
-          settings.cloudTtsVoice = settings.edgeTtsVoice;
-          changed = true;
-        }
-        if (settings.ttsEngine === 'edge-tts') {
-          settings.ttsEngine = 'cloud';
-          changed = true;
-        }
-        if (changed) {
-          chrome.storage.sync.set({
-            cloudTtsEndpoint: settings.cloudTtsEndpoint,
-            cloudTtsVoice: settings.cloudTtsVoice,
-            ttsEngine: settings.ttsEngine,
-          });
-        }
         sendResponse(settings);
       });
       return true;
 
     case 'saveSettings':
-      // 合并保存，防止丢字段
       chrome.storage.sync.get(null, (existing) => {
         const merged = Object.assign({}, existing, msg.settings);
-        chrome.storage.sync.set(merged, () => sendResponse({ ok: true }));
+        chrome.storage.sync.set(merged, () => {
+          if (msg.settings?.uiLanguage) {
+            updateContextMenus(msg.settings.uiLanguage);
+          }
+          sendResponse({ ok: true });
+        });
       });
       return true;
 
@@ -270,23 +226,55 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       sendResponse(readState);
       return true;
 
-    // ====== Edge TTS 代理 fetch（支持 HTTPS 页面）====== 
-    case 'proxyFetch': {
-      const { url, options, requestId } = msg;
-      fetch(url, options || {})
+    // ====== AI 多语种摘要生成代理（双核：原文摘要 + 目标语言译文摘要） ======
+    case 'proxySummarize': {
+      const { endpoint, apiKey, model, text, targetLang, docLang } = msg;
+      let ep = (endpoint || 'http://192.168.199.159:28080/v1').trim();
+      if (!ep.endsWith('/chat/completions')) {
+        ep = ep.replace(/\/+$/, '') + '/chat/completions';
+      }
+      const prompt = `You are an expert news analyst and bilingual tutor.
+Analyze the provided article and generate an in-depth, structured summary consisting of 4 to 6 detailed bullet points that fully cover the main facts, key arguments, context, and outcomes.
+For each bullet point, provide BOTH the original language statement and an accurate, natural ${targetLang || 'Simplified Chinese'} translation.
+Output MUST be a strict JSON array of objects with the exact schema:
+[
+  { "id": 1, "original": "Detailed point in original language...", "translated": "Detailed translation..." }
+]
+Do not wrap in markdown code blocks like \`\`\`json, output ONLY valid JSON string.
+
+Article content:
+${(text || '').substring(0, 5000)}`;
+
+      fetch(ep, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey || 'liang-gemini-proxy-2026'}`,
+        },
+        body: JSON.stringify({
+          model: model || 'gemini-3.7-flash-high',
+          messages: [
+            { role: 'system', content: 'You are a precise JSON-only summary assistant.' },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.2,
+        }),
+      })
         .then(async (resp) => {
-          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-          const buffer = await resp.arrayBuffer();
-          const key = 'proxy_audio_' + requestId;
-          const data = {
-            [key]: {
-              bytes: Array.from(new Uint8Array(buffer)),
-              byteLength: buffer.byteLength
-            }
-          };
-          chrome.storage.local.set(data, () => {
-            sendResponse({ ok: true, storageKey: key, byteLength: buffer.byteLength });
-          });
+          if (!resp.ok) {
+            const errTxt = await resp.text();
+            throw new Error(`HTTP ${resp.status}: ${errTxt}`);
+          }
+          const data = await resp.json();
+          let raw = data.choices?.[0]?.message?.content?.trim() || '[]';
+          raw = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+          let parsed;
+          try {
+            parsed = JSON.parse(raw);
+          } catch(e) {
+            parsed = [{ id: 1, original: 'Summary', translated: raw }];
+          }
+          sendResponse({ ok: true, summary: parsed });
         })
         .catch((err) => {
           sendResponse({ ok: false, error: err.message });
@@ -294,17 +282,49 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       return true;
     }
 
+    // ====== Edge TTS 代理 fetch（支持 HTTPS 页面）====== 
+    case 'proxyFetch': {
+      const { url, options } = msg;
+      (async () => {
+        try {
+          const resp = await fetch(url, options || {});
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const buffer = await resp.arrayBuffer();
+          // 用分块字符串拼接 base64
+          const bytes = new Uint8Array(buffer);
+          let binary = '';
+          const chunkSize = 1024;
+          for (let i = 0; i < bytes.byteLength; i += chunkSize) {
+            const chunk = bytes.subarray(i, i + chunkSize);
+            for (let j = 0; j < chunk.length; j++) {
+              binary += String.fromCharCode(chunk[j]);
+            }
+          }
+          const base64 = btoa(binary);
+          const dataUrl = 'data:audio/mpeg;base64,' + base64;
+          sendResponse({ ok: true, dataUrl });
+        } catch(err) {
+          sendResponse({ ok: false, error: err.message });
+        }
+      })();
+      return true;
+    }
+
     // ====== AI 翻译代理 ======
     case 'proxyTranslate': {
       const { endpoint, apiKey, model, text, targetLang } = msg;
-      fetch(endpoint, {
+      let ep = (endpoint || 'http://192.168.199.159:28080/v1').trim();
+      if (!ep.endsWith('/chat/completions')) {
+        ep = ep.replace(/\/+$/, '') + '/chat/completions';
+      }
+      fetch(ep, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
+          'Authorization': `Bearer ${apiKey || 'liang-gemini-proxy-2026'}`,
         },
         body: JSON.stringify({
-          model: model || 'gpt-3.5-turbo',
+          model: model || 'gemini-3.7-flash-high',
           messages: [
             { role: 'system', content: `You are a translator. Translate the following text to ${targetLang || 'Simplified Chinese'}. Return ONLY the translation, no explanation.` },
             { role: 'user', content: text },
@@ -313,7 +333,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         }),
       })
         .then(async (resp) => {
-          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          if (!resp.ok) {
+            const errTxt = await resp.text();
+            throw new Error(`HTTP ${resp.status}: ${errTxt}`);
+          }
           const data = await resp.json();
           const result = data.choices?.[0]?.message?.content?.trim() || null;
           sendResponse({ ok: true, text: result });
@@ -321,24 +344,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         .catch((err) => {
           sendResponse({ ok: false, error: err.message });
         });
-      return true;
-    }
-
-    // ====== 导出 Markdown（后台下载）======
-    case 'doExportMarkdown': {
-      const { title, url, text } = msg;
-      const markdown = `# ${title}\n\n${url}\n\n---\n\n${text}\n\n---\n*Exported by ReadMate / 读伴*`;
-      const blob = new Blob([markdown], { type: 'text/markdown' });
-      const reader = new FileReader();
-      reader.onload = () => {
-        chrome.downloads.download({
-          url: reader.result,
-          filename: 'readmate-export-' + Date.now() + '.md',
-          saveAs: true,
-        });
-      };
-      reader.readAsDataURL(blob);
-      sendResponse({ ok: true });
       return true;
     }
   }

@@ -1,0 +1,306 @@
+{
+  "appName": {
+    "message": "ReadMate",
+    "description": "アプリ名"
+  },
+  "appDesc": {
+    "message": "Web読み上げアシスタント — 音声合成+AI翻訳＆バイリンガル要約",
+    "description": "アプリ説明"
+  },
+  "menuReadSelection": {
+    "message": "選択したテキストを読み上げ",
+    "description": "右クリックメニュー：選択テキスト読み上げ"
+  },
+  "menuReadPage": {
+    "message": "このページを読み上げ",
+    "description": "右クリックメニュー：ページ読み上げ"
+  },
+  "menuTranslateSelection": {
+    "message": "選択したテキストを翻訳",
+    "description": "右クリックメニュー：選択テキスト翻訳"
+  },
+  "btnReadPage": {
+    "message": "▶ ページを読み上げ",
+    "description": "ページ読み上げボタン"
+  },
+  "btnStop": {
+    "message": "⏹ 停止",
+    "description": "停止ボタン"
+  },
+  "shortcutTip": {
+    "message": "ショートカット：Ctrl+Shift+P 読み上げ、Ctrl+Shift+S 停止",
+    "description": "ショートカット説明"
+  },
+  "sectionVoiceStream": {
+    "message": "読み上げモード",
+    "description": "読み上げモードタイトル"
+  },
+  "lblVoiceMode": {
+    "message": "再生モード",
+    "description": "再生モードラベル"
+  },
+  "modeOriginal": {
+    "message": "🔊 原文のみ (オリジナル音声)",
+    "description": "原文のみ"
+  },
+  "modeTranslated": {
+    "message": "🌐 翻訳のみ (日本語ラジオ放送風)",
+    "description": "翻訳のみ"
+  },
+  "modeBilingual": {
+    "message": "🔄 日英/多言語 交互読み上げ (学習用)",
+    "description": "交互読み上げ"
+  },
+  "lblBilingualSubtitles": {
+    "message": "字幕",
+    "description": "字幕ラベル"
+  },
+  "chkShowSubtitles": {
+    "message": "バーにバイリンガル字幕を表示",
+    "description": "字幕表示チェックボックス"
+  },
+  "ttsEngineSection": {
+    "message": "音声合成エンジン",
+    "description": "TTSエンジン"
+  },
+  "engineBrowser": {
+    "message": "🔊 ブラウザ標準",
+    "description": "ブラウザ標準"
+  },
+  "engineCloud": {
+    "message": "☁️ クラウド Edge TTS",
+    "description": "クラウド Edge TTS"
+  },
+  "speedLabel": {
+    "message": "速度",
+    "description": "速度ラベル"
+  },
+  "voiceLabel": {
+    "message": "音声",
+    "description": "音声ラベル"
+  },
+  "voiceAutoLang": {
+    "message": "自動判別 (ページ言語による)",
+    "description": "自動判別"
+  },
+  "btnTestBrowser": {
+    "message": "▶ ブラウザ音声をテスト",
+    "description": "ブラウザテストボタン"
+  },
+  "cloudTtsSection": {
+    "message": "クラウド音声 (Edge TTS)",
+    "description": "クラウド音声"
+  },
+  "lblCloudEndpoint": {
+    "message": "サーバーアドレス",
+    "description": "サーバーアドレス"
+  },
+  "lblCloudVoice": {
+    "message": "音声の種類",
+    "description": "音声ラベル"
+  },
+  "optCloudAuto": {
+    "message": "⚡ 自動選択 (推奨)",
+    "description": "デフォルト音声"
+  },
+  "btnTestCloud": {
+    "message": "☁️ クラウド音声をテスト",
+    "description": "クラウドテストボタン"
+  },
+  "aiSectionTitle": {
+    "message": "AI 設定＆要約",
+    "description": "AI設定"
+  },
+  "lblProvider": {
+    "message": "プロバイダー",
+    "description": "プロバイダー"
+  },
+  "lblEndpoint": {
+    "message": "API エンドポイント",
+    "description": "API エンドポイント"
+  },
+  "lblApiKey": {
+    "message": "API キー",
+    "description": "API キー"
+  },
+  "lblModel": {
+    "message": "モデル",
+    "description": "モデル"
+  },
+  "lblTargetLanguage": {
+    "message": "翻訳先の言語",
+    "description": "翻訳先言語"
+  },
+  "lblHighlight": {
+    "message": "文のハイライト",
+    "description": "ハイライト"
+  },
+  "btnTestAi": {
+    "message": "AI 接続をテスト",
+    "description": "AIテストボタン"
+  },
+  "btnSave": {
+    "message": "設定を保存",
+    "description": "保存ボタン"
+  },
+  "btnFullOptions": {
+    "message": "⚙ 詳細設定",
+    "description": "詳細設定"
+  },
+  "savedStatus": {
+    "message": "✓ 保存しました",
+    "description": "保存成功"
+  },
+  "btnSummary": {
+    "message": "⚡ 要約",
+    "description": "要約ボタン"
+  },
+  "lblSubtitles": {
+    "message": "字幕",
+    "description": "字幕"
+  },
+  "btnPrev": {
+    "message": "前の文",
+    "description": "前の文"
+  },
+  "btnPlay": {
+    "message": "再生/一時停止",
+    "description": "再生/一時停止"
+  },
+  "btnNext": {
+    "message": "次の文",
+    "description": "次の文"
+  },
+  "summaryCardTitle": {
+    "message": "⚡ AI バイリンガル重要要約",
+    "description": "Summary card header title"
+  },
+  "readOriginal": {
+    "message": "原文を再生",
+    "description": "Read original summary tooltip"
+  },
+  "readTranslated": {
+    "message": "訳文を再生",
+    "description": "Read translated summary tooltip"
+  },
+  "playAllSummary": {
+    "message": "▶ すべて連続再生 (バイリンガル)",
+    "description": "連続再生"
+  },
+  "copyMarkdown": {
+    "message": "📋 Markdown をコピー",
+    "description": "Markdown コピー"
+  },
+  "toastTextTooShort": {
+    "message": "⚠️ 本文が短すぎるため読み上げできません (<50文字)",
+    "description": "テキスト短すぎ"
+  },
+  "toastGeneratingSummary": {
+    "message": "⚡ AI が詳細な要約を生成中...",
+    "description": "Toast when generating summary"
+  },
+  "toastSummaryFailed": {
+    "message": "❌ 要約の生成に失敗しました。AI設定を確認してください",
+    "description": "Toast summary failed"
+  },
+  "toastCopied": {
+    "message": "✓ クリップボードにコピーしました",
+    "description": "コピー完了"
+  },
+  "toastArticleFinished": {
+    "message": "🎉 ページの読み上げが完了しました",
+    "description": "読み上げ完了"
+  },
+  "toastNeedsApiKey": {
+    "message": "⚠️ 先に設定で AI API キーを入力してください",
+    "description": "APIキー必要"
+  },
+  "toastModeChanged": {
+    "message": "モードを変更しました: ",
+    "description": "モード変更"
+  },
+  "refreshTip": {
+    "message": "💡 拡張機能を更新した直後は、Webページを再読み込みしてください",
+    "description": "Refresh page hint"
+  },
+  "lblSummaryViewMode": {
+    "message": "Default Summary View",
+    "description": "Default summary presentation view"
+  },
+  "summaryTabBilingual": {
+    "message": "🔄 バイリンガル",
+    "description": "Summary tab bilingual"
+  },
+  "summaryTabBilingualTip": {
+    "message": "バイリンガル対訳モード",
+    "description": "Summary tab bilingual tooltip"
+  },
+  "summaryTabOriginal": {
+    "message": "📄 原文",
+    "description": "Summary tab original"
+  },
+  "summaryTabOriginalTip": {
+    "message": "原文のみ (没入読解)",
+    "description": "Summary tab original tooltip"
+  },
+  "summaryTabTranslated": {
+    "message": "🌐 訳文",
+    "description": "Summary tab translated"
+  },
+  "summaryTabTranslatedTip": {
+    "message": "訳文のみ (母国語で速読)",
+    "description": "Summary tab translated tooltip"
+  },
+  "summaryRegenerateTip": {
+    "message": "要約を再生成",
+    "description": "Regenerate summary tooltip"
+  },
+  "summaryMinimizeTip": {
+    "message": "最小化",
+    "description": "Minimize summary tooltip"
+  },
+  "summaryCloseTip": {
+    "message": "閉じる (ESC)",
+    "description": "Close summary tooltip"
+  },
+  "summaryPlayBilingual": {
+    "message": "🔄 要約を連続再生 (バイリンガル)",
+    "description": "Play bilingual summary button"
+  },
+  "summaryPlayBilingualTip": {
+    "message": "バイリンガル交互連続再生",
+    "description": "Play bilingual summary tooltip"
+  },
+  "summaryPlayOrig": {
+    "message": "🔊 原文を再生",
+    "description": "Play original summary button"
+  },
+  "summaryPlayOrigTip": {
+    "message": "原文要約のみ再生",
+    "description": "Play original summary tooltip"
+  },
+  "summaryPlayTrans": {
+    "message": "🌐 訳文を再生",
+    "description": "Play translated summary button"
+  },
+  "summaryPlayTransTip": {
+    "message": "訳文要約のみ再生",
+    "description": "Play translated summary tooltip"
+  },
+  "fabSummaryTip": {
+    "message": "AI バイリンガル要約",
+    "description": "FAB AI summary button tooltip"
+  },
+  "fabPlayTip": {
+    "message": "現在の記事を再生 (Ctrl+Shift+P)",
+    "description": "FAB play button tooltip"
+  },
+  "selPlayTip": {
+    "message": "Read Selected Text",
+    "description": "Selection play tooltip"
+  },
+  "selTranslateTip": {
+    "message": "Translate Selected Text",
+    "description": "Selection translate tooltip"
+  }
+}

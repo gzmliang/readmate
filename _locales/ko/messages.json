@@ -1,0 +1,256 @@
+{
+  "appName": {
+    "message": "ReadMate"
+  },
+  "appDesc": {
+    "message": "Web TTS Assistant — Native/Edge-TTS + AI Translation & Bilingual Summary"
+  },
+  "menuReadSelection": {
+    "message": "선택 영역 읽기"
+  },
+  "menuReadPage": {
+    "message": "이 페이지 읽기"
+  },
+  "menuTranslateSelection": {
+    "message": "선택 영역 번역"
+  },
+  "btnReadPage": {
+    "message": "▶ 페이지 읽기"
+  },
+  "btnStop": {
+    "message": "⏹ 중지"
+  },
+  "shortcutTip": {
+    "message": "단축키: Ctrl+Shift+P 읽기, Ctrl+Shift+S 중지"
+  },
+  "sectionVoiceStream": {
+    "message": "음성 스트림 모드"
+  },
+  "lblVoiceMode": {
+    "message": "재생 모드"
+  },
+  "modeOriginal": {
+    "message": "🔊 원문만 읽기 (원어 오디오)"
+  },
+  "modeTranslated": {
+    "message": "🌐 번역문만 읽기 (모국어 방송)"
+  },
+  "modeBilingual": {
+    "message": "🔄 이중 언어 교차 읽기 (학습용)"
+  },
+  "lblBilingualSubtitles": {
+    "message": "자막"
+  },
+  "chkShowSubtitles": {
+    "message": "컨트롤 바에 이중 언어 자막 표시"
+  },
+  "ttsEngineSection": {
+    "message": "음성 엔진"
+  },
+  "engineBrowser": {
+    "message": "🔊 브라우저 기본"
+  },
+  "engineCloud": {
+    "message": "☁️ 클라우드 Edge TTS"
+  },
+  "speedLabel": {
+    "message": "속도"
+  },
+  "voiceLabel": {
+    "message": "음성"
+  },
+  "voiceAutoLang": {
+    "message": "자동 감지 (페이지 언어 기준)"
+  },
+  "btnTestBrowser": {
+    "message": "▶ 브라우저 테스트"
+  },
+  "cloudTtsSection": {
+    "message": "클라우드 음성 (Edge TTS)"
+  },
+  "lblCloudEndpoint": {
+    "message": "서버 주소"
+  },
+  "lblCloudVoice": {
+    "message": "클라우드 음성"
+  },
+  "optCloudAuto": {
+    "message": "⚡ 자동 선택 (권장)"
+  },
+  "btnTestCloud": {
+    "message": "☁️ 클라우드 테스트"
+  },
+  "aiSectionTitle": {
+    "message": "AI 설정 및 요약"
+  },
+  "lblProvider": {
+    "message": "제공업체"
+  },
+  "lblEndpoint": {
+    "message": "API 엔드포인트"
+  },
+  "lblApiKey": {
+    "message": "API 키"
+  },
+  "lblModel": {
+    "message": "모델"
+  },
+  "lblTargetLanguage": {
+    "message": "번역 대상 언어"
+  },
+  "lblHighlight": {
+    "message": "문장 강조"
+  },
+  "btnTestAi": {
+    "message": "AI 연결 테스트"
+  },
+  "btnSave": {
+    "message": "설정 저장"
+  },
+  "btnFullOptions": {
+    "message": "⚙ 전체 설정"
+  },
+  "savedStatus": {
+    "message": "✓ 저장됨"
+  },
+  "btnSummary": {
+    "message": "⚡ 요약"
+  },
+  "lblSubtitles": {
+    "message": "자막"
+  },
+  "btnPrev": {
+    "message": "이전 문장"
+  },
+  "btnPlay": {
+    "message": "재생/일시정지"
+  },
+  "btnNext": {
+    "message": "다음 문장"
+  },
+  "summaryCardTitle": {
+    "message": "⚡ AI 이중 언어 핵심 요약",
+    "description": "Summary card header title"
+  },
+  "readOriginal": {
+    "message": "원문 듣기",
+    "description": "Read original summary tooltip"
+  },
+  "readTranslated": {
+    "message": "번역문 듣기",
+    "description": "Read translated summary tooltip"
+  },
+  "playAllSummary": {
+    "message": "▶ 모두 연속 재생 (이중 언어)"
+  },
+  "copyMarkdown": {
+    "message": "📋 Markdown 복사"
+  },
+  "toastTextTooShort": {
+    "message": "⚠️ 텍스트가 너무 짧아 읽을 수 없습니다 (<50자)"
+  },
+  "toastGeneratingSummary": {
+    "message": "⚡ AI가 상세한 핵심 요약을 생성 중입니다...",
+    "description": "Toast when generating summary"
+  },
+  "toastSummaryFailed": {
+    "message": "❌ 요약 생성에 실패했습니다. AI 설정을 확인하세요",
+    "description": "Toast summary failed"
+  },
+  "toastCopied": {
+    "message": "✓ 클립보드에 복사되었습니다"
+  },
+  "toastArticleFinished": {
+    "message": "🎉 페이지 읽기가 완료되었습니다"
+  },
+  "toastNeedsApiKey": {
+    "message": "⚠️ 먼저 설정에서 AI API 키를 입력하세요"
+  },
+  "toastModeChanged": {
+    "message": "모드가 변경되었습니다: "
+  },
+  "refreshTip": {
+    "message": "💡 확장 프로그램을 새로 설치/업데이트한 경우 페이지를 새로고침하세요",
+    "description": "Refresh page hint"
+  },
+  "lblSummaryViewMode": {
+    "message": "Default Summary View",
+    "description": "Default summary presentation view"
+  },
+  "summaryTabBilingual": {
+    "message": "🔄 이중 언어",
+    "description": "Summary tab bilingual"
+  },
+  "summaryTabBilingualTip": {
+    "message": "이중 언어 대조 모드",
+    "description": "Summary tab bilingual tooltip"
+  },
+  "summaryTabOriginal": {
+    "message": "📄 원문",
+    "description": "Summary tab original"
+  },
+  "summaryTabOriginalTip": {
+    "message": "원문만 보기 (몰입 독서)",
+    "description": "Summary tab original tooltip"
+  },
+  "summaryTabTranslated": {
+    "message": "🌐 번역문",
+    "description": "Summary tab translated"
+  },
+  "summaryTabTranslatedTip": {
+    "message": "번역문만 보기 (빠른 확인)",
+    "description": "Summary tab translated tooltip"
+  },
+  "summaryRegenerateTip": {
+    "message": "요약 다시 생성",
+    "description": "Regenerate summary tooltip"
+  },
+  "summaryMinimizeTip": {
+    "message": "최소화",
+    "description": "Minimize summary tooltip"
+  },
+  "summaryCloseTip": {
+    "message": "닫기 (ESC)",
+    "description": "Close summary tooltip"
+  },
+  "summaryPlayBilingual": {
+    "message": "🔄 요약 연속 재생 (이중 언어)",
+    "description": "Play bilingual summary button"
+  },
+  "summaryPlayBilingualTip": {
+    "message": "이중 언어 교대 재생",
+    "description": "Play bilingual summary tooltip"
+  },
+  "summaryPlayOrig": {
+    "message": "🔊 원문 듣기",
+    "description": "Play original summary button"
+  },
+  "summaryPlayOrigTip": {
+    "message": "원문 요약만 듣기",
+    "description": "Play original summary tooltip"
+  },
+  "summaryPlayTrans": {
+    "message": "🌐 번역문 듣기",
+    "description": "Play translated summary button"
+  },
+  "summaryPlayTransTip": {
+    "message": "번역문 요약만 듣기",
+    "description": "Play translated summary tooltip"
+  },
+  "fabSummaryTip": {
+    "message": "AI 이중 언어 요약",
+    "description": "FAB AI summary button tooltip"
+  },
+  "fabPlayTip": {
+    "message": "현재 기사 읽기 (Ctrl+Shift+P)",
+    "description": "FAB play button tooltip"
+  },
+  "selPlayTip": {
+    "message": "Read Selected Text",
+    "description": "Selection play tooltip"
+  },
+  "selTranslateTip": {
+    "message": "Translate Selected Text",
+    "description": "Selection translate tooltip"
+  }
+}

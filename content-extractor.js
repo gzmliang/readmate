@@ -7,7 +7,7 @@ const ContentExtractor = (() => {
   // ====== 需要剔除的标签 ======
   const STRIP_TAGS = [
     'script', 'style', 'noscript', 'iframe', 'nav', 'footer',
-    'header', 'aside', 'form', 'button', 'select', 'input',
+    'aside', 'form', 'button', 'select', 'input',
     'textarea', 'svg', 'canvas', 'video', 'audio', 'object',
     'embed', 'applet',
   ];
@@ -21,6 +21,9 @@ const ContentExtractor = (() => {
     /^cookie/i, /^popup/i, /^modal/i, /^overlay/i,
     /^newsletter/i, /^subscribe/i, /signup/i, /^login/i,
     /^search/i, /^banner/i,
+    /player/i, /video-container/i, /media-player/i, /vjs-/i, /jwplayer/i,
+    /sr-only/i, /screen-reader/i, /visually-hidden/i, /hide-accessible/i,
+    /control-text/i, /caption-text/i,
   ];
 
   // ====== 内容偏好标记 ======
@@ -68,11 +71,26 @@ const ContentExtractor = (() => {
   /** 检查元素是否应该被剔除 */
   function shouldStrip(el) {
     const tag = el.tagName.toLowerCase();
+
+    // 针对 <header> 标签的智能判断：
+    // 如果包含 h1/h2 标题，或位于 article/main 内，或具有文章头部特征类名，则作为文章标题区域保留；
+    // 纯全站顶部导航 header 则剔除
+    if (tag === 'header') {
+      const hasHeading = el.querySelector('h1, h2');
+      const isArticleHeader = matchesContentPattern(el) || (el.closest && el.closest('article, main, [role="main"]'));
+      if (hasHeading || isArticleHeader) {
+        return false;
+      }
+      return true;
+    }
+
     if (STRIP_TAGS.includes(tag)) return true;
     if (matchesStripPattern(el)) return true;
     // 隐藏元素
-    const style = window.getComputedStyle(el);
-    if (style.display === 'none' || style.visibility === 'hidden') return true;
+    try {
+      const style = window.getComputedStyle(el);
+      if (style.display === 'none' || style.visibility === 'hidden') return true;
+    } catch (e) {}
     // 极小元素（无内容）
     if (textLength(el) < 10 && !el.querySelector('img')) return true;
     return false;
@@ -171,6 +189,58 @@ const ContentExtractor = (() => {
     return candidates.length > 0 ? candidates[0].el : null;
   }
 
+  /** 清洗网页 title 中的网站后缀（如 "文章标题 - 少数派" -> "文章标题"） */
+  function cleanTitle(raw) {
+    if (!raw) return '';
+    let t = raw.trim();
+    // 剔除常见的网站后缀： - 网站名 / _ 网站名 / | 网站名 等
+    t = t.replace(/\s*[-_|–—•·]\s*[^-_\s|–—•·]{2,20}\s*$/, '');
+    return t.trim();
+  }
+
+  /** 获取最佳文章标题 */
+  function findArticleTitle() {
+    // 1. 文章语义容器内的 h1
+    const articleH1 = document.querySelector('article h1, main h1, [role="main"] h1, [role="article"] h1');
+    if (articleH1 && articleH1.textContent.trim().length > 2) {
+      return articleH1.textContent.trim();
+    }
+    // 2. 特征类名标题
+    const classTitle = document.querySelector('.article-title, .post-title, .entry-title, h1.title, [itemprop="headline"]');
+    if (classTitle && classTitle.textContent.trim().length > 2) {
+      return classTitle.textContent.trim();
+    }
+    // 3. OpenGraph 协议标题
+    const ogTitle = document.querySelector('meta[property="og:title"]')?.content;
+    if (ogTitle && ogTitle.trim().length > 2) {
+      return cleanTitle(ogTitle);
+    }
+    // 4. 普通 h1
+    const anyH1 = document.querySelector('h1');
+    if (anyH1 && anyH1.textContent.trim().length > 2) {
+      return anyH1.textContent.trim();
+    }
+    // 5. 网页 title 标签
+    return cleanTitle(document.title || '');
+  }
+
+  /** 判断是否是无意义的元数据杂质行（日期、作者、来源、面包屑、分享等） */
+  function isGarbageParagraph(text) {
+    if (!text || text.length < 2) return true;
+    const t = text.trim();
+    // 纯符号或极短无意义文字
+    if (/^[\s*#\-_—=~·•○●※✦✧|/\\:>]+$/.test(t)) return true;
+    // 面包屑导航（如 首页 > 新闻 > 正文）
+    if (/^[\w\u4e00-\u9fff\s]{1,20}(?:\s*[>›/\\»]\s*[\w\u4e00-\u9fff\s]{1,20}){1,5}$/.test(t)) return true;
+    // 常见元数据前缀（如 来源：新华社、作者：张三、责任编辑：李四、发布时间：2026-09-01）
+    if (/^(?:发布时间|更新时间|发表时间|来源|来源网站|作者|记者|编辑|责任编辑|责任人员|栏目|分类|标签|分享到|点击|浏览量|字数|阅读量|评论数|Published|Updated|Author|Source|By\s|Date:?|Time:?|Share\s*on)[\s:：]/i.test(t)) return true;
+    // 纯日期/时间
+    if (/^(?:\d{4}[-/年.]\d{1,2}[-/月.]\d{1,2}[日]?|\d{1,2}:\d{2}(?::\d{2})?|\d{1,2}\s*(?:hours?|minutes?|days?|seconds?)\s*ago)$/i.test(t)) return true;
+    // 社交操作提示（如 微信扫一扫、分享至朋友圈、收藏本文）
+    if (/^(?:微信扫一扫|扫码分享|分享到微信|朋友圈|微博|收藏|打印|字号|字体大小|正文字体|大中小)$/i.test(t)) return true;
+    return false;
+  }
+
   /** 从元素提取结构化正文 */
   function extractContent(container) {
     if (!container) return null;
@@ -183,12 +253,8 @@ const ContentExtractor = (() => {
       paragraphs: [],
     };
 
-    // 标题
-    const title =
-      document.querySelector('h1')?.textContent?.trim() ||
-      document.querySelector('title')?.textContent?.trim() ||
-      '';
-
+    // 智能获取核心大标题
+    const title = findArticleTitle();
     result.title = title;
 
     // 提取有意义的文本段落
@@ -201,7 +267,7 @@ const ContentExtractor = (() => {
           const text = node.textContent.trim();
           if (text.length < 2) return NodeFilter.FILTER_REJECT;
           const parent = node.parentNode;
-          if (parent && (parent.tagName === 'SCRIPT' || parent.tagName === 'STYLE')) {
+          if (parent && (parent.tagName === 'SCRIPT' || parent.tagName === 'STYLE' || parent.tagName === 'NOSCRIPT' || parent.tagName === 'NAV')) {
             return NodeFilter.FILTER_REJECT;
           }
           return NodeFilter.FILTER_ACCEPT;
@@ -215,6 +281,7 @@ const ContentExtractor = (() => {
     }
 
     // 构建段落列表
+    const rawParagraphs = [];
     let currentParagraph = '';
     for (let i = 0; i < textNodes.length; i++) {
       const text = textNodes[i].textContent.trim();
@@ -222,7 +289,7 @@ const ContentExtractor = (() => {
       const isBlock = parent && ['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'LI', 'BLOCKQUOTE', 'PRE', 'TD', 'TH'].includes(parent.tagName);
 
       if (isBlock && currentParagraph) {
-        result.paragraphs.push(currentParagraph);
+        rawParagraphs.push(currentParagraph);
         currentParagraph = text;
       } else if (isBlock) {
         currentParagraph = text;
@@ -231,7 +298,23 @@ const ContentExtractor = (() => {
       }
     }
     if (currentParagraph) {
-      result.paragraphs.push(currentParagraph);
+      rawParagraphs.push(currentParagraph);
+    }
+
+    // 过滤杂质段落
+    const cleanT = (title || '').replace(/[^\w\u4e00-\u9fff]/g, '').toLowerCase();
+    for (const p of rawParagraphs) {
+      const pClean = p.replace(/[^\w\u4e00-\u9fff]/g, '').toLowerCase();
+      // 如果正文中再次出现了完整标题段，跳过（避免读两遍）
+      if (cleanT.length > 3 && pClean === cleanT) continue;
+      // 过滤前后的元数据杂质（作者、日期、来源、面包屑等）
+      if (isGarbageParagraph(p)) continue;
+      result.paragraphs.push(p);
+    }
+
+    // ★ 关键：确保大标题排在第一句（第 0 句），让朗读从大标题正式开始！
+    if (title && title.trim().length > 1) {
+      result.paragraphs.unshift(title.trim());
     }
 
     result.text = result.paragraphs.join('\n\n');
@@ -360,38 +443,153 @@ const ContentExtractor = (() => {
     return null;
   }
 
-  /** 查找当前页面的文章列表链接 */
+  /** 查找当前页面的文章列表链接（智能过滤频道导航，精确提取新闻详情页） */
   function findArticleLinks() {
     const links = document.querySelectorAll('a[href]');
-    const articles = [];
+    const urlMap = new Map();
+    const currentOrigin = window.location.origin;
+    const currentPath = window.location.pathname.replace(/\/+$/, '');
+
+    // 纯导航/分类通用词（中英文）
+    const NAV_WORDS = /^(首页|要闻|国内|国际|军事|财经|科技|娱乐|体育|汽车|房产|无障碍|登录|注册|关于|联系|反馈|帮助|更多|查看更多|详情|返回|home|news|politics|u\.s\.|us|world|business|tech|technology|science|health|sports|entertainment|video|videos|audio|live|watch|listen|opinion|lifestyle|culture|local|weather|investigations|more|all|next|prev|previous|sign\s*in|log\s*in|subscribe|privacy|terms|about|contact|advertise|help|faq|menu|search|sections|feedback|trending|popular)$/i;
+
+    // 纯频道/专题 slug（用于排除 /news/crime-courts, /world, /tech 这类聚合页）
+    const CATEGORY_SLUGS = /^(news|politics|world|us-news|crime-courts|business|tech|technology|science|health|sports|entertainment|opinion|culture|lifestyle|local|weather|video|watch|live|about|contact|privacy|terms|category|topics?|tag|tags|channel|section|specials?)$/i;
 
     for (const a of links) {
-      const href = a.href;
-      const text = a.textContent.trim();
+      const rawHref = a.getAttribute('href');
+      if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('javascript:') || rawHref.startsWith('mailto:') || rawHref.startsWith('tel:')) continue;
 
-      // 过滤无效链接
-      if (!href || href.startsWith('javascript:') || href.startsWith('#')) continue;
-      if (href === window.location.href) continue;
-      if (text.length < 5) continue;
+      let fullUrl;
+      try {
+        fullUrl = new URL(rawHref, window.location.href);
+      } catch (e) {
+        continue;
+      }
 
-      // 偏好有文章特征的URL
-      const isArticle = /\/(article|post|story|news|p|entry)\//i.test(href) ||
-                        /\/\d{4}\/\d{2}\//.test(href) ||  // /2024/06/... 日期路径
-                        /\/\d{5,}\b/.test(href);  // 数字ID
+      // 必须同源或主域名一致
+      if (fullUrl.origin !== currentOrigin) continue;
 
-      if (isArticle && text.length > 5 && text.length < 200) {
-        articles.push({ url: href, title: text });
+      // 规范化 URL（去除 hash 与常见跟踪参数）
+      const cleanUrl = fullUrl.origin + fullUrl.pathname;
+      const path = fullUrl.pathname.replace(/\/+$/, '');
+
+      // 排除与当前页面完全相同的路径，或纯根路径
+      if (path === currentPath || path === '' || path === '/') continue;
+
+      // 排除全站通用导航/底部/侧边栏内的链接
+      if (a.closest('nav, footer, header, .nav, .footer, .header, .menu, #menu, .site-header, .site-footer')) continue;
+
+      // 排除已知无用系统路径
+      if (/\/(privacy|terms|about|contact|help|faq|login|register|signin|signup|search|feed|rss|sitemap|tag|tags|author|user|profile)\b/i.test(path)) continue;
+
+      // 提取文章标题
+      let text = a.textContent.trim().replace(/\s+/g, ' ');
+
+      // 如果 <a> 内部有标题元素，优先使用
+      const heading = a.querySelector('h1, h2, h3, h4, [class*="headline"], [class*="title"]');
+      if (heading && heading.textContent.trim().length > text.length) {
+        text = heading.textContent.trim().replace(/\s+/g, ' ');
+      }
+      // 如果 <a> 文字太短，但位于卡片内，尝试从卡片中查找主标题
+      if (text.length < 10) {
+        const card = a.closest('article, .card, [class*="item"], [class*="tease"], li');
+        if (card) {
+          const cardTitle = card.querySelector('h1, h2, h3, h4, [class*="headline"], [class*="title"]');
+          if (cardTitle && cardTitle.textContent.trim().length >= 10) {
+            text = cardTitle.textContent.trim().replace(/\s+/g, ' ');
+          }
+        }
+      }
+
+      // 过滤短词与纯导航词
+      if (text.length < 5 || text.length > 220) continue;
+      if (NAV_WORDS.test(text)) continue;
+
+      // 路径结构与 Slug 分析
+      const pathSegments = path.split('/').filter(Boolean);
+      const lastSegment = pathSegments[pathSegments.length - 1] || '';
+
+      // 排除纯分类目录 URL（如 /news/crime-courts）
+      if (CATEGORY_SLUGS.test(lastSegment)) continue;
+
+      let score = 0;
+
+      // 1. Slug 与文章特征评分
+      const hyphenCount = (lastSegment.match(/-/g) || []).length;
+      if (hyphenCount >= 3) score += 30; // 包含完整标题 slug
+      else if (hyphenCount >= 1 && lastSegment.length >= 16) score += 20;
+
+      // 常见文章 ID 模式（如 NBC 的 rcna123456, 纯数字 ID, .html 等）
+      if (/(rcna\d+|\d{5,}|\.s?html?$|[a-f0-9]{8,})/i.test(lastSegment)) score += 25;
+      if (/\/\d{4}[\/\-_]\d{2}[\/\-_]\d{2}\//.test(path)) score += 25; // 日期路径
+      if (/\/(article|post|story|news|p|entry|view|archives|detail|content|item|report)\//i.test(path)) score += 15;
+
+      // 2. DOM 结构特征
+      if (a.closest('h1, h2, h3, h4, .headline, [class*="headline"], [class*="title"]')) score += 20;
+      if (a.closest('article, [class*="tease"], [class*="card"], [class*="news-item"], [class*="post-item"]')) score += 15;
+
+      // 3. 标题文本特征
+      if (text.length >= 20 && text.length <= 130) score += 15;
+      else if (text.length >= 10 && text.length < 20) score += 8;
+
+      // 扣分项：路径太浅且没有文章标识
+      if (pathSegments.length <= 1 && lastSegment.length < 15 && hyphenCount < 2) score -= 30;
+      if (text.length < 10 && hyphenCount < 2) score -= 20;
+
+      if (score >= 25) {
+        if (!urlMap.has(cleanUrl)) {
+          urlMap.set(cleanUrl, {
+            url: fullUrl.href,
+            cleanUrl: cleanUrl,
+            title: text,
+            score: score,
+            element: a
+          });
+        } else {
+          // 同 URL 去重，保留标题更长、更完整和评分最高的那条
+          const existing = urlMap.get(cleanUrl);
+          if (score > existing.score || text.length > existing.title.length) {
+            existing.title = text.length > existing.title.length ? text : existing.title;
+            existing.score = Math.max(score, existing.score);
+            if (a.closest('h1, h2, h3, h4')) existing.element = a;
+          }
+        }
       }
     }
 
-    // 去重
-    const seen = new Set();
-    return articles.filter(a => {
-      const key = a.url;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }).slice(0, 20); // 最多20篇
+    const candidates = Array.from(urlMap.values());
+    // 按 DOM 出现顺序保留最多 25 篇
+    return candidates.slice(0, 25);
+  }
+
+  /** 智能语言检测：结合 HTML 声明与文本特征判断语言代码 */
+  function detectLanguage(sampleText) {
+    const htmlLang = (document.documentElement.lang || document.body?.getAttribute('lang') || '').toLowerCase();
+    if (htmlLang.startsWith('zh')) return 'zh-CN';
+    if (htmlLang.startsWith('ja')) return 'ja-JP';
+    if (htmlLang.startsWith('ko')) return 'ko-KR';
+    if (htmlLang.startsWith('fr')) return 'fr-FR';
+    if (htmlLang.startsWith('de')) return 'de-DE';
+    if (htmlLang.startsWith('es')) return 'es-ES';
+    if (htmlLang.startsWith('ru')) return 'ru-RU';
+    if (htmlLang.startsWith('it')) return 'it-IT';
+    if (htmlLang.startsWith('pt')) return 'pt-PT';
+    if (htmlLang.startsWith('en')) return 'en-US';
+
+    // 文本特征统计
+    const text = (sampleText || document.body?.innerText || '').substring(0, 500);
+    const cjk = (text.match(/[\u4e00-\u9fa5]/g) || []).length;
+    const kana = (text.match(/[\u3040-\u30ff]/g) || []).length;
+    const hangul = (text.match(/[\uac00-\ud7af]/g) || []).length;
+    const cyrillic = (text.match(/[\u0400-\u04ff]/g) || []).length;
+
+    if (kana > 5) return 'ja-JP';
+    if (hangul > 5) return 'ko-KR';
+    if (cjk > 10) return 'zh-CN';
+    if (cyrillic > 10) return 'ru-RU';
+
+    return 'en-US';
   }
 
   // 导出公共 API
@@ -400,6 +598,7 @@ const ContentExtractor = (() => {
     hasArticle,
     findNextPageLink,
     findArticleLinks,
+    detectLanguage,
     scoreElement,
     shouldStrip,
   };

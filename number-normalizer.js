@@ -73,7 +73,7 @@ const NumberNormalizer = (() => {
     // ====== 2. 货币：$25.50 / $1.2M / $5k / €10 / £99.99 ======
     {
       name: 'currency',
-      re: /([\$€£¥])\s*(\d+(?:,\d{3})*(?:\.\d+)?)\s*([kKmMbB])?/g,
+      re: /([\$€£¥])\s*(\d+(?:,\d{3})*(?:\.\d+)?)(?:\s*([kKmMbB])(?![a-zA-Z]))?/g,
       replace: (m, symbol, amount, suffix) => {
         const currencyName = { '$': 'dollar', '€': 'euro', '£': 'pound', '¥': 'yen' }[symbol] || 'dollar';
         const num = parseFloat(amount.replace(/,/g, ''));
@@ -155,10 +155,10 @@ const NumberNormalizer = (() => {
 
     // ====== 6. 小数 + 数字范围：7.2 → "seven point two" ======
     // 注意：匹配小数时排除版本号（v2.0）、IP地址等情况
-    // lookahead 不排除句点——允许 3.14. 这样的句尾小数
+    // 排除 IP 段：后一位是 点+数字 的不匹配（避免 192.168 被吃掉前两段）
     {
       name: 'decimal_number',
-      re: /(?<![a-zA-Z./\\])(\d+)\.(\d+)(?![a-zA-Z/\\])/g,
+      re: /(?<![a-zA-Z./\\])(\d+)\.(\d+)(?![a-zA-Z/\\])(?!\.\d)/g,
       replace: (m, integer, fraction) => {
         const intPart = parseInt(integer);
         const intWord = intPart === 0 ? 'zero' : integer; // "zero point five" vs "seven point two"
@@ -261,7 +261,25 @@ const NumberNormalizer = (() => {
       }
     },
 
-    // ====== 9. 纯整数（3-6位，独立出现，非年份/非大数）======
+    // ====== 9. 度量衡单位（优先于纯数字匹配，避免 100 km/h 中的数字先被拆分）======
+    // 注意：长单位（含斜杠）放在前面，避免 km 抢先匹配 km/h
+    {
+      name: 'measurement',
+      re: /(\d+(?:\.\d+)?)\s*(km\/h|m\/s|mph|km|cm|mm|kg|mg|lb|lbs|oz|g|m|°C|°F|°)(?:\b|(?=\s))/gi,
+      replace: (m, val, unit) => {
+        const num = normalizeNumberValue(val);
+        const unitMap = {
+          'km': 'kilometers', 'm': 'meters', 'cm': 'centimeters', 'mm': 'millimeters',
+          'kg': 'kilograms', 'g': 'grams', 'mg': 'milligrams',
+          'lb': 'pounds', 'lbs': 'pounds', 'oz': 'ounces',
+          'mph': 'miles per hour', 'km/h': 'kilometers per hour', 'm/s': 'meters per second',
+        };
+        const spoken = unitMap[unit.toLowerCase()] || unit;
+        return num + ' ' + spoken;
+      }
+    },
+
+    // ====== 10. 纯整数（3-6位，独立出现，非年份/非大数）======
     // 先处理大数（≥1000）
     {
       name: 'large_integer',
@@ -297,25 +315,6 @@ const NumberNormalizer = (() => {
         const n = parseInt(numStr);
         // 100→一百整体，99→ninety-nine
         return numberToWords(n);
-      }
-    },
-
-    // ====== 10. 数字范围：7.2 and 7.5 → 小数规则已覆盖 ======
-
-    // ====== 11. 度量衡单位 ======
-    {
-      name: 'measurement',
-      re: /(\d+(?:\.\d+)?)\s*(km|m|cm|mm|kg|g|mg|lb|lbs|oz|mph|km\/h|m\/s|°C|°F|°)(?:\b|(?=\s))/gi,
-      replace: (m, val, unit) => {
-        const num = normalizeNumberValue(val);
-        const unitMap = {
-          'km': 'kilometers', 'm': 'meters', 'cm': 'centimeters', 'mm': 'millimeters',
-          'kg': 'kilograms', 'g': 'grams', 'mg': 'milligrams',
-          'lb': 'pounds', 'lbs': 'pounds', 'oz': 'ounces',
-          'mph': 'miles per hour', 'km/h': 'kilometers per hour', 'm/s': 'meters per second',
-        };
-        const spoken = unitMap[unit.toLowerCase()] || unit;
-        return num + ' ' + spoken;
       }
     },
 

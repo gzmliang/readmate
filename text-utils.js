@@ -102,6 +102,11 @@ const TextUtils = (() => {
           result[i + 1] = cur + ' ' + nxt;
           continue;
         }
+        // 当前段以英文常见缩写或单字母缩写结尾（如 Dr. / Mr. / Prof. / e.g. / U.S. / J. K.）→ 避免误切
+        if (/\b(Dr|Mr|Mrs|Ms|Prof|Sr|Jr|vs|e\.g|i\.e|etc|approx|inc|corp|dept|fig|no|vol|est|[A-Za-z])\.$/i.test(cur)) {
+          result[i + 1] = cur + ' ' + nxt;
+          continue;
+        }
         // 当前段以连词结尾 → 明显不是句末，合并到下一段
         if (/\b(and|or|the|a|an|but|for|nor|yet|so|with|from|this|that)$/i.test(cur)) {
           result[i + 1] = cur + ' ' + nxt;
@@ -121,10 +126,20 @@ const TextUtils = (() => {
       merged.push(result[i]);
     }
 
-    return merged.filter(s => s.length > 0);
+    // ====== 超长句子自然呼吸微切（单句过长 > 220 字符时，按从句标点平滑微切，避免高亮过长或 TTS 响应迟缓） ======
+    const finalSentences = [];
+    for (const item of merged) {
+      if (item.length > 220) {
+        finalSentences.push(...splitByLength(item, 160));
+      } else {
+        finalSentences.push(item);
+      }
+    }
+
+    return finalSentences.filter(s => s.length > 0);
   }
 
-  /** 按最大字符数分割（向后找最近的自然断点） */
+  /** 按最大字符数分割（向后或向前找最近的自然呼吸断点） */
   function splitByLength(text, maxLen) {
     const result = [];
     let pos = 0;
@@ -133,40 +148,47 @@ const TextUtils = (() => {
         result.push(text.slice(pos).trim());
         break;
       }
-      // 从 maxLen 位置向后扫描最多 50 字符，先找强断点（句末标点），再找弱断点（逗号）
-      const scanEnd = Math.min(pos + maxLen + 50, text.length);
       let splitAt = -1;
-      // 第一遍：强断点（句末标点）
-      for (let j = pos + maxLen; j < Math.min(pos + maxLen + 30, text.length); j++) {
+
+      // 1. 在 [pos + maxLen - 40, pos + maxLen + 40] 范围内寻找强标点（句号/问号/感叹号/分号/冒号）
+      const scanStart = Math.max(pos + 30, pos + maxLen - 40);
+      const scanEnd = Math.min(pos + maxLen + 40, text.length);
+      for (let j = scanStart; j < scanEnd; j++) {
         const ch = text[j];
         const isPeriodEnd = ch === '.' &&
           (j + 1 >= text.length || /\s/.test(text[j + 1])) &&
           !(j > 0 && /\d/.test(text[j - 1]) && j + 1 < text.length && /\d/.test(text[j + 1]));
-        if (ch === '!' || ch === '?' || ch === '。' || ch === '！' || ch === '？' || ch === '；' || ch === ';' || isPeriodEnd) {
+        if (ch === '!' || ch === '?' || ch === '。' || ch === '！' || ch === '？' || ch === '；' || ch === ';' || ch === ':' || ch === '：' || isPeriodEnd) {
           splitAt = j + 1;
-          break;
+          if (j >= pos + maxLen - 20) break;
         }
       }
-      // 第二遍：弱断点（逗号）— 在 30-50 字范围内
+
+      // 2. 找不到强标点，在合理范围内寻找次级弱标点（逗号、破折号）
       if (splitAt < 0) {
-        for (let j = pos + maxLen + 30; j < scanEnd; j++) {
-          if (text[j] === ',' || text[j] === '，') { splitAt = j + 1; break; }
+        for (let j = scanStart; j < scanEnd; j++) {
+          const ch = text[j];
+          if (ch === ',' || ch === '，' || ch === '—' || (ch === '-' && text[j + 1] === '-')) {
+            splitAt = j + 1;
+            if (j >= pos + maxLen - 20) break;
+          }
         }
       }
+
       if (splitAt > 0) {
         result.push(text.slice(pos, splitAt).trim());
         pos = splitAt;
       } else {
-        // 找不到自然断点 → 向前找最后一个空格（单词边界），避免腰斩单词
+        // 3. 找不到标点 → 向前找单词边界（空格），避免腰斩单词
         let wordBoundary = -1;
-        for (let j = pos + maxLen; j > pos; j--) {
+        for (let j = Math.min(pos + maxLen, text.length - 1); j >= Math.max(pos + 20, pos + maxLen - 40); j--) {
           if (/\s/.test(text[j])) { wordBoundary = j + 1; break; }
         }
         if (wordBoundary > 0 && wordBoundary > pos) {
           result.push(text.slice(pos, wordBoundary).trim());
           pos = wordBoundary;
         } else {
-          // 真的找不到任何空格了，才硬切
+          // 4. 极端情况（如无空格长串）硬切
           result.push(text.slice(pos, pos + maxLen).trim());
           pos += maxLen;
         }
@@ -205,6 +227,9 @@ const TextUtils = (() => {
     result = result.replace(HTML_TAG_RE, '');
     // 去除脚注标记
     result = result.replace(FOOTNOTE_RE, '');
+    // 去除视频播放器隐藏无障碍提示（如 "0 seconds of 44 seconds Press shift question mark to access keyboard shortcuts"）
+    result = result.replace(/\b\d+\s+seconds of\s+\d+\s+seconds[^\n.]*[\n.]?/gi, '');
+    result = result.replace(/Press shift question mark[^\n.]*[\n.]?/gi, '');
     // 去除装饰行
     result = result.replace(DECORATIVE_RE, '');
     // 压缩连续空白

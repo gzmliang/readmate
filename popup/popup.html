@@ -3,23 +3,62 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ReadMate 读伴</title>
+  <title>ReadMate</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div class="popup-container">
-    <!-- 头部 + 朗读操作 -->
-    <div class="header">
-      <div class="title-row">
+    <!-- 顶部常驻：精致下拉语言选择栏 (8国语言全覆盖) -->
+    <div class="lang-nav-bar">
+      <div class="lang-nav-brand">
+        <span class="app-icon">📖</span>
         <span class="app-name">ReadMate / 读伴</span>
       </div>
-      <!-- 朗读操作区：手机端大按钮 -->
+      <div class="lang-select-wrap">
+        <span class="lang-globe-icon">🌐</span>
+        <select id="uiLangSelect" class="lang-dropdown">
+          <option value="zh_CN">🇨🇳 简体中文</option>
+          <option value="en">🇺🇸 English</option>
+          <option value="ja">🇯🇵 日本語</option>
+          <option value="ko">🇰🇷 한국어</option>
+          <option value="es">🇪🇸 Español</option>
+          <option value="fr">🇫🇷 Français</option>
+          <option value="de">🇩🇪 Deutsch</option>
+          <option value="ru">🇷🇺 Русский</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 头部 + 朗读操作 -->
+    <div class="header">
       <div class="action-bar">
         <button id="readPageBtn" class="btn-read-page">▶ 朗读此页</button>
-        <button id="injectBtn" class="btn-inject" title="注入插件到当前页面">🔄</button>
-        <button id="stopBtn" class="btn-stop" title="停止朗读" style="display:none">⏹</button>
+        <button id="stopBtn" class="btn-stop" title="停止朗读 (Ctrl+Shift+S)">⏹ 停止</button>
+        <button id="injectBtn" class="btn-inject" title="重新检测/注入插件">🔄</button>
       </div>
-      <div id="pageStatus" class="page-status">检测页面状态...</div>
+      <div id="pageStatus" class="page-status">...</div>
+      <div class="shortcut-tip" id="lblShortcutTip">快捷键：Ctrl+Shift+P 朗读，Ctrl+Shift+S 停止</div>
+      <div class="refresh-tip" id="lblRefreshTip">💡 若刚安装或更新插件，请刷新一次网页即可生效</div>
+    </div>
+
+    <!-- 朗读与双语模式 -->
+    <div class="section">
+      <div class="section-title" id="lblSectionVoiceStream">朗读语音流模式</div>
+      <div class="setting-row">
+        <label id="lblVoiceMode">播放模式</label>
+        <select id="readVoiceMode">
+          <option value="original" id="optModeOriginal">🔊 仅读原文 (外语/原汁原味)</option>
+          <option value="translated" id="optModeTranslated">🌐 直接读译文 (外文变母语广播)</option>
+          <option value="bilingual" id="optModeBilingual">🔄 双语交替读 (句句对照/学外语)</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label id="lblBilingualSubtitles">双语字幕</label>
+        <label class="switch-label">
+          <input type="checkbox" id="showBilingualSubtitles" checked>
+          <span id="lblChkShowSubtitles">在控制条显示双语字幕</span>
+        </label>
+      </div>
     </div>
 
     <!-- 引擎切换 -->
@@ -27,48 +66,48 @@
       <div class="section-title" id="lblTtsSection">语音朗读</div>
       <div class="engine-switch">
         <label class="engine-option">
-          <input type="radio" name="ttsEngine" value="browser" checked>
-          <span>🔊 浏览器</span>
+          <input type="radio" name="ttsEngine" value="cloud" checked>
+          <span id="lblEngineCloud">☁️ 云端高质量 (推荐)</span>
         </label>
         <label class="engine-option">
-          <input type="radio" name="ttsEngine" value="cloud">
-          <span>☁️ 云端</span>
+          <input type="radio" name="ttsEngine" value="browser">
+          <span id="lblEngineBrowser">🔊 浏览器本地</span>
         </label>
       </div>
 
       <div id="browserTtsSection">
-      <div class="setting-row">
-        <label id="lblSpeed">语速</label>
-        <div class="speed-row">
-          <input type="range" id="ttsSpeed" min="0.3" max="3.0" step="0.1" value="1.0">
-          <span id="ttsSpeedLabel" class="speed-value">1.0x</span>
+        <div class="setting-row">
+          <label id="lblSpeed">语速</label>
+          <div class="speed-row">
+            <input type="range" id="ttsSpeed" min="0.3" max="3.0" step="0.1" value="1.0">
+            <span id="ttsSpeedLabel" class="speed-value">1.0x</span>
+          </div>
         </div>
-      </div>
 
-      <div class="setting-row">
-        <label id="lblVoice">语音</label>
-        <select id="ttsVoice">
-          <option value="" id="optVoiceAuto">自动匹配</option>
-        </select>
-      </div>
-      <div class="test-row-popup">
-        <button id="testBrowserVoiceBtn" class="btn-test-voice-sm">▶ 测试浏览器</button>
-        <span id="testBrowserVoiceResult" class="test-result"></span>
-      </div>
+        <div class="setting-row">
+          <label id="lblVoice">语音</label>
+          <select id="ttsVoice">
+            <option value="" id="optVoiceAuto">⚡ 自动选择 (推荐)</option>
+          </select>
+        </div>
+        <div class="test-row-popup">
+          <button id="testBrowserVoiceBtn" class="btn-test-voice-sm">▶ 测试浏览器</button>
+          <span id="testBrowserVoiceResult" class="test-result"></span>
+        </div>
       </div>
     </div>
 
     <!-- 云端语音 -->
     <div class="section" id="cloudTtsSection">
-      <div class="section-title">云端语音 (Edge TTS)</div>
+      <div class="section-title" id="lblCloudTtsSection">云端语音 (Edge TTS)</div>
       <div class="setting-row">
         <label id="lblCloudEndpoint">服务器</label>
         <input type="text" id="cloudTtsEndpoint" placeholder="http://powerplus.blogsyte.com:5001">
       </div>
       <div class="setting-row">
-        <label id="lblCloudVoice">云端语音</label>
+        <label id="lblCloudVoice">云端音色</label>
         <select id="cloudTtsVoice">
-          <option value="" id="optCloudAuto">默认 (zh-CN-XiaoxiaoNeural)</option>
+          <option value="" id="optCloudAuto">⚡ 自动选择 (推荐)</option>
         </select>
       </div>
       <div class="test-row-popup">
@@ -77,9 +116,22 @@
       </div>
     </div>
 
-    <!-- 翻译设置 -->
+    <!-- AI 翻译与多语种摘要设置 -->
     <div class="section">
-      <div class="section-title" id="lblAiSection">AI 翻译</div>
+      <div class="section-title" id="lblAiSection">AI 服务商与摘要</div>
+
+      <div class="setting-row">
+        <label id="lblProvider">服务商预设</label>
+        <select id="aiProviderSelect">
+          <option value="gemini">Google Gemini</option>
+          <option value="deepseek">DeepSeek (推荐/高性价比)</option>
+          <option value="openai">OpenAI (ChatGPT)</option>
+          <option value="siliconflow">SiliconFlow (硅基流动)</option>
+          <option value="moonshot">Moonshot (Kimi)</option>
+          <option value="qwen">阿里通义千问 (DashScope)</option>
+          <option value="custom">自定义 (兼容 OpenAI 格式)</option>
+        </select>
+      </div>
 
       <div class="setting-row">
         <label id="lblEndpoint">API 端点</label>
@@ -91,42 +143,41 @@
       </div>
       <div class="setting-row">
         <label id="lblModel">模型</label>
-        <input type="text" id="aiModel" placeholder="deepseek-chat">
+        <input type="text" id="aiModel" list="aiModelList" placeholder="gemini-3.7-flash-high">
+        <datalist id="aiModelList">
+          <option value="gemini-3.7-flash-high">Gemini 3.7 Flash (推荐/快速极高画质)</option>
+          <option value="gemini-3.6-flash-high">Gemini 3.6 Flash</option>
+          <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite (极速轻量)</option>
+          <option value="gemini-3-flash">Gemini 3 Flash</option>
+          <option value="gemini-3.1-pro-low">Gemini 3.1 Pro</option>
+          <option value="claude-sonnet-4-6">Claude 3.5 Sonnet</option>
+          <option value="deepseek-chat">DeepSeek Chat (官方)</option>
+          <option value="gpt-4o-mini">GPT-4o mini (OpenAI)</option>
+        </datalist>
       </div>
       <div class="setting-row">
-        <label id="lblTargetLanguage">目标语言</label>
+        <label id="lblTargetLanguage">目标翻译语言</label>
         <select id="translateTarget">
-          <option value="Simplified Chinese" id="optLangZhCn">简体中文</option>
-          <option value="English" id="optLangEn">English</option>
-          <option value="Japanese" id="optLangJa">日本語</option>
-          <option value="Korean" id="optLangKo">한국어</option>
-          <option value="French" id="optLangFr">Français</option>
-          <option value="German" id="optLangDe">Deutsch</option>
-          <option value="Spanish" id="optLangEs">Español</option>
+          <option value="Simplified Chinese">简体中文</option>
+          <option value="English">English</option>
+          <option value="Japanese">日本語</option>
+          <option value="Korean">한국어</option>
+          <option value="French">Français</option>
+          <option value="German">Deutsch</option>
+          <option value="Spanish">Español</option>
+          <option value="Russian">Русский</option>
+          <option value="Italian">Italiano</option>
+          <option value="Portuguese">Português</option>
         </select>
-      </div>
-      <div class="setting-row">
-        <label id="lblAutoTranslate">自动翻译下一句</label>
-        <input type="checkbox" id="autoTranslate">
       </div>
       <div class="setting-row">
         <label id="lblHighlight">朗读高亮</label>
         <input type="checkbox" id="highlightEnabled">
       </div>
 
-      <button id="testBtn" class="btn-test">测试翻译连接</button>
-    </div>
-
-    <!-- 界面语言 -->
-    <div class="section">
-      <div class="section-title" id="lblUiSection">界面语言</div>
-      <div class="setting-row">
-        <label id="lblUiLanguage">界面语言</label>
-        <select id="uiLanguage">
-          <option value="auto" id="optLangAuto">自动检测</option>
-          <option value="en" id="optLangEnglish">English</option>
-          <option value="zh_CN" id="optLangChinese">中文</option>
-        </select>
+      <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
+        <button id="testBtn" class="btn-test">测试 AI 连接</button>
+        <span id="testAiResult" class="test-result"></span>
       </div>
     </div>
 

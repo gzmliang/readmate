@@ -1,0 +1,256 @@
+{
+  "appName": {
+    "message": "ReadMate"
+  },
+  "appDesc": {
+    "message": "Asistente TTS Web — Voz Nativa/Edge-TTS + Traducción AI y Resumen Bilingüe"
+  },
+  "menuReadSelection": {
+    "message": "Leer selección"
+  },
+  "menuReadPage": {
+    "message": "Leer esta página"
+  },
+  "menuTranslateSelection": {
+    "message": "Traducir selección"
+  },
+  "btnReadPage": {
+    "message": "▶ Leer página"
+  },
+  "btnStop": {
+    "message": "⏹ Detener"
+  },
+  "shortcutTip": {
+    "message": "Atajos: Ctrl+Shift+P para leer, Ctrl+Shift+S para detener"
+  },
+  "sectionVoiceStream": {
+    "message": "Modo de flujo de voz"
+  },
+  "lblVoiceMode": {
+    "message": "Modo de reproducción"
+  },
+  "modeOriginal": {
+    "message": "🔊 Solo original (Audio nativo)"
+  },
+  "modeTranslated": {
+    "message": "🌐 Solo traducción (Emisión en español)"
+  },
+  "modeBilingual": {
+    "message": "🔄 Bilingüe alterno (Frase por frase)"
+  },
+  "lblBilingualSubtitles": {
+    "message": "Subtítulos"
+  },
+  "chkShowSubtitles": {
+    "message": "Mostrar subtítulos bilingües en la barra"
+  },
+  "ttsEngineSection": {
+    "message": "Motor de voz"
+  },
+  "engineBrowser": {
+    "message": "🔊 Navegador nativo"
+  },
+  "engineCloud": {
+    "message": "☁️ Edge TTS en la nube"
+  },
+  "speedLabel": {
+    "message": "Velocidad"
+  },
+  "voiceLabel": {
+    "message": "Voz"
+  },
+  "voiceAutoLang": {
+    "message": "Detección automática"
+  },
+  "btnTestBrowser": {
+    "message": "▶ Probar navegador"
+  },
+  "cloudTtsSection": {
+    "message": "Voz en la nube (Edge TTS)"
+  },
+  "lblCloudEndpoint": {
+    "message": "Dirección del servidor"
+  },
+  "lblCloudVoice": {
+    "message": "Voz en la nube"
+  },
+  "optCloudAuto": {
+    "message": "Predeterminada (Elvira/Xiaoxiao)"
+  },
+  "btnTestCloud": {
+    "message": "☁️ Probar nube"
+  },
+  "aiSectionTitle": {
+    "message": "Configuración y resumen AI"
+  },
+  "lblProvider": {
+    "message": "Proveedor"
+  },
+  "lblEndpoint": {
+    "message": "Punto final de API"
+  },
+  "lblApiKey": {
+    "message": "Clave API"
+  },
+  "lblModel": {
+    "message": "Modelo"
+  },
+  "lblTargetLanguage": {
+    "message": "Idioma de destino"
+  },
+  "lblHighlight": {
+    "message": "Resaltado de oraciones"
+  },
+  "btnTestAi": {
+    "message": "Probar conexión AI"
+  },
+  "btnSave": {
+    "message": "Guardar configuración"
+  },
+  "btnFullOptions": {
+    "message": "⚙ Configuración completa"
+  },
+  "savedStatus": {
+    "message": "✓ Guardado"
+  },
+  "btnSummary": {
+    "message": "⚡ Resumen"
+  },
+  "lblSubtitles": {
+    "message": "Subtítulos"
+  },
+  "btnPrev": {
+    "message": "Anterior"
+  },
+  "btnPlay": {
+    "message": "Reproducir/Pausar"
+  },
+  "btnNext": {
+    "message": "Siguiente"
+  },
+  "summaryCardTitle": {
+    "message": "⚡ Resumen clave bilingüe AI",
+    "description": "Summary card header title"
+  },
+  "readOriginal": {
+    "message": "Leer original",
+    "description": "Read original summary tooltip"
+  },
+  "readTranslated": {
+    "message": "Leer traducción",
+    "description": "Read translated summary tooltip"
+  },
+  "playAllSummary": {
+    "message": "▶ Reproducir todo (Bilingüe)"
+  },
+  "copyMarkdown": {
+    "message": "📋 Copiar Markdown"
+  },
+  "toastTextTooShort": {
+    "message": "⚠️ Texto demasiado corto (<50 caracteres) para leer"
+  },
+  "toastGeneratingSummary": {
+    "message": "⚡ Generando resumen clave AI...",
+    "description": "Toast when generating summary"
+  },
+  "toastSummaryFailed": {
+    "message": "❌ Error al generar resumen, verifique configuración AI",
+    "description": "Toast summary failed"
+  },
+  "toastCopied": {
+    "message": "✓ Copiado al portapapeles"
+  },
+  "toastArticleFinished": {
+    "message": "🎉 Lectura de página completada"
+  },
+  "toastNeedsApiKey": {
+    "message": "⚠️ Ingrese primero la clave API de AI en configuración"
+  },
+  "toastModeChanged": {
+    "message": "Modo cambiado a: "
+  },
+  "refreshTip": {
+    "message": "💡 Si acabas de actualizar la extensión, recarga la página para activarla",
+    "description": "Refresh page hint"
+  },
+  "lblSummaryViewMode": {
+    "message": "Default Summary View",
+    "description": "Default summary presentation view"
+  },
+  "summaryTabBilingual": {
+    "message": "🔄 Bilingüe",
+    "description": "Summary tab bilingual"
+  },
+  "summaryTabBilingualTip": {
+    "message": "Modo bilingüe comparativo",
+    "description": "Summary tab bilingual tooltip"
+  },
+  "summaryTabOriginal": {
+    "message": "📄 Original",
+    "description": "Summary tab original"
+  },
+  "summaryTabOriginalTip": {
+    "message": "Solo texto original (Inmersivo)",
+    "description": "Summary tab original tooltip"
+  },
+  "summaryTabTranslated": {
+    "message": "🌐 Traducción",
+    "description": "Summary tab translated"
+  },
+  "summaryTabTranslatedTip": {
+    "message": "Solo traducción (Lectura rápida)",
+    "description": "Summary tab translated tooltip"
+  },
+  "summaryRegenerateTip": {
+    "message": "Regenerar resumen",
+    "description": "Regenerate summary tooltip"
+  },
+  "summaryMinimizeTip": {
+    "message": "Minimizar",
+    "description": "Minimize summary tooltip"
+  },
+  "summaryCloseTip": {
+    "message": "Cerrar (ESC)",
+    "description": "Close summary tooltip"
+  },
+  "summaryPlayBilingual": {
+    "message": "🔄 Reproducir resumen (Bilingüe)",
+    "description": "Play bilingual summary button"
+  },
+  "summaryPlayBilingualTip": {
+    "message": "Reproducir resumen alternando idiomas",
+    "description": "Play bilingual summary tooltip"
+  },
+  "summaryPlayOrig": {
+    "message": "🔊 Leer original",
+    "description": "Play original summary button"
+  },
+  "summaryPlayOrigTip": {
+    "message": "Reproducir solo resumen original",
+    "description": "Play original summary tooltip"
+  },
+  "summaryPlayTrans": {
+    "message": "🌐 Leer traducción",
+    "description": "Play translated summary button"
+  },
+  "summaryPlayTransTip": {
+    "message": "Reproducir solo resumen traducido",
+    "description": "Play translated summary tooltip"
+  },
+  "fabSummaryTip": {
+    "message": "Resumen bilingüe con IA",
+    "description": "FAB AI summary button tooltip"
+  },
+  "fabPlayTip": {
+    "message": "Leer artículo actual (Ctrl+Shift+P)",
+    "description": "FAB play button tooltip"
+  },
+  "selPlayTip": {
+    "message": "Read Selected Text",
+    "description": "Selection play tooltip"
+  },
+  "selTranslateTip": {
+    "message": "Translate Selected Text",
+    "description": "Selection translate tooltip"
+  }
+}

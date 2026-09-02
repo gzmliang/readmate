@@ -1,0 +1,256 @@
+{
+  "appName": {
+    "message": "ReadMate"
+  },
+  "appDesc": {
+    "message": "Web-TTS-Assistent — Native/Edge-TTS + KI-Übersetzung & Zweisprachige Zusammenfassung"
+  },
+  "menuReadSelection": {
+    "message": "Auswahl vorlesen"
+  },
+  "menuReadPage": {
+    "message": "Diese Seite vorlesen"
+  },
+  "menuTranslateSelection": {
+    "message": "Auswahl übersetzen"
+  },
+  "btnReadPage": {
+    "message": "▶ Seite vorlesen"
+  },
+  "btnStop": {
+    "message": "⏹ Stoppen"
+  },
+  "shortcutTip": {
+    "message": "Tastenkürzel: Strg+Umschalt+P zum Vorlesen, Strg+Umschalt+S zum Stoppen"
+  },
+  "sectionVoiceStream": {
+    "message": "Sprachausgabe-Modus"
+  },
+  "lblVoiceMode": {
+    "message": "Wiedergabemodus"
+  },
+  "modeOriginal": {
+    "message": "🔊 Nur Original (Originalton)"
+  },
+  "modeTranslated": {
+    "message": "🌐 Nur Übersetzung (Deutsche Sprachausgabe)"
+  },
+  "modeBilingual": {
+    "message": "🔄 Zweisprachig abwechselnd (Satz für Satz)"
+  },
+  "lblBilingualSubtitles": {
+    "message": "Untertitel"
+  },
+  "chkShowSubtitles": {
+    "message": "Zweisprachige Untertitel auf Leiste anzeigen"
+  },
+  "ttsEngineSection": {
+    "message": "Sprachausgabe-Engine"
+  },
+  "engineBrowser": {
+    "message": "🔊 Browser-Standard"
+  },
+  "engineCloud": {
+    "message": "☁️ Cloud Edge TTS"
+  },
+  "speedLabel": {
+    "message": "Geschwindigkeit"
+  },
+  "voiceLabel": {
+    "message": "Stimme"
+  },
+  "voiceAutoLang": {
+    "message": "Automatische Erkennung"
+  },
+  "btnTestBrowser": {
+    "message": "▶ Browser testen"
+  },
+  "cloudTtsSection": {
+    "message": "Cloud-Stimme (Edge TTS)"
+  },
+  "lblCloudEndpoint": {
+    "message": "Serveradresse"
+  },
+  "lblCloudVoice": {
+    "message": "Cloud-Stimme"
+  },
+  "optCloudAuto": {
+    "message": "⚡ Automatisch auswählen (Empfohlen)"
+  },
+  "btnTestCloud": {
+    "message": "☁️ Cloud testen"
+  },
+  "aiSectionTitle": {
+    "message": "KI-Einstellung & Zusammenfassung"
+  },
+  "lblProvider": {
+    "message": "Anbieter"
+  },
+  "lblEndpoint": {
+    "message": "API-Endpunkt"
+  },
+  "lblApiKey": {
+    "message": "API-Schlüssel"
+  },
+  "lblModel": {
+    "message": "Modell"
+  },
+  "lblTargetLanguage": {
+    "message": "Zielsprache"
+  },
+  "lblHighlight": {
+    "message": "Satz-Hervorhebung"
+  },
+  "btnTestAi": {
+    "message": "KI-Verbindung testen"
+  },
+  "btnSave": {
+    "message": "Einstellungen speichern"
+  },
+  "btnFullOptions": {
+    "message": "⚙ Vollständige Einstellungen"
+  },
+  "savedStatus": {
+    "message": "✓ Gespeichert"
+  },
+  "btnSummary": {
+    "message": "⚡ Zusammenfassung"
+  },
+  "lblSubtitles": {
+    "message": "Untertitel"
+  },
+  "btnPrev": {
+    "message": "Vorheriger Satz"
+  },
+  "btnPlay": {
+    "message": "Wiedergabe/Pause"
+  },
+  "btnNext": {
+    "message": "Nächster Satz"
+  },
+  "summaryCardTitle": {
+    "message": "⚡ Zweisprachige KI-Kernzusammenfassung",
+    "description": "Summary card header title"
+  },
+  "readOriginal": {
+    "message": "Original vorlesen",
+    "description": "Read original summary tooltip"
+  },
+  "readTranslated": {
+    "message": "Übersetzung vorlesen",
+    "description": "Read translated summary tooltip"
+  },
+  "playAllSummary": {
+    "message": "▶ Alle abspielen (Zweisprachig)"
+  },
+  "copyMarkdown": {
+    "message": "📋 Markdown kopieren"
+  },
+  "toastTextTooShort": {
+    "message": "⚠️ Text zu kurz (<50 Zeichen) zum Vorlesen"
+  },
+  "toastGeneratingSummary": {
+    "message": "⚡ KI-Zusammenfassung wird erstellt...",
+    "description": "Toast when generating summary"
+  },
+  "toastSummaryFailed": {
+    "message": "❌ Fehler bei der Erstellung der Zusammenfassung",
+    "description": "Toast summary failed"
+  },
+  "toastCopied": {
+    "message": "✓ In Zwischenablage kopiert"
+  },
+  "toastArticleFinished": {
+    "message": "🎉 Seite vollständig vorgelesen"
+  },
+  "toastNeedsApiKey": {
+    "message": "⚠️ Bitte zuerst KI-API-Schlüssel in Einstellungen eintragen"
+  },
+  "toastModeChanged": {
+    "message": "Modus geändert zu: "
+  },
+  "refreshTip": {
+    "message": "💡 Nach der Aktualisierung bitte die Webseite neu laden",
+    "description": "Refresh page hint"
+  },
+  "lblSummaryViewMode": {
+    "message": "Default Summary View",
+    "description": "Default summary presentation view"
+  },
+  "summaryTabBilingual": {
+    "message": "🔄 Zweisprachig",
+    "description": "Summary tab bilingual"
+  },
+  "summaryTabBilingualTip": {
+    "message": "Zweisprachiger Vergleichsmodus",
+    "description": "Summary tab bilingual tooltip"
+  },
+  "summaryTabOriginal": {
+    "message": "📄 Original",
+    "description": "Summary tab original"
+  },
+  "summaryTabOriginalTip": {
+    "message": "Nur Originaltext (Immersiv)",
+    "description": "Summary tab original tooltip"
+  },
+  "summaryTabTranslated": {
+    "message": "🌐 Übersetzung",
+    "description": "Summary tab translated"
+  },
+  "summaryTabTranslatedTip": {
+    "message": "Nur Übersetzung (Schnellüberblick)",
+    "description": "Summary tab translated tooltip"
+  },
+  "summaryRegenerateTip": {
+    "message": "Zusammenfassung neu erstellen",
+    "description": "Regenerate summary tooltip"
+  },
+  "summaryMinimizeTip": {
+    "message": "Minimieren",
+    "description": "Minimize summary tooltip"
+  },
+  "summaryCloseTip": {
+    "message": "Schließen (ESC)",
+    "description": "Close summary tooltip"
+  },
+  "summaryPlayBilingual": {
+    "message": "🔄 Zusammenfassung abspielen (Zweisprachig)",
+    "description": "Play bilingual summary button"
+  },
+  "summaryPlayBilingualTip": {
+    "message": "Zusammenfassung zweisprachig abwechselnd abspielen",
+    "description": "Play bilingual summary tooltip"
+  },
+  "summaryPlayOrig": {
+    "message": "🔊 Original vorlesen",
+    "description": "Play original summary button"
+  },
+  "summaryPlayOrigTip": {
+    "message": "Nur Originalzusammenfassung abspielen",
+    "description": "Play original summary tooltip"
+  },
+  "summaryPlayTrans": {
+    "message": "🌐 Übersetzung vorlesen",
+    "description": "Play translated summary button"
+  },
+  "summaryPlayTransTip": {
+    "message": "Nur Übersetzung vorlesen",
+    "description": "Play translated summary tooltip"
+  },
+  "fabSummaryTip": {
+    "message": "KI-Zweisprachige Zusammenfassung",
+    "description": "FAB AI summary button tooltip"
+  },
+  "fabPlayTip": {
+    "message": "Aktuellen Artikel vorlesen (Strg+Umschalt+P)",
+    "description": "FAB play button tooltip"
+  },
+  "selPlayTip": {
+    "message": "Read Selected Text",
+    "description": "Selection play tooltip"
+  },
+  "selTranslateTip": {
+    "message": "Translate Selected Text",
+    "description": "Selection translate tooltip"
+  }
+}

@@ -1,226 +1,306 @@
 {
   "appName": {
-    "message": "ReadMate / 读伴",
-    "description": "Extension name"
+    "message": "ReadMate",
+    "description": "App name"
   },
   "appDesc": {
-    "message": "Web page reading assistant — browser native TTS + AI translation",
-    "description": "Extension description"
+    "message": "Web TTS Assistant — Native/Edge-TTS + AI Translation & Bilingual Summary",
+    "description": "App description"
   },
   "menuReadSelection": {
     "message": "Read Selection",
-    "description": "Context menu: read selected text"
+    "description": "Context menu: read selection"
   },
   "menuReadPage": {
-    "message": "Read Page",
-    "description": "Context menu: read entire page"
+    "message": "Read This Page",
+    "description": "Context menu: read page"
   },
   "menuTranslateSelection": {
     "message": "Translate Selection",
-    "description": "Context menu: translate selected text"
+    "description": "Context menu: translate selection"
   },
-
+  "btnReadPage": {
+    "message": "▶ Read Page",
+    "description": "Read page button"
+  },
+  "btnStop": {
+    "message": "⏹ Stop",
+    "description": "Stop button"
+  },
+  "shortcutTip": {
+    "message": "Shortcuts: Ctrl+Shift+P to Read, Ctrl+Shift+S to Stop",
+    "description": "Shortcut tips"
+  },
+  "refreshTip": {
+    "message": "💡 If newly installed/updated, refresh the webpage to activate",
+    "description": "Refresh webpage hint"
+  },
+  "sectionVoiceStream": {
+    "message": "Voice Stream Mode",
+    "description": "Voice stream mode section title"
+  },
+  "lblVoiceMode": {
+    "message": "Playback Mode",
+    "description": "Playback mode label"
+  },
+  "modeOriginal": {
+    "message": "🔊 Original Only (Pure audio)",
+    "description": "Original only"
+  },
+  "modeTranslated": {
+    "message": "🌐 Translated Only (Native broadcast)",
+    "description": "Translated only"
+  },
+  "modeBilingual": {
+    "message": "🔄 Bilingual Alternating (Sentence by sentence)",
+    "description": "Bilingual alternating"
+  },
+  "lblBilingualSubtitles": {
+    "message": "Subtitles",
+    "description": "Subtitles label"
+  },
+  "chkShowSubtitles": {
+    "message": "Show bilingual lyrics/subtitles on bar",
+    "description": "Show bilingual subtitles checkbox"
+  },
   "ttsEngineSection": {
-    "message": "🗣️ TTS Engine",
-    "description": "Settings panel: TTS engine section heading"
+    "message": "Speech Engine",
+    "description": "TTS Engine section title"
   },
-  "engineLabel": {
-    "message": "Engine",
-    "description": "Settings panel: engine dropdown label"
+  "engineBrowser": {
+    "message": "🔊 Browser Native",
+    "description": "Browser native"
   },
-  "engineWebSpeech": {
-    "message": "Browser Native Voice (Web Speech)",
-    "description": "Settings panel: engine option - Web Speech"
-  },
-  "engineEdgeTts": {
-    "message": "Edge TTS (Local Server)",
-    "description": "Settings panel: engine option - Edge TTS"
-  },
-  "engineCustom": {
-    "message": "Custom TTS (OpenAI Compatible)",
-    "description": "Settings panel: engine option - Custom TTS"
+  "engineCloud": {
+    "message": "☁️ Cloud Edge TTS",
+    "description": "Cloud Edge TTS"
   },
   "speedLabel": {
     "message": "Speed",
-    "description": "Settings panel: speed slider label"
+    "description": "Speed label"
   },
   "voiceLabel": {
     "message": "Voice",
-    "description": "Settings panel: voice selector label"
-  },
-  "voiceAuto": {
-    "message": "Auto Detect",
-    "description": "Settings panel: voice dropdown - auto detect"
+    "description": "Voice label"
   },
   "voiceAutoLang": {
-    "message": "Auto Detect (By Page Language)",
-    "description": "Settings panel: full voice auto-detect option"
+    "message": "Auto Match (By page language)",
+    "description": "Auto match voice"
   },
-  "localVoiceSuffix": {
-    "message": " (Local)",
-    "description": "Voice option suffix - local"
+  "btnTestBrowser": {
+    "message": "▶ Test Browser",
+    "description": "Test browser button"
   },
-
-  "edgeTtsSection": {
-    "message": "🔧 Edge TTS Config",
-    "description": "Settings panel: Edge TTS section heading"
+  "cloudTtsSection": {
+    "message": "Cloud TTS (Edge TTS)",
+    "description": "Cloud TTS title"
   },
-  "edgeTtsVoiceLabel": {
-    "message": "Voice",
-    "description": "Settings panel: Edge TTS voice select label"
+  "lblCloudEndpoint": {
+    "message": "Server Endpoint",
+    "description": "Server endpoint"
   },
-  "loadingVoices": {
-    "message": "Loading voices...",
-    "description": "Edge TTS voices loading hint"
+  "lblCloudVoice": {
+    "message": "Cloud Voice",
+    "description": "Cloud voice label"
   },
-  "noVoicesAvailable": {
-    "message": "No voices available",
-    "description": "Edge TTS no voices available"
+  "optCloudAuto": {
+    "message": "⚡ Auto Select (Recommended)",
+    "description": "Auto select best voice"
   },
-  "selectVoiceHint": {
-    "message": "-- Select a voice --",
-    "description": "Edge TTS voice dropdown default option"
+  "btnTestCloud": {
+    "message": "☁️ Test Cloud",
+    "description": "Test cloud button"
   },
-  "configEndpointFirst": {
-    "message": "Configure endpoint first",
-    "description": "Edge TTS no endpoint hint"
+  "aiSectionTitle": {
+    "message": "AI Provider & Summary",
+    "description": "AI section title"
   },
-  "loadVoicesFailed": {
-    "message": "Load failed, check endpoint",
-    "description": "Edge TTS voice loading failed"
+  "lblProvider": {
+    "message": "Provider Preset",
+    "description": "Provider preset label"
   },
-
-  "customTtsSection": {
-    "message": "🔧 Custom TTS Config",
-    "description": "Settings panel: Custom TTS section heading"
+  "lblEndpoint": {
+    "message": "API Endpoint",
+    "description": "API Endpoint"
   },
-  "endpointLabel": {
-    "message": "Endpoint",
-    "description": "Settings panel: endpoint input label"
-  },
-  "apiKeyLabel": {
+  "lblApiKey": {
     "message": "API Key",
-    "description": "Settings panel: API Key input label"
+    "description": "API Key"
   },
-  "modelLabel": {
+  "lblModel": {
     "message": "Model",
-    "description": "Settings panel: model input label"
+    "description": "Model label"
   },
-  "customTtsVoiceLabel": {
-    "message": "Voice",
-    "description": "Settings panel: Custom TTS voice input label"
-  },
-
-  "aiTranslateSection": {
-    "message": "🌐 AI Translation",
-    "description": "Settings panel: AI translation section heading"
-  },
-  "targetLanguageLabel": {
+  "lblTargetLanguage": {
     "message": "Target Language",
-    "description": "Settings panel: target language dropdown label"
+    "description": "Target language label"
   },
-  "langZhCn": {
-    "message": "Simplified Chinese",
-    "description": "Settings panel: target language - Simplified Chinese"
+  "lblSummaryViewMode": {
+    "message": "Default Summary View",
+    "description": "Default summary presentation view"
   },
-  "langEn": {
-    "message": "English",
-    "description": "Settings panel: target language - English"
+  "lblHighlight": {
+    "message": "Sentence Highlight",
+    "description": "Sentence highlight label"
   },
-  "langJa": {
-    "message": "Japanese",
-    "description": "Settings panel: target language - Japanese"
+  "btnTestAi": {
+    "message": "Test AI Connection",
+    "description": "Test AI button"
   },
-  "langKo": {
-    "message": "Korean",
-    "description": "Settings panel: target language - Korean"
+  "btnSave": {
+    "message": "Save Settings",
+    "description": "Save settings button"
   },
-  "langFr": {
-    "message": "French",
-    "description": "Settings panel: target language - French"
-  },
-  "langDe": {
-    "message": "German",
-    "description": "Settings panel: target language - German"
-  },
-  "langEs": {
-    "message": "Spanish",
-    "description": "Settings panel: target language - Spanish"
-  },
-  "autoTranslateLabel": {
-    "message": "Auto-translate each sentence while reading",
-    "description": "Settings panel: auto translate checkbox label"
-  },
-
-  "otherSection": {
-    "message": "⚙️ Other",
-    "description": "Settings panel: other settings section heading"
-  },
-  "highlightLabel": {
-    "message": "Highlight current sentence while reading",
-    "description": "Settings panel: highlight checkbox label"
-  },
-
-  "saveButton": {
-    "message": "💾 Save Settings",
-    "description": "Settings panel: save button"
-  },
-  "testTranslateBtn": {
-    "message": "🔄 Test Translation",
-    "description": "Settings panel: test translation button"
-  },
-  "savingStatus": {
-    "message": "⏳ Saving...",
-    "description": "Settings panel: saving status"
+  "btnFullOptions": {
+    "message": "⚙ Full Options",
+    "description": "Full options button"
   },
   "savedStatus": {
-    "message": "✅ Saved",
-    "description": "Settings panel: save success status"
+    "message": "✓ Saved",
+    "description": "Saved status"
   },
-  "saveFailedStatus": {
-    "message": "❌ Save Failed",
-    "description": "Settings panel: save failure status"
+  "btnSummary": {
+    "message": "⚡ Summary",
+    "description": "Summary button"
   },
-  "fillEndpointKeyWarning": {
-    "message": "⚠️ Please fill in endpoint and API Key",
-    "description": "Settings panel: fill endpoint and API Key warning"
+  "lblSubtitles": {
+    "message": "Lyrics",
+    "description": "Subtitles label"
   },
-  "testingStatus": {
-    "message": "⏳ Testing...",
-    "description": "Settings panel: testing translation in progress"
+  "btnPrev": {
+    "message": "Previous",
+    "description": "Previous"
   },
-
-  "uiLanguageLabel": {
-    "message": "UI Language",
-    "description": "Settings panel: UI language dropdown label"
-  },
-  "langAuto": {
-    "message": "Auto (Follow Browser)",
-    "description": "Settings panel: UI language - auto"
-  },
-  "langEnglish": {
-    "message": "English",
-    "description": "Settings panel: UI language - English"
-  },
-  "langChinese": {
-    "message": "中文",
-    "description": "Settings panel: UI language - Chinese"
-  },
-
-  "playPauseTitle": {
+  "btnPlay": {
     "message": "Play/Pause",
-    "description": "Floating bar: play/pause button tooltip"
+    "description": "Play/Pause"
   },
-  "stopTitle": {
-    "message": "Stop",
-    "description": "Floating bar: stop button tooltip"
+  "btnNext": {
+    "message": "Next",
+    "description": "Next"
   },
-  "translateTitle": {
-    "message": "Translate",
-    "description": "Floating bar: translate button tooltip"
+  "summaryCardTitle": {
+    "message": "⚡ AI Bilingual Core Summary",
+    "description": "Summary card title"
   },
-  "closeTitle": {
-    "message": "Close",
-    "description": "Floating bar: close button tooltip"
+  "summaryTabBilingual": {
+    "message": "🔄 Bilingual",
+    "description": "Bilingual tab label"
+  },
+  "summaryTabBilingualTip": {
+    "message": "Bilingual comparison mode",
+    "description": "Bilingual tab tooltip"
+  },
+  "summaryTabOriginal": {
+    "message": "📄 Original",
+    "description": "Original tab label"
+  },
+  "summaryTabOriginalTip": {
+    "message": "Original text only (Immersive)",
+    "description": "Original tab tooltip"
+  },
+  "summaryTabTranslated": {
+    "message": "🌐 Translation",
+    "description": "Translation tab label"
+  },
+  "summaryTabTranslatedTip": {
+    "message": "Translation only (Quick glance)",
+    "description": "Translation tab tooltip"
+  },
+  "summaryRegenerateTip": {
+    "message": "Regenerate summary",
+    "description": "Regenerate summary tooltip"
+  },
+  "summaryMinimizeTip": {
+    "message": "Minimize",
+    "description": "Minimize summary tooltip"
+  },
+  "summaryCloseTip": {
+    "message": "Close (ESC)",
+    "description": "Close summary tooltip"
+  },
+  "summaryPlayBilingual": {
+    "message": "🔄 Play Summary (Bilingual)",
+    "description": "Play bilingual summary"
+  },
+  "summaryPlayBilingualTip": {
+    "message": "Play summary in bilingual alternation",
+    "description": "Play bilingual summary tooltip"
+  },
+  "summaryPlayOrig": {
+    "message": "🔊 Read Original",
+    "description": "Read original summary"
+  },
+  "summaryPlayOrigTip": {
+    "message": "Read original summary only",
+    "description": "Read original summary tooltip"
+  },
+  "summaryPlayTrans": {
+    "message": "🌐 Read Translation",
+    "description": "Read translated summary"
+  },
+  "summaryPlayTransTip": {
+    "message": "Read translated summary only",
+    "description": "Read translated summary tooltip"
+  },
+  "readOriginal": {
+    "message": "Read Original",
+    "description": "Read original button"
+  },
+  "readTranslated": {
+    "message": "Read Translated",
+    "description": "Read translated button"
+  },
+  "playAllSummary": {
+    "message": "▶ Play All (Bilingual)",
+    "description": "Play all summary button"
+  },
+  "copyMarkdown": {
+    "message": "📋 Copy Markdown",
+    "description": "Copy Markdown button"
+  },
+  "fabSummaryTip": {
+    "message": "AI Bilingual Summary",
+    "description": "FAB AI summary button tooltip"
+  },
+  "fabPlayTip": {
+    "message": "Read Current Article (Ctrl+Shift+P)",
+    "description": "FAB play button tooltip"
+  },
+  "selPlayTip": {
+    "message": "Read Selected Text",
+    "description": "Selection play tooltip"
+  },
+  "selTranslateTip": {
+    "message": "Translate Selected Text",
+    "description": "Selection translate tooltip"
+  },
+  "toastTextTooShort": {
+    "message": "⚠️ Text too short (<50 chars) to read",
+    "description": "Text too short"
+  },
+  "toastGeneratingSummary": {
+    "message": "⚡ AI is extracting in-depth bilingual summary...",
+    "description": "Toast when generating summary"
+  },
+  "toastSummaryFailed": {
+    "message": "❌ Summary generation failed, please check AI configuration",
+    "description": "Toast summary failed"
+  },
+  "toastCopied": {
+    "message": "✓ Copied to clipboard",
+    "description": "Copied"
+  },
+  "toastArticleFinished": {
+    "message": "🎉 Article reading finished",
+    "description": "Article finished"
+  },
+  "toastNeedsApiKey": {
+    "message": "⚠️ Please enter AI API Key in settings first",
+    "description": "Needs API Key"
+  },
+  "toastModeChanged": {
+    "message": "Mode changed: ",
+    "description": "Mode changed"
   }
 }

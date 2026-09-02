@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ReadMate / 读伴",
-  "version": "1.4.3",
+  "version": "2.8.5",
   "description": "网页朗读助手 — 浏览器原生语音朗读+AI翻译，读外语新闻轻松跟上",
   "permissions": [
     "contextMenus",
@@ -69,10 +69,13 @@
       "resources": [
         "content-extractor.js",
         "text-utils.js",
+        "number-normalizer.js",
         "reading-stats.js",
         "options/options.html",
         "options/options.js",
-        "options/options.css"
+        "options/options.css",
+        "_locales/*/*.json",
+        "_locales/**"
       ],
       "matches": ["<all_urls>"]
     }
