@@ -601,13 +601,18 @@
   pointer-events: none;
 }
 
-/* ====== 高亮样式 ====== */
+/* ====== 高亮样式 (支持原生 CSS Custom Highlight API + DOM Fallback) ====== */
+::highlight(readmate-highlight) {
+  background-color: rgba(254, 240, 138, 0.65);
+  color: inherit;
+}
+
 .readmate-highlight {
-  background-color: rgba(254, 240, 138, 0.5) !important;
+  background-color: rgba(254, 240, 138, 0.55) !important;
   color: inherit !important;
-  border-radius: 3px !important;
-  box-shadow: 0 0 0 2px rgba(254, 240, 138, 0.5) !important;
-  transition: all 0.15s ease !important;
+  border-radius: 4px !important;
+  box-shadow: 0 0 0 2px rgba(254, 240, 138, 0.45) !important;
+  transition: all 0.2s ease !important;
 }
 
 .readmate-highlight-heading {

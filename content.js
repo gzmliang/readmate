@@ -737,16 +737,31 @@ function stopReading(isUser = true) {
   hideBar();
 }
 
+let pendingJumpIndex = null;
+
 function prevSentence() {
-  if (currentSentenceIndex > 0) {
-    currentSentenceIndex -= 2; // 跳到上一句（循环步进 +1）
-    if (interruptCurrentPlayback) interruptCurrentPlayback();
+  if (!currentSentences || currentSentences.length === 0) return;
+  const target = Math.max(0, currentSentenceIndex - 1);
+  pendingJumpIndex = target;
+  isPaused = false;
+  const playBtn = floatingBar?.querySelector('#readmate-play-btn');
+  if (playBtn) playBtn.textContent = '⏸';
+  DebugLog.add(`prevSentence clicked: jumping to ${target + 1}/${currentSentences.length}`);
+  if (interruptCurrentPlayback) {
+    interruptCurrentPlayback();
   }
 }
 
 function nextSentence() {
-  if (currentSentenceIndex < currentSentences.length - 1) {
-    if (interruptCurrentPlayback) interruptCurrentPlayback();
+  if (!currentSentences || currentSentences.length === 0) return;
+  const target = Math.min(currentSentences.length - 1, currentSentenceIndex + 1);
+  pendingJumpIndex = target;
+  isPaused = false;
+  const playBtn = floatingBar?.querySelector('#readmate-play-btn');
+  if (playBtn) playBtn.textContent = '⏸';
+  DebugLog.add(`nextSentence clicked: jumping to ${target + 1}/${currentSentences.length}`);
+  if (interruptCurrentPlayback) {
+    interruptCurrentPlayback();
   }
 }
 
@@ -1084,7 +1099,11 @@ async function playSentencesFlow(sentences) {
   currentSentences = sentences;
   isPlaying = true;
   isPaused = false;
+  pendingJumpIndex = null;
+  currentSentenceIndex = 0;
   showBar();
+  const playBtn = floatingBar?.querySelector('#readmate-play-btn');
+  if (playBtn) playBtn.textContent = '⏸';
   DebugLog.add(`playSentencesFlow started: ${sentences.length} sentences`);
 
   const useCloud = (settings.ttsEngine !== 'browser') && settings.cloudTtsEndpoint && settings.cloudTtsEndpoint.includes('://');
@@ -1096,7 +1115,7 @@ async function playSentencesFlow(sentences) {
   // 原文音色与译文音色匹配（附带强制保底与双语自动映射）
   let origVoice = useCloud ? getBestVoiceForLang(detectedDocLang, settings.cloudTtsVoiceOrig || settings.cloudTtsVoice) : '';
   let transVoice = useCloud ? getBestVoiceForLang(targetLangCode, settings.cloudTtsVoiceTrans) : '';
-  if (!origVoice) origVoice = (detectedDocLang && detectedDocLang.startsWith('zh')) ? 'zh-CN-XiaoxiaoNeural' : 'en-US-JennyNeural';
+  if (!origVoice) origVoice = (detectedDocLang && detectedDocLang.startsWith('zh')) ? 'zh-CN-XiaoxiaoNeural' : (detectedDocLang && detectedDocLang.startsWith('ko') ? 'ko-KR-SunHiNeural' : 'en-US-JennyNeural');
   if (!transVoice) transVoice = (targetLangCode && targetLangCode.startsWith('en')) ? 'en-US-JennyNeural' : 'zh-CN-XiaoxiaoNeural';
 
   DebugLog.add(`TTS Config: useCloud=${useCloud}, endpoint=${ttsEndpoint}, origVoice=${origVoice}, buffer=${bufferSize}`);
@@ -1104,16 +1123,27 @@ async function playSentencesFlow(sentences) {
   // 1. 预先启动开篇几句的预读流水线
   prefetchAhead(sentences, -1, bufferSize + 1, ttsEndpoint, origVoice, transVoice, currentSpeed, useCloud);
 
-  for (let i = 0; i < sentences.length; i++) {
+  while (isPlaying && !stopImmediate && currentSentenceIndex < sentences.length) {
+    if (pendingJumpIndex !== null) {
+      currentSentenceIndex = pendingJumpIndex;
+      pendingJumpIndex = null;
+    }
+    const i = currentSentenceIndex;
     DebugLog.add(`Loop top: i=${i}, isPlaying=${isPlaying}, stopImmediate=${stopImmediate}`);
-    if (!isPlaying || stopImmediate) break;
+
     while (isPaused) {
       await new Promise(r => setTimeout(r, 150));
       if (!isPlaying || stopImmediate) break;
+      if (pendingJumpIndex !== null) break;
     }
     if (!isPlaying || stopImmediate) break;
 
-    currentSentenceIndex = i;
+    if (pendingJumpIndex !== null) {
+      currentSentenceIndex = pendingJumpIndex;
+      pendingJumpIndex = null;
+      continue;
+    }
+
     const origSentence = sentences[i];
     DebugLog.add(`Playing sentence ${i + 1}/${sentences.length}: "${origSentence.substring(0, 30)}..."`);
     updateBarProgress(i + 1, sentences.length);
@@ -1136,6 +1166,8 @@ async function playSentencesFlow(sentences) {
       }
     }
     if (!isPlaying || stopImmediate) break;
+    if (pendingJumpIndex !== null) continue;
+
     updateSubtitleDisplay(origSentence, enableBilingual ? transSentence : '');
 
     // 4. 根据模式决定播放流（完全采用发音净化后的文本）
@@ -1146,17 +1178,17 @@ async function playSentencesFlow(sentences) {
         if (useCloud) {
           try {
             const dataUrl = await getOrFetchTtsAudio(ttsEndpoint, speechOrig, origVoice, currentSpeed);
-            if (dataUrl && isPlaying && !stopImmediate) {
+            if (dataUrl && isPlaying && !stopImmediate && pendingJumpIndex === null) {
               await playAudioUrl(dataUrl);
             }
           } catch(e) {
             DebugLog.add('Cloud TTS failed, fallback: ' + e.message);
-            if (isPlaying && !stopImmediate) {
+            if (isPlaying && !stopImmediate && pendingJumpIndex === null) {
               await playSpeechUtterance(speechOrig, detectedDocLang, settings.ttsVoiceOrig || settings.ttsVoice);
             }
           }
         } else {
-          if (isPlaying && !stopImmediate) {
+          if (isPlaying && !stopImmediate && pendingJumpIndex === null) {
             await playSpeechUtterance(speechOrig, detectedDocLang, settings.ttsVoiceOrig || settings.ttsVoice);
           }
         }
@@ -1166,17 +1198,17 @@ async function playSentencesFlow(sentences) {
         if (useCloud) {
           try {
             const dataUrl = await getOrFetchTtsAudio(ttsEndpoint, speechText, transVoice, currentSpeed);
-            if (dataUrl && isPlaying && !stopImmediate) {
+            if (dataUrl && isPlaying && !stopImmediate && pendingJumpIndex === null) {
               await playAudioUrl(dataUrl);
             }
           } catch(e) {
             DebugLog.add('Cloud TTS failed, fallback: ' + e.message);
-            if (isPlaying && !stopImmediate) {
+            if (isPlaying && !stopImmediate && pendingJumpIndex === null) {
               await playSpeechUtterance(speechText, targetLangCode, settings.ttsVoiceTrans);
             }
           }
         } else {
-          if (isPlaying && !stopImmediate) {
+          if (isPlaying && !stopImmediate && pendingJumpIndex === null) {
             await playSpeechUtterance(speechText, targetLangCode, settings.ttsVoiceTrans);
           }
         }
@@ -1186,53 +1218,56 @@ async function playSentencesFlow(sentences) {
         if (useCloud) {
           try {
             const dataUrlOrig = await getOrFetchTtsAudio(ttsEndpoint, speechOrig, origVoice, currentSpeed);
-            if (dataUrlOrig && isPlaying && !stopImmediate) {
+            if (dataUrlOrig && isPlaying && !stopImmediate && pendingJumpIndex === null) {
               await playAudioUrl(dataUrlOrig);
             }
           } catch(e) {
-            if (isPlaying && !stopImmediate) {
+            if (isPlaying && !stopImmediate && pendingJumpIndex === null) {
               await playSpeechUtterance(speechOrig, detectedDocLang, settings.ttsVoiceOrig || settings.ttsVoice);
             }
           }
         } else {
-          if (isPlaying && !stopImmediate) {
+          if (isPlaying && !stopImmediate && pendingJumpIndex === null) {
             await playSpeechUtterance(speechOrig, detectedDocLang, settings.ttsVoiceOrig || settings.ttsVoice);
           }
         }
 
-        if (!isPlaying || stopImmediate) break;
+        if (!isPlaying || stopImmediate || pendingJumpIndex !== null) continue;
 
         // 稍微停顿 250ms
         await new Promise(r => setTimeout(r, 250));
-
-        if (!isPlaying || stopImmediate) break;
+        if (!isPlaying || stopImmediate || pendingJumpIndex !== null) continue;
 
         // 译文句
-        const speechTrans = getSpeechText(transSentence);
-        if (speechTrans && isPlaying && !stopImmediate) {
-          if (useCloud) {
-            try {
-              const dataUrlTrans = await getOrFetchTtsAudio(ttsEndpoint, speechTrans, transVoice, currentSpeed);
-              if (dataUrlTrans && isPlaying && !stopImmediate) {
-                await playAudioUrl(dataUrlTrans);
-              }
-            } catch(e) {
-              if (isPlaying && !stopImmediate) {
-                await playSpeechUtterance(speechTrans, targetLangCode, settings.ttsVoiceTrans);
-              }
+        const speechTrans = getSpeechText(transSentence || origSentence);
+        if (useCloud) {
+          try {
+            const dataUrlTrans = await getOrFetchTtsAudio(ttsEndpoint, speechTrans, transVoice, currentSpeed);
+            if (dataUrlTrans && isPlaying && !stopImmediate && pendingJumpIndex === null) {
+              await playAudioUrl(dataUrlTrans);
             }
-          } else {
-            if (isPlaying && !stopImmediate) {
+          } catch(e) {
+            if (isPlaying && !stopImmediate && pendingJumpIndex === null) {
               await playSpeechUtterance(speechTrans, targetLangCode, settings.ttsVoiceTrans);
             }
           }
+        } else {
+          if (isPlaying && !stopImmediate && pendingJumpIndex === null) {
+            await playSpeechUtterance(speechTrans, targetLangCode, settings.ttsVoiceTrans);
+          }
         }
       }
-    } catch(e) {
-      DebugLog.add(`Sentence error at ${i + 1}: ${e.message}`);
+    } catch(err) {
+      DebugLog.add('Sentence playback error: ' + err.message);
     }
 
-    if (!isPlaying || stopImmediate) break;
+    // 播放完成步进（如果用户未点跳转，自然推进到下一句）
+    if (pendingJumpIndex !== null) {
+      currentSentenceIndex = pendingJumpIndex;
+      pendingJumpIndex = null;
+    } else {
+      currentSentenceIndex++;
+    }
   }
 
   const finishedNaturally = isPlaying && !stopImmediate;
@@ -1539,10 +1574,16 @@ function showSummaryCard(summaryList) {
   };
 }
 
-// ====== 句子高亮算法（宽松匹配 + 标题优先高亮） ======
+// ====== 句子高亮算法（基于 Range 精确字元定位 + 原生 CSS Custom Highlight 支持） ======
 let highlightSpans = [];
+let activeHighlightRange = null;
 
 function clearHighlights() {
+  if (window.CSS && CSS.highlights) {
+    try {
+      CSS.highlights.delete('readmate-highlight');
+    } catch(e) {}
+  }
   highlightSpans.forEach(span => {
     const parent = span.parentNode;
     if (parent) {
@@ -1552,15 +1593,86 @@ function clearHighlights() {
     }
   });
   highlightSpans = [];
+  activeHighlightRange = null;
 }
 
-function normalizeChar(ch) {
-  if (/[\s\u00A0\u3000\r\n\t]/.test(ch)) return ' ';
-  if (ch === '，') return ',';
-  if (ch === '。') return '.';
-  if (ch === '！') return '!';
-  if (ch === '？') return '?';
-  return ch.toLowerCase();
+/** 在页面中精确定位目标句子的 Range（支持跨标签、跨行扫描） */
+function findSentenceRange(targetText) {
+  if (!targetText || targetText.length < 2) return null;
+  const cleanTarget = targetText.replace(/\s+/g, ' ').trim();
+  const sample = cleanTarget.length > 25 ? cleanTarget.substring(0, 25) : cleanTarget;
+
+  // 1. 优先在文章正文区域搜索
+  const root = document.querySelector('article, main, [role="main"], .article, .post, .entry-content') || document.body;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      if (node.parentElement?.closest('#readmate-bar, #readmate-fab-container, #readmate-summary-dialog, script, style, noscript, nav, footer, header')) {
+        return NodeFilter.FILTER_REJECT;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+
+  const textNodes = [];
+  let n;
+  while ((n = walker.nextNode())) {
+    if (n.textContent && n.textContent.trim()) {
+      textNodes.push(n);
+    }
+  }
+
+  // 2. 找到包含 sample 的起始节点
+  for (let i = 0; i < textNodes.length; i++) {
+    const node = textNodes[i];
+    const idx = node.textContent.indexOf(sample);
+    if (idx !== -1) {
+      const range = document.createRange();
+      range.setStart(node, idx);
+
+      let remainingChars = cleanTarget.length;
+      let currIdx = i;
+      let currOffset = idx;
+
+      while (currIdx < textNodes.length && remainingChars > 0) {
+        const currNode = textNodes[currIdx];
+        const availInNode = currNode.textContent.length - currOffset;
+        if (remainingChars <= availInNode) {
+          range.setEnd(currNode, currOffset + remainingChars);
+          remainingChars = 0;
+          break;
+        } else {
+          remainingChars -= availInNode;
+          currIdx++;
+          currOffset = 0;
+        }
+      }
+
+      if (remainingChars === 0) {
+        return range;
+      } else if (currIdx > i) {
+        range.setEnd(textNodes[Math.min(currIdx, textNodes.length - 1)], textNodes[Math.min(currIdx, textNodes.length - 1)].textContent.length);
+        return range;
+      }
+    }
+  }
+
+  // 3. 容错：去除标点后进行紧凑匹配
+  const compactTarget = cleanTarget.replace(/[\s.,!?;:，。！？；：'"`~—\-_/\\|]+/g, '').toLowerCase();
+  if (compactTarget.length >= 4) {
+    const head = compactTarget.substring(0, Math.min(15, compactTarget.length));
+    for (let i = 0; i < textNodes.length; i++) {
+      const node = textNodes[i];
+      const compactNode = node.textContent.replace(/[\s.,!?;:，。！？；：'"`~—\-_/\\|]+/g, '').toLowerCase();
+      const matchIdx = compactNode.indexOf(head);
+      if (matchIdx !== -1) {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        return range;
+      }
+    }
+  }
+
+  return null;
 }
 
 function highlightSentence(index) {
@@ -1568,9 +1680,9 @@ function highlightSentence(index) {
   if (!settings.highlightEnabled || !currentSentences[index]) return;
 
   const targetText = currentSentences[index].trim();
-  if (targetText.length < 3) return;
+  if (targetText.length < 2) return;
 
-  // 1. 优先在 H1/H2 中匹配标题
+  // 1. 优先标题匹配
   const headings = document.querySelectorAll('h1, h2, h3, [class*="headline"], [class*="title"]');
   for (const h of headings) {
     if (h.textContent.trim().includes(targetText.substring(0, 20))) {
@@ -1581,29 +1693,44 @@ function highlightSentence(index) {
     }
   }
 
-  // 2. 正文树状搜索并高亮
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
-    acceptNode(node) {
-      if (node.parentElement?.closest('#readmate-bar, #readmate-fab-container, #readmate-summary-dialog, script, style')) {
-        return NodeFilter.FILTER_REJECT;
-      }
-      return NodeFilter.FILTER_ACCEPT;
+  // 2. 精确 Range 高亮
+  const range = findSentenceRange(targetText);
+  if (range) {
+    activeHighlightRange = range;
+    let customHighlightSuccess = false;
+    if (window.CSS && CSS.highlights) {
+      try {
+        const highlight = new Highlight(range);
+        CSS.highlights.set('readmate-highlight', highlight);
+        customHighlightSuccess = true;
+      } catch(e) {}
     }
-  });
 
-  const searchSnippet = targetText.substring(0, 30).replace(/\s+/g, '');
-  let node;
-  while ((node = walker.nextNode())) {
-    const nodeText = node.textContent.replace(/\s+/g, '');
-    if (nodeText.includes(searchSnippet)) {
-      const span = document.createElement('span');
-      span.className = 'readmate-highlight';
-      span.textContent = node.textContent;
-      node.parentNode.replaceChild(span, node);
-      highlightSpans.push(span);
-      span.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      break;
+    if (!customHighlightSuccess) {
+      try {
+        const span = document.createElement('span');
+        span.className = 'readmate-highlight';
+        range.surroundContents(span);
+        highlightSpans.push(span);
+      } catch(e) {
+        const parent = range.commonAncestorContainer;
+        const el = parent.nodeType === Node.ELEMENT_NODE ? parent : parent.parentElement;
+        if (el) {
+          el.classList.add('readmate-highlight');
+          highlightSpans.push(el);
+        }
+      }
     }
+
+    // 平滑滚动定位到视野中央
+    try {
+      const rect = range.getBoundingClientRect();
+      const targetScrollY = window.scrollY + rect.top - (window.innerHeight / 2) + (rect.height / 2);
+      window.scrollTo({
+        top: Math.max(0, targetScrollY),
+        behavior: 'smooth'
+      });
+    } catch(e) {}
   }
 }
 
