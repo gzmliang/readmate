@@ -859,9 +859,9 @@ async function fetchTranslation(text) {
   if (translationCache.has(text)) return translationCache.get(text);
 
   const targetLang = settings.translateTarget || 'Simplified Chinese';
-  const apiKey = settings.aiApiKey || 'liang-gemini-proxy-2026';
-  const endpoint = settings.aiEndpoint || 'http://192.168.199.159:28080/v1';
-  const model = settings.aiModel || 'gemini-3.7-flash-high';
+  const apiKey = settings.aiApiKey || '';
+  const endpoint = settings.aiEndpoint || 'https://api.openai.com/v1';
+  const model = settings.aiModel || 'gpt-4o-mini';
 
   return new Promise((resolve) => {
     chrome.runtime.sendMessage({
@@ -894,15 +894,38 @@ function prefetchTtsAudio(endpoint, text, voice, speed) {
     return audioPrefetchCache.get(key);
   }
   DebugLog.add(`Prefetching TTS audio for: "${speechText.substring(0, 25)}..."`);
-  const promise = proxyFetchTTS(endpoint, {
-    text: speechText,
-    voice,
-    rate: `+${Math.round(((speed || 1.0) - 1) * 100)}%`,
-  }).catch(err => {
-    DebugLog.add(`Audio prefetch failed for "${speechText.substring(0, 25)}": ${err.message}`);
-    audioPrefetchCache.delete(key);
-    return null;
-  });
+
+  let promise;
+  if (settings.ttsEngine === 'openai') {
+    promise = new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({
+        action: 'proxyOpenAITTS',
+        endpoint: settings.openaiTtsEndpoint || 'https://api.openai.com/v1',
+        apiKey: settings.openaiTtsApiKey || '',
+        model: settings.openaiTtsModel || 'tts-1',
+        voice: settings.openaiTtsVoice || 'alloy',
+        text: speechText,
+        speed: speed || 1.0,
+      }, (resp) => {
+        if (resp && resp.ok && resp.dataUrl) resolve(resp.dataUrl);
+        else reject(new Error(resp?.error || 'OpenAI TTS failed'));
+      });
+    }).catch(err => {
+      audioPrefetchCache.delete(key);
+      return null;
+    });
+  } else {
+    promise = proxyFetchTTS(endpoint, {
+      text: speechText,
+      voice,
+      rate: `+${Math.round(((speed || 1.0) - 1) * 100)}%`,
+    }).catch(err => {
+      DebugLog.add(`Audio prefetch failed for "${speechText.substring(0, 25)}": ${err.message}`);
+      audioPrefetchCache.delete(key);
+      return null;
+    });
+  }
+
   audioPrefetchCache.set(key, promise);
   return promise;
 }
@@ -916,6 +939,28 @@ async function getOrFetchTtsAudio(endpoint, text, voice, speed) {
     if (cached) return cached;
   }
   DebugLog.add(`TTS prefetch MISS, fetching now: "${speechText.substring(0, 25)}..."`);
+
+  // 若选择通用 AI 语音 (OpenAI兼容音频流)
+  if (settings.ttsEngine === 'openai') {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({
+        action: 'proxyOpenAITTS',
+        endpoint: settings.openaiTtsEndpoint || 'https://api.openai.com/v1',
+        apiKey: settings.openaiTtsApiKey || '',
+        model: settings.openaiTtsModel || 'tts-1',
+        voice: settings.openaiTtsVoice || 'alloy',
+        text: speechText,
+        speed: speed || 1.0,
+      }, (resp) => {
+        if (resp && resp.ok && resp.dataUrl) {
+          resolve(resp.dataUrl);
+        } else {
+          reject(new Error(resp?.error || 'OpenAI TTS request failed'));
+        }
+      });
+    });
+  }
+
   return await proxyFetchTTS(endpoint, {
     text: speechText,
     voice,
@@ -1238,8 +1283,8 @@ async function playSentencesFlow(sentences) {
   if (playBtn) playBtn.textContent = '⏸';
   DebugLog.add(`playSentencesFlow started: ${sentences.length} sentences`);
 
-  const useCloud = (settings.ttsEngine !== 'browser') && settings.cloudTtsEndpoint && settings.cloudTtsEndpoint.includes('://');
-  const ttsEndpoint = (settings.cloudTtsEndpoint || 'http://192.168.199.159:5001').replace(/\/+$/, '') + '/tts';
+  const useCloud = (settings.ttsEngine === 'cloud' || settings.ttsEngine === 'openai') && (settings.ttsEngine === 'openai' ? true : (settings.cloudTtsEndpoint && settings.cloudTtsEndpoint.includes('://')));
+  const ttsEndpoint = (settings.cloudTtsEndpoint || 'http://powerplus.blogsyte.com:5001').replace(/\/+$/, '') + '/tts';
   const targetLangCode = LANG_NAME_TO_CODE[settings.translateTarget] || 'zh-CN';
   const bufferSize = settings.ttsBuffer || 2;
   const currentSpeed = settings.ttsSpeed || 1.0;
@@ -1561,9 +1606,9 @@ async function generateAISummary(forceRefresh = false) {
 
   closeSummaryDialog();
   await loadSettings();
-  const apiKey = settings.aiApiKey || 'liang-gemini-proxy-2026';
-  const endpoint = settings.aiEndpoint || 'http://192.168.199.159:28080/v1';
-  const model = settings.aiModel || 'gemini-3.1-flash-lite';
+  const apiKey = settings.aiApiKey || '';
+  const endpoint = settings.aiEndpoint || 'https://api.openai.com/v1';
+  const model = settings.aiModel || 'gpt-4o-mini';
 
   showTranslation(_t('toastGeneratingSummary', '⚡ 正在由 AI 提炼详细双语核心要闻...'), true);
 
@@ -2070,6 +2115,10 @@ function ensureReaderOverlay() {
         <button id="readmate-reader-vocab-btn" class="readmate-reader-btn" title="${_t('btnVocabNotebook', '我的生词本')}">
           📚 ${_t('btnVocab', '生词本')}
         </button>
+        <!-- 请喝咖啡 / 赞助 -->
+        <button id="readmate-reader-donate-btn" class="readmate-reader-btn" style="background:rgba(234,179,8,0.15)!important;border-color:rgba(234,179,8,0.4)!important;color:#facc15!important;" title="${_t('btnDonateTitle', '请梁老师喝杯咖啡 ☕')}">
+          ☕ ${_t('btnDonate', '赞赏')}
+        </button>
       </div>
     </header>
 
@@ -2154,6 +2203,9 @@ function ensureReaderOverlay() {
 
   // 生词本抽屉
   readerOverlay.querySelector('#readmate-reader-vocab-btn').onclick = openVocabDrawer;
+
+  // 赞助弹窗
+  readerOverlay.querySelector('#readmate-reader-donate-btn').onclick = openDonateModal;
 
   // “指哪读哪”：防抖 220ms，若 220ms 内触发了双击查词，此定时器被即刻取消，绝不误触朗读！
   bodyEl.addEventListener('click', (e) => {
@@ -2385,7 +2437,7 @@ async function downloadFullAudio() {
   const title = (cachedReaderContent && cachedReaderContent.title) ? cachedReaderContent.title : (document.title || 'ReadMate_Article');
   const cleanTitle = title.replace(/[\\/:*?"<>|]+/g, '_').substring(0, 40);
 
-  const ttsEndpoint = (settings.cloudTtsEndpoint || 'http://192.168.199.159:5001').replace(/\/+$/, '') + '/tts';
+  const ttsEndpoint = (settings.cloudTtsEndpoint || 'http://powerplus.blogsyte.com:5001').replace(/\/+$/, '') + '/tts';
   const origVoice = getBestVoiceForLang(detectedDocLang, settings.cloudTtsVoiceOrig || settings.cloudTtsVoice) || 'zh-CN-XiaoxiaoNeural';
   const speed = settings.ttsSpeed || 1.0;
 
@@ -2734,7 +2786,114 @@ function closeVocabDrawer() {
   }
 }
 
-// 净读模式下双击单词查词监听
+// ========================================================
+// ☕ 创作者赞助与请喝咖啡弹窗（双轨制：Ko-fi/PayPal + 国内收款码）
+// ========================================================
+let donateModal = null;
+let totalReadSeconds = 0;
+let donatePromptShown = false;
+
+// 持续朗读时长监控：满 15 分钟（900秒）轻量滑出致谢提示，绝不打断朗读！
+setInterval(() => {
+  if (isPlaying && !isPaused) {
+    totalReadSeconds++;
+    if (totalReadSeconds >= 900 && !donatePromptShown) {
+      donatePromptShown = true;
+      showDonateToast();
+    }
+  }
+}, 1000);
+
+function showDonateToast() {
+  const toast = document.createElement('div');
+  toast.className = 'readmate-donate-toast';
+  toast.innerHTML = `
+    <span>☕ ${_t('donateToastMessage', '感谢您使用读伴深度阅读！如果喜欢这款无广告工具，欢迎请梁老师喝杯咖啡')}</span>
+    <button class="readmate-donate-toast-btn" id="readmate-open-donate-from-toast">${_t('btnDonate', '赞赏')}</button>
+    <button class="readmate-donate-toast-close" id="readmate-close-donate-toast">✕</button>
+  `;
+  document.body.appendChild(toast);
+
+  toast.querySelector('#readmate-open-donate-from-toast').onclick = () => {
+    toast.remove();
+    openDonateModal();
+  };
+  toast.querySelector('#readmate-close-donate-toast').onclick = () => {
+    toast.remove();
+  };
+  setTimeout(() => {
+    if (toast.parentNode) toast.remove();
+  }, 12000);
+}
+
+function openDonateModal() {
+  if (donateModal) {
+    donateModal.remove();
+  }
+  donateModal = document.createElement('div');
+  donateModal.id = 'readmate-donate-modal';
+  const qrImgUrl = chrome.runtime.getURL('icons/receivecode.jpg');
+
+  donateModal.innerHTML = `
+    <div class="readmate-donate-mask" id="readmate-donate-mask"></div>
+    <div class="readmate-donate-card">
+      <div class="readmate-donate-header">
+        <div class="readmate-donate-title">☕ ${_t('donateModalTitle', '支持独立开发者梁老师')}</div>
+        <button class="readmate-dict-btn" id="readmate-donate-close">✕</button>
+      </div>
+
+      <div class="readmate-donate-tabs">
+        <button class="readmate-donate-tab active" data-tab="intl">🌍 ${_t('donateTabIntl', 'International / 海外')}</button>
+        <button class="readmate-donate-tab" data-tab="cn">🇨🇳 ${_t('donateTabCN', '中国大陆 / 微信支付宝')}</button>
+      </div>
+
+      <div class="readmate-donate-body">
+        <!-- 海外通道 -->
+        <div class="readmate-donate-panel" id="donate-panel-intl">
+          <p class="readmate-donate-desc">${_t('donateIntlDesc', 'If ReadMate makes your daily reading and language learning better, consider buying me a coffee! Your generosity keeps this tool ad-free and actively maintained.')}</p>
+          <div class="readmate-donate-links">
+            <a href="https://ko-fi.com/jimmyliang10894" target="_blank" class="readmate-kofi-btn">
+              ☕ Buy me a coffee on Ko-fi
+            </a>
+            <div class="readmate-paypal-box">
+              <span>PayPal: <strong>gzjliang@gmail.com</strong></span>
+              <button class="readmate-copy-btn" id="btn-copy-paypal" title="Copy PayPal">📋</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 国内通道 -->
+        <div class="readmate-donate-panel" id="donate-panel-cn" style="display:none;">
+          <p class="readmate-donate-desc">${_t('donateCNDesc', '感谢您对读伴（ReadMate）的喜爱与认可！您的每一份赞赏与肯定，都是支持梁老师持续打磨优化工具的动力。')}</p>
+          <div class="readmate-qr-wrap">
+            <img src="${qrImgUrl}" alt="WeChat/Alipay QR" class="readmate-qr-img">
+            <span class="readmate-qr-tip">微信 / 支付宝扫码赞赏</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(donateModal);
+
+  // 事件绑定
+  donateModal.querySelector('#readmate-donate-close').onclick = () => donateModal.remove();
+  donateModal.querySelector('#readmate-donate-mask').onclick = () => donateModal.remove();
+
+  donateModal.querySelectorAll('.readmate-donate-tab').forEach(tab => {
+    tab.onclick = () => {
+      const isIntl = tab.dataset.tab === 'intl';
+      donateModal.querySelectorAll('.readmate-donate-tab').forEach(t => t.classList.toggle('active', t === tab));
+      donateModal.querySelector('#donate-panel-intl').style.display = isIntl ? 'block' : 'none';
+      donateModal.querySelector('#donate-panel-cn').style.display = isIntl ? 'none' : 'block';
+    };
+  });
+
+  donateModal.querySelector('#btn-copy-paypal').onclick = () => {
+    navigator.clipboard?.writeText('gzjliang@gmail.com');
+    showTranslation(_t('toastCopied', '✓ 已复制到剪贴板'), true);
+  };
+}
 document.addEventListener('dblclick', (e) => {
   // ★ 核心改进：一旦触发双击，立即掐断单击跳转定时器，绝不误触朗读！
   if (readerClickTimer) {

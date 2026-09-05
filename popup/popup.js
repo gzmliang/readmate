@@ -6,24 +6,24 @@ let activeUiLang = 'zh_CN';
 
 // AI 服务商预设配置映射
 const AI_PRESETS = {
-  gemini: {
-    endpoint: 'http://192.168.199.159:28080/v1',
-    model: 'gemini-3.1-flash-lite',
-    apiKey: 'liang-gemini-proxy-2026',
+  openai: {
+    endpoint: 'https://api.openai.com/v1',
+    model: 'gpt-4o-mini',
+    apiKey: '',
   },
   deepseek: {
     endpoint: 'https://api.deepseek.com/v1',
     model: 'deepseek-chat',
     apiKey: '',
   },
-  openai: {
-    endpoint: 'https://api.openai.com/v1',
-    model: 'gpt-4o-mini',
-    apiKey: '',
-  },
   siliconflow: {
     endpoint: 'https://api.siliconflow.cn/v1',
-    model: 'deepseek-ai/DeepSeek-V3',
+    model: 'Qwen/Qwen2.5-7B-Instruct',
+    apiKey: '',
+  },
+  gemini: {
+    endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+    model: 'gemini-2.0-flash',
     apiKey: '',
   },
   moonshot: {
@@ -33,6 +33,15 @@ const AI_PRESETS = {
   },
   qwen: {
     endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    model: 'qwen-turbo',
+    apiKey: '',
+  },
+  custom: {
+    endpoint: '',
+    model: '',
+    apiKey: '',
+  }
+};
     model: 'qwen-turbo',
     apiKey: '',
   },
@@ -272,7 +281,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // AI
-    document.getElementById('aiEndpoint').value = settings.aiEndpoint || 'http://192.168.199.159:28080/v1';
+    document.getElementById('aiEndpoint').value = settings.aiEndpoint || 'https://api.openai.com/v1';
     document.getElementById('aiApiKey').value = settings.aiApiKey || 'liang-gemini-proxy-2026';
     document.getElementById('aiModel').value = settings.aiModel || 'gemini-3.1-flash-lite';
     document.getElementById('translateTarget').value = settings.translateTarget || 'Simplified Chinese';

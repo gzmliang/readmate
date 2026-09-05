@@ -542,5 +542,37 @@
   "audioFilenameSuffix": {
     "message": "_有声朗读",
     "description": "Audio filename suffix"
+  },
+  "btnDonate": {
+    "message": "赞赏",
+    "description": "Donate button label"
+  },
+  "btnDonateTitle": {
+    "message": "请梁老师喝杯咖啡 ☕",
+    "description": "Donate button title"
+  },
+  "donateToastMessage": {
+    "message": "感谢您使用读伴深度阅读！如果喜欢这款无广告工具，欢迎请梁老师喝杯咖啡",
+    "description": "Donate toast message"
+  },
+  "donateModalTitle": {
+    "message": "支持独立开发者梁老师",
+    "description": "Donate modal title"
+  },
+  "donateTabIntl": {
+    "message": "International / 海外",
+    "description": "International donation tab"
+  },
+  "donateTabCN": {
+    "message": "中国大陆 / 微信支付宝",
+    "description": "China donation tab"
+  },
+  "donateIntlDesc": {
+    "message": "If ReadMate makes your daily reading and language learning better, consider buying me a coffee! Your generosity keeps this tool ad-free and actively maintained.",
+    "description": "Intl donation description"
+  },
+  "donateCNDesc": {
+    "message": "感谢您对读伴（ReadMate）的喜爱与认可！您的每一份赞赏与肯定，都是支持梁老师持续打磨优化工具的动力。",
+    "description": "China donation description"
   }
 }

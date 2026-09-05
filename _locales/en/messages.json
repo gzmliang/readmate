@@ -542,5 +542,37 @@
   "audioFilenameSuffix": {
     "message": "_Audiobook",
     "description": "Audio filename suffix"
+  },
+  "btnDonate": {
+    "message": "Donate",
+    "description": "Donate button label"
+  },
+  "btnDonateTitle": {
+    "message": "Buy teacher Liang a coffee ☕",
+    "description": "Donate button title"
+  },
+  "donateToastMessage": {
+    "message": "Thank you for using ReadMate! If you enjoy this ad-free tool, consider buying Liang a coffee ☕",
+    "description": "Donate toast message"
+  },
+  "donateModalTitle": {
+    "message": "Support Independent Developer Liang",
+    "description": "Donate modal title"
+  },
+  "donateTabIntl": {
+    "message": "International / Ko-fi & PayPal",
+    "description": "International donation tab"
+  },
+  "donateTabCN": {
+    "message": "China / WeChat & Alipay",
+    "description": "China donation tab"
+  },
+  "donateIntlDesc": {
+    "message": "If ReadMate makes your daily reading and language learning better, consider buying me a coffee! Your generosity keeps this tool ad-free and actively maintained.",
+    "description": "Intl donation description"
+  },
+  "donateCNDesc": {
+    "message": "Thank you for your warm support and recognition of ReadMate! Every contribution fuels ongoing improvements and independent maintenance.",
+    "description": "China donation description"
   }
 }

@@ -4,24 +4,24 @@ let messages = {};
 let activeUiLang = 'zh_CN';
 
 const AI_PRESETS = {
-  gemini: {
-    endpoint: 'http://192.168.199.159:28080/v1',
-    model: 'gemini-3.1-flash-lite',
-    apiKey: 'liang-gemini-proxy-2026',
+  openai: {
+    endpoint: 'https://api.openai.com/v1',
+    model: 'gpt-4o-mini',
+    apiKey: '',
   },
   deepseek: {
     endpoint: 'https://api.deepseek.com/v1',
     model: 'deepseek-chat',
     apiKey: '',
   },
-  openai: {
-    endpoint: 'https://api.openai.com/v1',
-    model: 'gpt-4o-mini',
-    apiKey: '',
-  },
   siliconflow: {
     endpoint: 'https://api.siliconflow.cn/v1',
-    model: 'deepseek-ai/DeepSeek-V3',
+    model: 'Qwen/Qwen2.5-7B-Instruct',
+    apiKey: '',
+  },
+  gemini: {
+    endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/',
+    model: 'gemini-2.0-flash',
     apiKey: '',
   },
   moonshot: {
@@ -112,12 +112,19 @@ async function switchLanguage(lang) {
 function updateEngineSections(engine) {
   const browserSec = document.getElementById('browserTtsSection');
   const cloudSec = document.getElementById('cloudTtsSection');
+  const openaiSec = document.getElementById('openaiTtsSection');
   if (engine === 'cloud') {
     if (browserSec) browserSec.style.display = 'none';
     if (cloudSec) cloudSec.style.display = 'block';
+    if (openaiSec) openaiSec.style.display = 'none';
+  } else if (engine === 'openai') {
+    if (browserSec) browserSec.style.display = 'none';
+    if (cloudSec) cloudSec.style.display = 'none';
+    if (openaiSec) openaiSec.style.display = 'block';
   } else {
     if (browserSec) browserSec.style.display = 'block';
     if (cloudSec) cloudSec.style.display = 'none';
+    if (openaiSec) openaiSec.style.display = 'none';
   }
 }
 
@@ -153,7 +160,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('showBilingualSubtitles').checked = settings.showBilingualSubtitles !== false;
 
     // AI
-    const provider = settings.aiProvider || 'gemini';
+    const provider = settings.aiProvider || 'openai';
     const providerSel = document.getElementById('aiProviderSelect');
     if (providerSel) {
       providerSel.value = provider;
@@ -170,20 +177,62 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
-    document.getElementById('aiEndpoint').value = settings.aiEndpoint || 'http://192.168.199.159:28080/v1';
-    document.getElementById('aiApiKey').value = settings.aiApiKey || 'liang-gemini-proxy-2026';
-    document.getElementById('aiModel').value = settings.aiModel || 'gemini-3.1-flash-lite';
+    document.getElementById('aiEndpoint').value = settings.aiEndpoint || 'https://api.openai.com/v1';
+    document.getElementById('aiApiKey').value = settings.aiApiKey || '';
+    document.getElementById('aiModel').value = settings.aiModel || 'gpt-4o-mini';
     document.getElementById('translateTarget').value = settings.translateTarget || 'Simplified Chinese';
     document.getElementById('defaultSummaryView').value = settings.defaultSummaryView || 'bilingual';
     document.getElementById('highlightEnabled').checked = settings.highlightEnabled !== false;
     document.getElementById('highlightParagraphEnabled').checked = settings.highlightParagraphEnabled !== false;
     document.getElementById('showFab').checked = settings.showFab !== false;
 
-    // Cloud TTS
-    document.getElementById('cloudTtsEndpoint').value = settings.cloudTtsEndpoint || 'http://192.168.199.159:5001';
-    loadCloudVoices(settings.cloudTtsEndpoint || 'http://192.168.199.159:5001', settings.cloudTtsVoice || '', settings.cloudTtsVoiceTrans || '');
+    // 通用 OpenAI TTS
+    document.getElementById('openaiTtsEndpoint').value = settings.openaiTtsEndpoint || 'https://api.openai.com/v1';
+    document.getElementById('openaiTtsApiKey').value = settings.openaiTtsApiKey || '';
+    document.getElementById('openaiTtsModel').value = settings.openaiTtsModel || 'tts-1';
+    document.getElementById('openaiTtsVoice').value = settings.openaiTtsVoice || 'alloy';
+
+    // Edge TTS
+    const defaultEdgeEndpoint = 'http://powerplus.blogsyte.com:5001';
+    document.getElementById('cloudTtsEndpoint').value = settings.cloudTtsEndpoint || defaultEdgeEndpoint;
+    loadCloudVoices(settings.cloudTtsEndpoint || defaultEdgeEndpoint, settings.cloudTtsVoice || '', settings.cloudTtsVoiceTrans || '');
 
     loadVoices(settings.ttsVoice);
+  });
+
+  // 绑定帮助弹窗
+  setupHelpModal();
+
+  document.getElementById('testOpenAiTtsBtn')?.addEventListener('click', () => {
+    const btn = document.getElementById('testOpenAiTtsBtn');
+    const res = document.getElementById('testOpenAiTtsResult');
+    btn.disabled = true;
+    res.textContent = '...';
+    const endpoint = document.getElementById('openaiTtsEndpoint').value;
+    const apiKey = document.getElementById('openaiTtsApiKey').value;
+    const model = document.getElementById('openaiTtsModel').value || 'tts-1';
+    const voice = document.getElementById('openaiTtsVoice').value || 'alloy';
+
+    chrome.runtime.sendMessage({
+      action: 'proxyOpenAITTS',
+      endpoint,
+      apiKey,
+      model,
+      voice,
+      text: 'ReadMate AI voice test. 读伴通用AI语音测试。',
+      speed: 1.0,
+    }, (resp) => {
+      btn.disabled = false;
+      if (resp?.ok && resp?.dataUrl) {
+        const a = new Audio(resp.dataUrl);
+        a.play();
+        res.textContent = '✓ OK';
+        res.className = 'test-result test-ok';
+      } else {
+        res.textContent = '✕ ' + (resp?.error || 'Err');
+        res.className = 'test-result test-err';
+      }
+    });
   });
 
   document.getElementById('ttsSpeed').addEventListener('input', (e) => {
@@ -306,7 +355,11 @@ function saveSettings(silent) {
     cloudTtsEndpoint: document.getElementById('cloudTtsEndpoint').value,
     cloudTtsVoice: document.getElementById('cloudTtsVoice')?.value || '',
     cloudTtsVoiceTrans: document.getElementById('cloudTtsVoiceTrans')?.value || '',
-    aiProvider: document.getElementById('aiProviderSelect')?.value || 'gemini',
+    openaiTtsEndpoint: document.getElementById('openaiTtsEndpoint')?.value || 'https://api.openai.com/v1',
+    openaiTtsApiKey: document.getElementById('openaiTtsApiKey')?.value || '',
+    openaiTtsModel: document.getElementById('openaiTtsModel')?.value || 'tts-1',
+    openaiTtsVoice: document.getElementById('openaiTtsVoice')?.value || 'alloy',
+    aiProvider: document.getElementById('aiProviderSelect')?.value || 'openai',
     aiEndpoint: document.getElementById('aiEndpoint').value,
     aiApiKey: document.getElementById('aiApiKey').value,
     aiModel: document.getElementById('aiModel').value,
@@ -332,5 +385,105 @@ function saveSettings(silent) {
         setTimeout(() => s.textContent = '', 2000);
       }
     }
+  });
+}
+
+function setupHelpModal() {
+  const modal = document.getElementById('helpModal');
+  const closeBtn = document.getElementById('helpModalClose');
+  const title = document.getElementById('helpModalTitle');
+  const content = document.getElementById('helpModalContent');
+
+  function open(t, html) {
+    title.textContent = t;
+    content.innerHTML = html;
+    modal.style.display = 'flex';
+  }
+
+  closeBtn.onclick = () => modal.style.display = 'none';
+  modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+
+  // TTS 帮助与自建说明书
+  document.getElementById('btnHelpTts')?.addEventListener('click', () => {
+    open('☁️ 语音朗读引擎完全指南 & 自建 Edge-TTS 服务教程', `
+      <div style="background:rgba(56,189,248,0.1);border-left:4px solid #38bdf8;padding:10px 14px;border-radius:4px;margin-bottom:16px;">
+        💡 <strong>Edge 浏览器原生免搭技巧（强烈推荐）</strong>：<br>
+        如果您使用的是微软 Edge 浏览器，安装本插件后直接在上方选择【🔊 浏览器原生】引擎，即可直接免费调用微软最高清的自然语音（如晓晓、Yunxi），完全本地极速发音，零网络延迟！
+      </div>
+
+      <h4 style="color:#facc15;margin:16px 0 8px;">1. 默认公共服务</h4>
+      <p>插件默认内置了梁老师为大家长期维护的免费高音质服务：<code>http://powerplus.blogsyte.com:5001</code>，全球开箱即用，无需配置。</p>
+
+      <h4 style="color:#facc15;margin:16px 0 8px;">2. 5分钟在自己的 VPS/服务器 上搭建专属 Edge-TTS（附完整代码）</h4>
+      <p>如果您有自己的云服务器（Ubuntu/Debian/CentOS），可以自建专属节点，完全独享带宽：</p>
+      
+      <p><strong>第一步：安装 Python 依赖</strong></p>
+      <pre style="background:#0f172a;padding:10px;border-radius:6px;overflow-x:auto;">pip3 install edge-tts flask flask-cors gunicorn</pre>
+
+      <p><strong>第二步：新建服务脚本 <code>server.py</code></strong></p>
+      <pre style="background:#0f172a;padding:10px;border-radius:6px;overflow-x:auto;font-size:12px;">import edge_tts, asyncio, tempfile, os
+from flask import Flask, request, jsonify, send_file, make_response
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
+@app.route('/voices')
+def list_voices():
+    return jsonify(asyncio.run(edge_tts.list_voices()))
+
+@app.route('/tts', methods=['POST', 'OPTIONS'])
+def tts():
+    if request.method == 'OPTIONS':
+        res = make_response()
+        res.headers['Access-Control-Allow-Origin'] = '*'
+        res.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return res
+    d = request.get_json() or {}
+    text = d.get('text', '')
+    voice = d.get('voice', 'zh-CN-XiaoxiaoNeural')
+    rate = d.get('rate', '+0%')
+    with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as tmp:
+        p = tmp.name
+    asyncio.run(edge_tts.Communicate(text=text, voice=voice, rate=rate).save(p))
+    return send_file(p, mimetype='audio/mpeg')
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5001)</pre>
+
+      <p><strong>第三步：后台长期运行</strong></p>
+      <pre style="background:#0f172a;padding:10px;border-radius:6px;overflow-x:auto;">gunicorn -w 2 -b 0.0.0.0:5001 server:app --timeout 900</pre>
+
+      <h4 style="color:#facc15;margin:16px 0 8px;">3. 通用 AI 语音接口 (OpenAI 兼容) 说明</h4>
+      <p>支持任何兼容 OpenAI <code>/v1/audio/speech</code> 规范的服务（如 OpenAI 官方 tts-1、硅基流动 CosyVoice、Fish Audio、自建 GPT-SoVITS 等）。只需填入 API 端点与 Key 即可畅享超拟真发音！</p>
+    `);
+  });
+
+  // AI 大模型帮助说明
+  document.getElementById('btnHelpAi')?.addEventListener('click', () => {
+    open('🤖 AI 大模型与翻译接口配置指南', `
+      <p>ReadMate 支持任何兼容 OpenAI 协议的国际主流大模型（无需购买昂贵专有服务，按量计费极低）：</p>
+
+      <div style="background:rgba(255,255,255,0.05);padding:12px;border-radius:8px;margin-bottom:12px;">
+        <strong style="color:#60a5fa;">1. DeepSeek（强烈推荐 / 超高性价比）</strong><br>
+        • API 端点：<code>https://api.deepseek.com/v1</code><br>
+        • 推荐模型：<code>deepseek-chat</code><br>
+        • 获取 Key：访问 <a href="https://platform.deepseek.com" target="_blank" style="color:#38bdf8;">platform.deepseek.com</a> 注册充值 5~10 元即可精读上千篇文章。
+      </div>
+
+      <div style="background:rgba(255,255,255,0.05);padding:12px;border-radius:8px;margin-bottom:12px;">
+        <strong style="color:#60a5fa;">2. SiliconFlow 硅基流动（免费额度多）</strong><br>
+        • API 端点：<code>https://api.siliconflow.cn/v1</code><br>
+        • 推荐模型：<code>Qwen/Qwen2.5-7B-Instruct</code>（永久免费）或 <code>deepseek-ai/DeepSeek-V3</code><br>
+        • 获取 Key：访问 <a href="https://cloud.siliconflow.cn" target="_blank" style="color:#38bdf8;">cloud.siliconflow.cn</a> 注册即送免费 Token。
+      </div>
+
+      <div style="background:rgba(255,255,255,0.05);padding:12px;border-radius:8px;margin-bottom:12px;">
+        <strong style="color:#60a5fa;">3. OpenAI 官方 ChatGPT</strong><br>
+        • API 端点：<code>https://api.openai.com/v1</code><br>
+        • 推荐模型：<code>gpt-4o-mini</code>（极速、翻译优美）<br>
+        • 获取 Key：访问 <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#38bdf8;">platform.openai.com</a> 申请。
+      </div>
+    `);
   });
 }

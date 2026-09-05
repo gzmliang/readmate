@@ -166,18 +166,23 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         ttsBuffer: 2,
         readVoiceMode: 'original', // 'original', 'translated', 'bilingual'
         showBilingualSubtitles: true,
-        // 云端 Edge TTS 服务端（默认指向本机 159 服务器）
-        cloudTtsEndpoint: 'http://192.168.199.159:5001',
+        // 云端 Edge TTS 服务端（默认指向梁老师长期公开服务）
+        cloudTtsEndpoint: 'http://powerplus.blogsyte.com:5001',
         cloudTtsVoice: '', // 保持空 = 智能双轨自动匹配
         cloudTtsVoiceOrig: '', // 留空 = 原文语种智能匹配 (如 Jenny/美式)
         cloudTtsVoiceTrans: '', // 留空 = 译文语种智能匹配 (如 Xiaoxiao/晓晓)
         ttsVoiceOrig: '', // 浏览器本地原文声音
         ttsVoiceTrans: '', // 浏览器本地译文声音
-        // 默认 AI 服务商配置（兼容 OpenAI 协议端点）
-        aiProvider: 'gemini',
-        aiEndpoint: 'http://192.168.199.159:28080/v1',
-        aiApiKey: 'liang-gemini-proxy-2026',
-        aiModel: 'gemini-3.1-flash-lite',
+        // 通用 AI 语音 (OpenAI兼容音频流TTS)
+        openaiTtsEndpoint: 'https://api.openai.com/v1',
+        openaiTtsApiKey: '',
+        openaiTtsModel: 'tts-1',
+        openaiTtsVoice: 'alloy',
+        // 默认标准 AI 服务商配置（遵循官方标准 BaseURL 与 gpt-4o-mini）
+        aiProvider: 'openai',
+        aiEndpoint: 'https://api.openai.com/v1',
+        aiApiKey: '',
+        aiModel: 'gpt-4o-mini',
         enableBilingual: false, // 默认不开启双语翻译（省 Token）
         translateEnabled: false,
         translateTarget: 'Simplified Chinese',
@@ -232,7 +237,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     // ====== AI 多语种摘要生成代理（双核：原文摘要 + 目标语言译文摘要） ======
     case 'proxySummarize': {
       const { endpoint, apiKey, model, text, targetLang, docLang } = msg;
-      let ep = (endpoint || 'http://192.168.199.159:28080/v1').trim();
+      let ep = (endpoint || 'https://api.openai.com/v1').trim();
       if (!ep.endsWith('/chat/completions')) {
         ep = ep.replace(/\/+$/, '') + '/chat/completions';
       }
@@ -352,7 +357,7 @@ ${(text || '').substring(0, 5000)}`;
     // ====== AI 翻译代理 ======
     case 'proxyTranslate': {
       const { endpoint, apiKey, model, text, targetLang } = msg;
-      let ep = (endpoint || 'http://192.168.199.159:28080/v1').trim();
+      let ep = (endpoint || 'https://api.openai.com/v1').trim();
       if (!ep.endsWith('/chat/completions')) {
         ep = ep.replace(/\/+$/, '') + '/chat/completions';
       }
@@ -379,6 +384,44 @@ ${(text || '').substring(0, 5000)}`;
           const data = await resp.json();
           const result = data.choices?.[0]?.message?.content?.trim() || null;
           sendResponse({ ok: true, text: result });
+        })
+        .catch((err) => {
+          sendResponse({ ok: false, error: err.message });
+        });
+      return true;
+    }
+
+    // ====== 通用 OpenAI 兼容语音合成 (Audio Speech API) ======
+    case 'proxyOpenAITTS': {
+      const { endpoint, apiKey, model, voice, text, speed } = msg;
+      let ep = (endpoint || 'https://api.openai.com/v1').trim();
+      if (!ep.endsWith('/audio/speech')) {
+        ep = ep.replace(/\/+$/, '') + '/audio/speech';
+      }
+      fetch(ep, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey || ''}`,
+        },
+        body: JSON.stringify({
+          model: model || 'tts-1',
+          input: text,
+          voice: voice || 'alloy',
+          speed: speed || 1.0,
+        }),
+      })
+        .then(async (resp) => {
+          if (!resp.ok) {
+            const errTxt = await resp.text();
+            throw new Error(`HTTP ${resp.status}: ${errTxt}`);
+          }
+          const blob = await resp.blob();
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            sendResponse({ ok: true, dataUrl: reader.result });
+          };
+          reader.readAsDataURL(blob);
         })
         .catch((err) => {
           sendResponse({ ok: false, error: err.message });

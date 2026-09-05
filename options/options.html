@@ -57,15 +57,23 @@
 
     <!-- 引擎设置 -->
     <div class="section">
-      <div class="section-title" id="lblTtsSection">语音朗读引擎</div>
-      <div class="engine-switch">
+      <div class="section-title-wrap" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div class="section-title" id="lblTtsSection" style="margin:0;">语音朗读引擎</div>
+        <button class="btn-help-link" id="btnHelpTts" type="button" style="background:none;border:none;color:#38bdf8;cursor:pointer;font-size:12.5px;text-decoration:underline;">❓ 语音引擎说明与自建 Edge-TTS 服务指南</button>
+      </div>
+
+      <div class="engine-switch" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
         <label class="engine-option">
           <input type="radio" name="ttsEngine" value="cloud" checked>
-          <span id="lblEngineCloud">☁️ 云端 Edge TTS (推荐/高质量)</span>
+          <span id="lblEngineCloud">☁️ Edge TTS (推荐)</span>
         </label>
         <label class="engine-option">
           <input type="radio" name="ttsEngine" value="browser">
           <span id="lblEngineBrowser">🔊 浏览器原生</span>
+        </label>
+        <label class="engine-option">
+          <input type="radio" name="ttsEngine" value="openai">
+          <span id="lblEngineOpenAI">🎙️ 通用 AI 语音</span>
         </label>
       </div>
 
@@ -77,11 +85,11 @@
         </div>
       </div>
 
-      <!-- 云端配置 -->
+      <!-- Edge TTS 云端配置 -->
       <div id="cloudTtsSection">
         <div class="setting-row">
           <label id="lblCloudEndpoint">服务器地址</label>
-          <input type="text" id="cloudTtsEndpoint" placeholder="http://192.168.199.159:5001">
+          <input type="text" id="cloudTtsEndpoint" placeholder="http://powerplus.blogsyte.com:5001">
         </div>
         <div class="setting-row">
           <label id="lblCloudVoice">云端音色</label>
@@ -98,6 +106,30 @@
         <div class="test-row">
           <button id="testCloudVoiceBtn" class="btn-test">☁️ 测试云端语音</button>
           <span id="testCloudVoiceResult" class="test-result"></span>
+        </div>
+      </div>
+
+      <!-- 通用 OpenAI 兼容 AI 语音配置 -->
+      <div id="openaiTtsSection" style="display:none;">
+        <div class="setting-row">
+          <label>TTS API 端点</label>
+          <input type="text" id="openaiTtsEndpoint" placeholder="https://api.openai.com/v1">
+        </div>
+        <div class="setting-row">
+          <label>TTS API Key</label>
+          <input type="password" id="openaiTtsApiKey" placeholder="sk-...">
+        </div>
+        <div class="setting-row">
+          <label>TTS 模型</label>
+          <input type="text" id="openaiTtsModel" placeholder="tts-1">
+        </div>
+        <div class="setting-row">
+          <label>TTS 音色 (Voice)</label>
+          <input type="text" id="openaiTtsVoice" placeholder="alloy / echo / fable / onyx / nova / shimmer">
+        </div>
+        <div class="test-row">
+          <button id="testOpenAiTtsBtn" class="btn-test">🎙️ 测试 AI 语音</button>
+          <span id="testOpenAiTtsResult" class="test-result"></span>
         </div>
       </div>
 
@@ -118,15 +150,18 @@
 
     <!-- AI 服务商与摘要设置 -->
     <div class="section">
-      <div class="section-title" id="lblAiSection">AI 服务商与摘要</div>
+      <div class="section-title-wrap" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div class="section-title" id="lblAiSection" style="margin:0;">AI 服务商与摘要</div>
+        <button class="btn-help-link" id="btnHelpAi" type="button" style="background:none;border:none;color:#38bdf8;cursor:pointer;font-size:12.5px;text-decoration:underline;">❓ 大模型接口配置指南与免费 Key 申请</button>
+      </div>
 
       <div class="setting-row">
         <label id="lblProvider">服务商预设</label>
         <select id="aiProviderSelect">
+          <option value="openai">OpenAI (ChatGPT 官方)</option>
+          <option value="deepseek">DeepSeek (深度求索 / 推荐高性价比)</option>
+          <option value="siliconflow">SiliconFlow (硅基流动 / 注册送额度)</option>
           <option value="gemini">Google Gemini</option>
-          <option value="deepseek">DeepSeek (推荐/高性价比)</option>
-          <option value="openai">OpenAI (ChatGPT)</option>
-          <option value="siliconflow">SiliconFlow (硅基流动)</option>
           <option value="moonshot">Moonshot (Kimi)</option>
           <option value="qwen">阿里通义千问 (DashScope)</option>
           <option value="custom">自定义 (兼容 OpenAI 格式)</option>
@@ -135,24 +170,22 @@
 
       <div class="setting-row">
         <label id="lblEndpoint">API 端点</label>
-        <input type="text" id="aiEndpoint" placeholder="http://192.168.199.159:28080/v1">
+        <input type="text" id="aiEndpoint" placeholder="https://api.openai.com/v1">
       </div>
       <div class="setting-row">
         <label id="lblApiKey">API Key</label>
-        <input type="password" id="aiApiKey" placeholder="liang-gemini-proxy-2026">
+        <input type="password" id="aiApiKey" placeholder="sk-...">
       </div>
       <div class="setting-row">
         <label id="lblModel">模型</label>
-        <input type="text" id="aiModel" list="aiModelList" placeholder="gemini-3.7-flash-high">
+        <input type="text" id="aiModel" list="aiModelList" placeholder="gpt-4o-mini">
         <datalist id="aiModelList">
-          <option value="gemini-3.7-flash-high">Gemini 3.7 Flash (推荐/快速极高画质)</option>
-          <option value="gemini-3.6-flash-high">Gemini 3.6 Flash</option>
-          <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite (极速轻量)</option>
-          <option value="gemini-3-flash">Gemini 3 Flash</option>
-          <option value="gemini-3.1-pro-low">Gemini 3.1 Pro</option>
-          <option value="claude-sonnet-4-6">Claude 3.5 Sonnet</option>
-          <option value="deepseek-chat">DeepSeek Chat (官方)</option>
-          <option value="gpt-4o-mini">GPT-4o mini (OpenAI)</option>
+          <option value="gpt-4o-mini">gpt-4o-mini (官方推荐/极速轻量)</option>
+          <option value="gpt-4o">gpt-4o</option>
+          <option value="deepseek-chat">deepseek-chat (DeepSeek V3)</option>
+          <option value="deepseek-reasoner">deepseek-reasoner (DeepSeek R1)</option>
+          <option value="Qwen/Qwen2.5-7B-Instruct">Qwen/Qwen2.5-7B-Instruct (硅基流动免费)</option>
+          <option value="gemini-2.0-flash">gemini-2.0-flash</option>
         </datalist>
       </div>
       <div class="setting-row">
@@ -196,9 +229,25 @@
     </div>
 
     <!-- 底部保存 -->
-    <div class="footer">
-      <button id="saveBtn" class="btn-save">保存设置</button>
-      <span id="saveStatus" class="save-status"></span>
+    <div class="footer" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button id="saveBtn" class="btn-save">保存设置</button>
+        <span id="saveStatus" class="save-status"></span>
+      </div>
+      <a href="https://ko-fi.com/jimmyliang10894" target="_blank" style="color:#facc15;text-decoration:none;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:6px;">
+        ☕ Buy me a coffee / 支持作者
+      </a>
+    </div>
+
+    <!-- 弹窗：详细帮助与自建指南指南 -->
+    <div id="helpModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.65);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+      <div style="background:#1e293b;color:#f8fafc;width:720px;max-width:92vw;max-height:86vh;border-radius:16px;border:1px solid rgba(255,255,255,0.15);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.6);">
+        <div style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;align-items:center;">
+          <h3 id="helpModalTitle" style="margin:0;font-size:16px;color:#38bdf8;">📖 ReadMate 帮助与配置指南</h3>
+          <button id="helpModalClose" style="background:none;border:none;color:#94a3b8;font-size:18px;cursor:pointer;">✕</button>
+        </div>
+        <div id="helpModalContent" style="padding:20px;overflow-y:auto;font-size:13.5px;line-height:1.7;color:#cbd5e1;"></div>
+      </div>
     </div>
   </div>
   <script src="options.js"></script>
