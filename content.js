@@ -1456,34 +1456,48 @@ async function startReading(text, forceLang = null, voiceModeOverride = null) {
   stopImmediate = false;
   userStopped = false;
 
-  let cleanText = text;
-  try {
-    cleanText = TextUtils.preprocess(text, {
-      stripHtml: true,
-      stripPinyin: true,
-      stripFootnotes: true,
-      stripDecorative: true,
-      collapseWhitespace: true,
-      cleanCjk: false,
-    });
-  } catch(e) {
-    cleanText = text;
-  }
-
   let sentences = [];
-  try {
-    sentences = TextUtils.splitSentences(cleanText);
-  } catch(e) {
-    sentences = [cleanText];
+  // 核心改进：当是全篇文章朗读时，强制统一使用权威句子源，确保原网页朗读与沉浸模式 100% 绝对一致！
+  if (currentMode === 'page' || currentMode === 'reader') {
+    try {
+      const canonical = getCanonicalArticle();
+      if (canonical && canonical.sentences && canonical.sentences.length > 0) {
+        sentences = [...canonical.sentences];
+      }
+    } catch(e) {
+      DebugLog.add('getCanonicalArticle error in startReading: ' + e.message);
+    }
   }
 
-  if (!sentences || sentences.length === 0) return;
+  if (!sentences || sentences.length === 0) {
+    let cleanText = text;
+    try {
+      cleanText = TextUtils.preprocess(text, {
+        stripHtml: true,
+        stripPinyin: true,
+        stripFootnotes: true,
+        stripDecorative: true,
+        collapseWhitespace: true,
+        cleanCjk: false,
+      });
+    } catch(e) {
+      cleanText = text;
+    }
 
-  // 过滤掉纯标点符号或空白的无效句子
-  sentences = sentences.filter(s => {
-    const cleaned = getSpeechText(s);
-    return cleaned && cleaned.replace(/[\s.,!?;:，。！？；：'"`~—\-_/\\|]+/g, '').length > 0;
-  });
+    try {
+      sentences = TextUtils.splitSentences(cleanText);
+    } catch(e) {
+      sentences = [cleanText];
+    }
+
+    if (!sentences || sentences.length === 0) return;
+
+    // 过滤掉纯标点符号或空白的无效句子
+    sentences = sentences.filter(s => {
+      const cleaned = getSpeechText(s);
+      return cleaned && cleaned.replace(/[\s.,!?;:，。！？；：'"`~—\-_/\\|]+/g, '').length > 0;
+    });
+  }
 
   if (sentences.length === 0) return;
 
@@ -2073,8 +2087,19 @@ function ensureReaderOverlay() {
 
   document.body.appendChild(readerOverlay);
 
-  // 绑定事件：点返回按钮时退出并回退 history
-  readerOverlay.querySelector('#readmate-reader-close').onclick = () => closeReaderMode(true);
+  // 绑定事件：点返回按钮时退出净读模式（捕获阶段强力优先绑定）
+  const closeBtn = readerOverlay.querySelector('#readmate-reader-close');
+  if (closeBtn) {
+    const handleClose = (e) => {
+      if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      closeReaderMode();
+    };
+    closeBtn.onclick = handleClose;
+    closeBtn.addEventListener('click', handleClose, true);
+  }
 
   // 主播放按钮
   const mainPlayBtn = readerOverlay.querySelector('#readmate-reader-play-main');
@@ -2273,7 +2298,7 @@ function openReaderMode() {
   isReaderModeActive = true;
   ensureReaderOverlay();
   renderReaderModeContent();
-  readerOverlay.style.display = 'flex';
+  readerOverlay.style.setProperty('display', 'flex', 'important');
   document.body.style.overflow = 'hidden';
   hideFAB();
 
@@ -2281,22 +2306,16 @@ function openReaderMode() {
   showBar();
   updateReaderPlayButton();
 
-  // 压入 history 状态，防止用户点浏览器后退键或鼠标手势直接跳出网站！
-  try {
-    window.history.pushState({ readmateReaderOpen: true }, '');
-  } catch(e) {}
-
   if (isPlaying) {
     highlightReaderModeSentence(currentSentenceIndex);
   }
   DebugLog.add('Reader Mode opened');
 }
 
-function closeReaderMode(needPop = false) {
-  if (!isReaderModeActive) return;
+function closeReaderMode() {
   isReaderModeActive = false;
   if (readerOverlay) {
-    readerOverlay.style.display = 'none';
+    readerOverlay.style.setProperty('display', 'none', 'important');
   }
   closeVocabDrawer();
   hideDictBubble();
@@ -2304,13 +2323,6 @@ function closeReaderMode(needPop = false) {
   document.body.style.overflow = '';
   showFAB();
   updateReaderPlayButton();
-
-  // 若由点击返回网页触发且历史栈在 reader 状态，安全回退
-  if (needPop && window.history.state && window.history.state.readmateReaderOpen) {
-    try {
-      window.history.back();
-    } catch(e) {}
-  }
 
   // ★ 核心改进：从净读模式退回原网页时，无缝将原网页滚动并高亮到当前句子！
   if (isPlaying && currentSentences && currentSentences[currentSentenceIndex]) {
@@ -2322,7 +2334,7 @@ function closeReaderMode(needPop = false) {
 }
 
 function toggleReaderMode() {
-  if (isReaderModeActive) closeReaderMode(true);
+  if (isReaderModeActive) closeReaderMode();
   else openReaderMode();
 }
 
@@ -2814,18 +2826,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' || e.keyCode === 27) {
     if (isReaderModeActive) {
-      closeReaderMode(true);
+      closeReaderMode();
     }
   } else if ((e.altKey && (e.key === 'r' || e.key === 'R')) || e.key === 'F9') {
     e.preventDefault();
     toggleReaderMode();
-  }
-});
-
-// 监听浏览器自带后退按钮或鼠标后退手势（优雅退出净读模式并留在当前网页）
-window.addEventListener('popstate', (e) => {
-  if (isReaderModeActive) {
-    closeReaderMode(false);
   }
 });
 

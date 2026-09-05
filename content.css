@@ -773,6 +773,22 @@ h6.readmate-active-paragraph {
   color: #60a5fa !important;
 }
 
+#readmate-reader-close {
+  position: relative !important;
+  z-index: 1000 !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  font-weight: 600 !important;
+}
+#readmate-reader-close:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-color: #ef4444 !important;
+  color: #dc2626 !important;
+}
+#readmate-reader-overlay[data-theme="dark"] #readmate-reader-close:hover {
+  color: #f87171 !important;
+}
+
 .readmate-btn-pdf {
   background: #2563eb !important;
   border-color: #2563eb !important;
