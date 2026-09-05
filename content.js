@@ -385,7 +385,7 @@ function detectTextLanguage(txt) {
 
 /** 全局唯一权威语料源提取器（确保原网页朗读与沉浸模式句子序号 100% 绝对一致） */
 function getCanonicalArticle() {
-  if (cachedReaderContent && readerSentences && readerSentences.length > 0) {
+  if (cachedReaderContent && cachedReaderContent.sentences && cachedReaderContent.sentences.length > 0) {
     return cachedReaderContent;
   }
 
@@ -400,30 +400,37 @@ function getCanonicalArticle() {
     ? content.title.trim()
     : (document.title || 'Untitled Article');
 
-  let paras = [];
+  let rawParas = [];
   if (content && content.paragraphs && content.paragraphs.length > 0) {
-    paras = [...content.paragraphs];
+    rawParas = [...content.paragraphs];
   } else if (content && content.text && content.text.length > 50) {
-    paras = content.text.split(/\n{2,}/);
+    rawParas = content.text.split(/\n{2,}/);
   } else {
     const pEls = document.querySelectorAll('article p, main p, [role="main"] p, p');
     pEls.forEach(p => {
       const t = p.textContent.trim();
-      if (t.length > 15) paras.push(t);
+      if (t.length > 15) rawParas.push(t);
     });
   }
-  paras = paras.map(p => p.trim()).filter(p => p.length > 0);
+  rawParas = rawParas.map(p => (p || '').trim()).filter(p => p.length > 0);
 
-  if (paras.length > 0 && paras[0] === pageTitle) {
-    paras.shift();
+  if (rawParas.length > 0 && rawParas[0] === pageTitle) {
+    rawParas.shift();
   }
 
   const allSentences = [];
+  const paraItems = [];
+  let globalIdx = 0;
+
+  // 大标题放入第 0 句
   if (pageTitle && pageTitle.length > 1) {
     allSentences.push(pageTitle);
+    globalIdx = 1;
   }
 
-  for (const p of paras) {
+  // 逐段拆分，结构化保存句子及其全局索引，确保原网页朗读与沉浸模式 100% 对应
+  for (let pIdx = 0; pIdx < rawParas.length; pIdx++) {
+    const p = rawParas[pIdx];
     let cleanP = p;
     try {
       cleanP = TextUtils.preprocess(p, {
@@ -444,15 +451,28 @@ function getCanonicalArticle() {
       return cl && cl.replace(/[\s.,!?;:，。！？；：'"`~—\-_/\\|]+/g, '').length > 0;
     });
 
+    if (sentences.length === 0) continue;
+
+    const currentParaSentences = [];
     for (const s of sentences) {
       allSentences.push(s);
+      currentParaSentences.push({
+        idx: globalIdx++,
+        text: s,
+      });
     }
+
+    paraItems.push({
+      pIdx,
+      sentences: currentParaSentences,
+    });
   }
 
   readerSentences = allSentences;
   cachedReaderContent = {
     title: pageTitle,
-    paragraphs: paras,
+    paraItems: paraItems,
+    paragraphs: rawParas,
     sentences: allSentences,
     text: allSentences.join('\n\n'),
   };
@@ -2203,74 +2223,51 @@ function updateReaderPlayButton() {
 function renderReaderModeContent() {
   ensureReaderOverlay();
   const canonical = getCanonicalArticle();
-  const pageTitle = canonical.title;
-  const paras = canonical.paragraphs;
+  const pageTitle = (canonical && canonical.title) ? canonical.title : (document.title || 'Untitled Article');
 
   const titleEl = readerOverlay.querySelector('#readmate-reader-title');
   const metaEl = readerOverlay.querySelector('#readmate-reader-meta');
   const bodyEl = readerOverlay.querySelector('#readmate-reader-body');
   const statsEl = readerOverlay.querySelector('#readmate-reader-stats');
 
-  let globalSentenceCounter = 0;
-
-  // 大标题作为第 0 句
+  // 大标题直接绑定第 0 句
   if (pageTitle && pageTitle.length > 1) {
     const safeTitle = pageTitle.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     titleEl.innerHTML = `<span class="readmate-reader-s" data-sentence-idx="0">${safeTitle}</span>`;
-    globalSentenceCounter = 1;
   } else {
     titleEl.textContent = pageTitle;
   }
 
-  const parasHtml = paras.map((p, pIdx) => {
-    let cleanP = p;
-    try {
-      cleanP = TextUtils.preprocess(p, {
-        stripHtml: true,
-        collapseWhitespace: true,
-      });
-    } catch(e) {}
-
-    let sentences = [];
-    try {
-      sentences = TextUtils.splitSentences(cleanP);
-    } catch(e) {
-      sentences = [cleanP];
-    }
-
-    sentences = sentences.filter(s => {
-      const cl = getSpeechText(s);
-      return cl && cl.replace(/[\s.,!?;:，。！？；：'"`~—\-_/\\|]+/g, '').length > 0;
-    });
-
-    if (sentences.length === 0) return '';
-
-    const spansHtml = sentences.map(s => {
-      const idx = globalSentenceCounter++;
-      const safeText = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-      return `<span class="readmate-reader-s" data-sentence-idx="${idx}">${safeText}</span>`;
+  // 直接遍历结构化 paraItems，不进行任何重复计算，100% 绝对一致
+  const paraItems = (canonical && canonical.paraItems) ? canonical.paraItems : [];
+  const parasHtml = paraItems.map(item => {
+    const spansHtml = item.sentences.map(sObj => {
+      const safeText = sObj.text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return `<span class="readmate-reader-s" data-sentence-idx="${sObj.idx}">${safeText}</span>`;
     }).join(' ');
-
-    return `<p class="readmate-reader-p" data-para-idx="${pIdx}">${spansHtml}</p>`;
-  }).filter(Boolean).join('\n');
+    return `<p class="readmate-reader-p" data-para-idx="${item.pIdx}">${spansHtml}</p>`;
+  }).join('\n');
 
   bodyEl.innerHTML = parasHtml;
 
   // 统计信息
-  const totalChars = canonical.sentences.reduce((sum, s) => sum + s.length, 0);
+  const allS = (canonical && canonical.sentences) ? canonical.sentences : [];
+  const totalChars = allS.reduce((sum, s) => sum + (s ? s.length : 0), 0);
   const estMinutes = Math.max(1, Math.round(totalChars / 350));
   const domain = window.location.hostname.replace(/^www\./, '');
 
-  statsEl.textContent = `${totalChars} ${_t('statChars', '字')} · ${_t('statEst', '约')} ${estMinutes} ${_t('statMins', '分钟')}`;
-  metaEl.innerHTML = `
-    <span>🌐 ${domain}</span>
-    <span>⏱️ ${_t('statEst', '约')} ${estMinutes} ${_t('statMins', '分钟朗读')}</span>
-    <span>📝 ${canonical.sentences.length} ${_t('statParas', '个句子')}</span>
-  `;
+  if (statsEl) statsEl.textContent = `${totalChars} ${_t('statChars', '字')} · ${_t('statEst', '约')} ${estMinutes} ${_t('statMins', '分钟')}`;
+  if (metaEl) {
+    metaEl.innerHTML = `
+      <span>🌐 ${domain}</span>
+      <span>⏱️ ${_t('statEst', '约')} ${estMinutes} ${_t('statMins', '分钟朗读')}</span>
+      <span>📝 ${allS.length} ${_t('statParas', '个句子')}</span>
+    `;
+  }
 
   const progEl = readerOverlay.querySelector('#readmate-reader-play-progress');
   if (progEl) {
-    progEl.textContent = `共 ${canonical.sentences.length} 句 · 预计朗读 ${estMinutes} 分钟 · 单击任意句可直接开播`;
+    progEl.textContent = `共 ${allS.length} 句 · 预计朗读 ${estMinutes} 分钟 · 单击任意句可直接开播`;
   }
 }
 
@@ -2294,10 +2291,15 @@ async function playReaderModeSentences(startIdx = 0) {
 }
 
 function openReaderMode() {
-  if (isReaderModeActive) return;
-  isReaderModeActive = true;
   ensureReaderOverlay();
-  renderReaderModeContent();
+  try {
+    renderReaderModeContent();
+  } catch(e) {
+    DebugLog.add('renderReaderModeContent error: ' + e.message);
+  }
+
+  isReaderModeActive = true;
+  readerOverlay.classList.add('readmate-reader-open');
   readerOverlay.style.setProperty('display', 'flex', 'important');
   document.body.style.overflow = 'hidden';
   hideFAB();
@@ -2307,7 +2309,9 @@ function openReaderMode() {
   updateReaderPlayButton();
 
   if (isPlaying) {
-    highlightReaderModeSentence(currentSentenceIndex);
+    setTimeout(() => {
+      highlightReaderModeSentence(currentSentenceIndex);
+    }, 80);
   }
   DebugLog.add('Reader Mode opened');
 }
@@ -2315,6 +2319,7 @@ function openReaderMode() {
 function closeReaderMode() {
   isReaderModeActive = false;
   if (readerOverlay) {
+    readerOverlay.classList.remove('readmate-reader-open');
     readerOverlay.style.setProperty('display', 'none', 'important');
   }
   closeVocabDrawer();
@@ -2334,8 +2339,12 @@ function closeReaderMode() {
 }
 
 function toggleReaderMode() {
-  if (isReaderModeActive) closeReaderMode();
-  else openReaderMode();
+  ensureReaderOverlay();
+  if (readerOverlay && (readerOverlay.classList.contains('readmate-reader-open') || readerOverlay.style.display === 'flex')) {
+    closeReaderMode();
+  } else {
+    openReaderMode();
+  }
 }
 
 function exportPdf() {

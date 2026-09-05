@@ -686,12 +686,16 @@ h6.readmate-active-paragraph {
   z-index: 2147483640 !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
-  display: flex !important;
+  display: none !important;
   flex-direction: column !important;
   box-sizing: border-box !important;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif !important;
   transition: background-color 0.25s ease, color 0.25s ease !important;
   scroll-behavior: smooth !important;
+}
+
+#readmate-reader-overlay.readmate-reader-open {
+  display: flex !important;
 }
 
 /* 4 种经典主题配色 */
