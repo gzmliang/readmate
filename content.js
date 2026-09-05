@@ -938,16 +938,26 @@ function getSpeechText(sentence) {
   return s || sentence;
 }
 
-/** 播放音频（标准 Blob ObjectURL / 原生精准 onended 触发 / 动态时长 + 心跳防死锁） */
-function playAudioUrl(url) {
+/** 播放音频（标准 Blob ObjectURL / 原生精准 onended 触发 / 动态时长 + 心跳防死锁 + 声画毫秒级对齐） */
+function playAudioUrl(url, onStart = null) {
   return new Promise((resolve) => {
     if (stopImmediate || !isPlaying) return resolve();
     let done = false;
+    let started = false;
     let heartbeatTimer = null;
     let activePlaySeconds = 0;
     let maxAllowedSeconds = 60; // 初始默认保底 60 秒（待音频元数据返回后自适应调整）
     let lastTime = 0;
     let stallCount = 0;
+
+    function triggerStart() {
+      if (!started && !done && isPlaying && !stopImmediate) {
+        started = true;
+        if (typeof onStart === 'function') {
+          try { onStart(); } catch(e) { DebugLog.add('onStart error: ' + e.message); }
+        }
+      }
+    }
 
     function finish() {
       if (!done) {
@@ -986,6 +996,15 @@ function playAudioUrl(url) {
       finish();
     };
 
+    // 墨阅经验：音频真正开始解码发出声音（playing / timeupdate）的瞬间才高亮，杜绝高亮抢跑
+    audio.addEventListener('playing', triggerStart);
+    audio.addEventListener('play', () => {
+      setTimeout(triggerStart, 80);
+    });
+    audio.addEventListener('timeupdate', () => {
+      if (audio.currentTime > 0.03) triggerStart();
+    });
+
     // 动态感知音频真实总时长：以真实 duration 为基准，加 15 秒缓冲，长句绝不提前掐断
     const syncDuration = () => {
       if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration) && audio.duration > 0) {
@@ -999,9 +1018,6 @@ function playAudioUrl(url) {
     audio.addEventListener('canplay', syncDuration);
 
     // 播放心跳与活性监控器（每 1 秒巡检一次）
-    // 1. 用户暂停时不计入播放时长与卡顿计数；
-    // 2. 只要音频在推进（currentTime 增加），就代表播放绝对健康；
-    // 3. 只有当非暂停状态下进度条连续 8 秒寸步不前，或播放活跃时间达到上限，才做容错恢复
     heartbeatTimer = setInterval(() => {
       if (done) return;
       if (isPaused) {
@@ -1043,8 +1059,8 @@ function playAudioUrl(url) {
   });
 }
 
-/** 播放单个 Utterance（浏览器原生 TTS，双语智能音色匹配） */
-function playSpeechUtterance(text, lang, customVoiceName = '') {
+/** 播放单个 Utterance（浏览器原生 TTS，双语智能音色匹配 + boundary 字词级同步） */
+function playSpeechUtterance(text, lang, customVoiceName = '', onStart = null, onBoundary = null) {
   return new Promise((resolve) => {
     if (stopImmediate || !isPlaying) return resolve();
     if (!window.speechSynthesis) return resolve();
@@ -1059,7 +1075,18 @@ function playSpeechUtterance(text, lang, customVoiceName = '') {
     }
 
     let done = false;
+    let started = false;
     let timer = null;
+
+    function triggerStart() {
+      if (!started && !done && isPlaying && !stopImmediate) {
+        started = true;
+        if (typeof onStart === 'function') {
+          try { onStart(); } catch(e) { DebugLog.add('utterance onStart error: ' + e.message); }
+        }
+      }
+    }
+
     function finish() {
       if (!done) {
         done = true;
@@ -1074,12 +1101,28 @@ function playSpeechUtterance(text, lang, customVoiceName = '') {
       finish();
     };
 
+    utterance.onstart = () => {
+      DebugLog.add('SpeechUtterance onstart');
+      triggerStart();
+    };
+
+    // 墨阅经验：监听原生 TTS boundary 事件，实现毫秒级字词进度跟随
+    utterance.onboundary = (e) => {
+      if (typeof onBoundary === 'function') {
+        try {
+          onBoundary(e.charIndex, e.charLength || 1, e.name);
+        } catch(err) {}
+      }
+    };
+
     utterance.onend = finish;
     utterance.onerror = finish;
     window.speechSynthesis.speak(utterance);
 
+    // 兜底启动（避免个别老版本浏览器未触发 onstart 导致永远不高亮）
+    setTimeout(triggerStart, 150);
+
     // 针对无声卡/模拟环境的自适应时长保底：
-    // 按文本长度和语速动态计算，提供充沛余量（最少 6 秒，最多 180 秒），绝不粗暴截断
     const isZh = (typeof TextUtils !== 'undefined' && TextUtils.isChinese) ? TextUtils.isChinese(text) : /[\u4e00-\u9fa5]/.test(text);
     const units = isZh ? text.length : text.split(/\s+/).filter(Boolean).length;
     const estMs = Math.round((units * 450) / speed) + 10000;
@@ -1147,7 +1190,24 @@ async function playSentencesFlow(sentences) {
     const origSentence = sentences[i];
     DebugLog.add(`Playing sentence ${i + 1}/${sentences.length}: "${origSentence.substring(0, 30)}..."`);
     updateBarProgress(i + 1, sentences.length);
-    highlightSentence(i);
+
+    // 墨阅经验：严谨声画对齐。绝不在获取音频前抢跑高亮，仅当真正出声（onStart）时点亮并滚动到屏幕中央
+    let currentSentenceHighlighted = false;
+    const triggerCurrentHighlight = () => {
+      if (!currentSentenceHighlighted && isPlaying && !stopImmediate && pendingJumpIndex === null) {
+        currentSentenceHighlighted = true;
+        const offset = typeof settings.highlightOffset === 'number' ? settings.highlightOffset : 0;
+        const targetIdx = Math.max(0, Math.min(sentences.length - 1, i + offset));
+        highlightSentence(targetIdx);
+      }
+    };
+
+    // 句内 boundary 字词级跟读回调
+    const handleWordBoundary = (charIndex, charLength) => {
+      if (activeHighlightRange) {
+        highlightWordInRange(activeHighlightRange, charIndex, charLength);
+      }
+    };
 
     // 2. 保持预读流水线滑动向前推荐后续 bufferSize 句
     prefetchAhead(sentences, i, bufferSize, ttsEndpoint, origVoice, transVoice, currentSpeed, useCloud);
@@ -1179,17 +1239,17 @@ async function playSentencesFlow(sentences) {
           try {
             const dataUrl = await getOrFetchTtsAudio(ttsEndpoint, speechOrig, origVoice, currentSpeed);
             if (dataUrl && isPlaying && !stopImmediate && pendingJumpIndex === null) {
-              await playAudioUrl(dataUrl);
+              await playAudioUrl(dataUrl, triggerCurrentHighlight);
             }
           } catch(e) {
             DebugLog.add('Cloud TTS failed, fallback: ' + e.message);
             if (isPlaying && !stopImmediate && pendingJumpIndex === null) {
-              await playSpeechUtterance(speechOrig, detectedDocLang, settings.ttsVoiceOrig || settings.ttsVoice);
+              await playSpeechUtterance(speechOrig, detectedDocLang, settings.ttsVoiceOrig || settings.ttsVoice, triggerCurrentHighlight, handleWordBoundary);
             }
           }
         } else {
           if (isPlaying && !stopImmediate && pendingJumpIndex === null) {
-            await playSpeechUtterance(speechOrig, detectedDocLang, settings.ttsVoiceOrig || settings.ttsVoice);
+            await playSpeechUtterance(speechOrig, detectedDocLang, settings.ttsVoiceOrig || settings.ttsVoice, triggerCurrentHighlight, handleWordBoundary);
           }
         }
       } else if (readVoiceMode === 'translated') {
@@ -1199,17 +1259,17 @@ async function playSentencesFlow(sentences) {
           try {
             const dataUrl = await getOrFetchTtsAudio(ttsEndpoint, speechText, transVoice, currentSpeed);
             if (dataUrl && isPlaying && !stopImmediate && pendingJumpIndex === null) {
-              await playAudioUrl(dataUrl);
+              await playAudioUrl(dataUrl, triggerCurrentHighlight);
             }
           } catch(e) {
             DebugLog.add('Cloud TTS failed, fallback: ' + e.message);
             if (isPlaying && !stopImmediate && pendingJumpIndex === null) {
-              await playSpeechUtterance(speechText, targetLangCode, settings.ttsVoiceTrans);
+              await playSpeechUtterance(speechText, targetLangCode, settings.ttsVoiceTrans, triggerCurrentHighlight, handleWordBoundary);
             }
           }
         } else {
           if (isPlaying && !stopImmediate && pendingJumpIndex === null) {
-            await playSpeechUtterance(speechText, targetLangCode, settings.ttsVoiceTrans);
+            await playSpeechUtterance(speechText, targetLangCode, settings.ttsVoiceTrans, triggerCurrentHighlight, handleWordBoundary);
           }
         }
       } else if (readVoiceMode === 'bilingual') {
@@ -1219,16 +1279,16 @@ async function playSentencesFlow(sentences) {
           try {
             const dataUrlOrig = await getOrFetchTtsAudio(ttsEndpoint, speechOrig, origVoice, currentSpeed);
             if (dataUrlOrig && isPlaying && !stopImmediate && pendingJumpIndex === null) {
-              await playAudioUrl(dataUrlOrig);
+              await playAudioUrl(dataUrlOrig, triggerCurrentHighlight);
             }
           } catch(e) {
             if (isPlaying && !stopImmediate && pendingJumpIndex === null) {
-              await playSpeechUtterance(speechOrig, detectedDocLang, settings.ttsVoiceOrig || settings.ttsVoice);
+              await playSpeechUtterance(speechOrig, detectedDocLang, settings.ttsVoiceOrig || settings.ttsVoice, triggerCurrentHighlight, handleWordBoundary);
             }
           }
         } else {
           if (isPlaying && !stopImmediate && pendingJumpIndex === null) {
-            await playSpeechUtterance(speechOrig, detectedDocLang, settings.ttsVoiceOrig || settings.ttsVoice);
+            await playSpeechUtterance(speechOrig, detectedDocLang, settings.ttsVoiceOrig || settings.ttsVoice, triggerCurrentHighlight, handleWordBoundary);
           }
         }
 
@@ -1238,27 +1298,34 @@ async function playSentencesFlow(sentences) {
         await new Promise(r => setTimeout(r, 250));
         if (!isPlaying || stopImmediate || pendingJumpIndex !== null) continue;
 
-        // 译文句
+        // 译文句（保持屏幕原文高亮与段落上下文，字幕栏聚焦译文）
         const speechTrans = getSpeechText(transSentence || origSentence);
-        if (useCloud) {
-          try {
-            const dataUrlTrans = await getOrFetchTtsAudio(ttsEndpoint, speechTrans, transVoice, currentSpeed);
-            if (dataUrlTrans && isPlaying && !stopImmediate && pendingJumpIndex === null) {
-              await playAudioUrl(dataUrlTrans);
+        if (speechTrans) {
+          if (useCloud) {
+            try {
+              const dataUrlTrans = await getOrFetchTtsAudio(ttsEndpoint, speechTrans, transVoice, currentSpeed);
+              if (dataUrlTrans && isPlaying && !stopImmediate && pendingJumpIndex === null) {
+                await playAudioUrl(dataUrlTrans);
+              }
+            } catch(e) {
+              if (isPlaying && !stopImmediate && pendingJumpIndex === null) {
+                await playSpeechUtterance(speechTrans, targetLangCode, settings.ttsVoiceTrans);
+              }
             }
-          } catch(e) {
+          } else {
             if (isPlaying && !stopImmediate && pendingJumpIndex === null) {
               await playSpeechUtterance(speechTrans, targetLangCode, settings.ttsVoiceTrans);
             }
-          }
-        } else {
-          if (isPlaying && !stopImmediate && pendingJumpIndex === null) {
-            await playSpeechUtterance(speechTrans, targetLangCode, settings.ttsVoiceTrans);
           }
         }
       }
     } catch(err) {
       DebugLog.add('Sentence playback error: ' + err.message);
+    }
+
+    // 安全保底：如果因极短音频/纯标点导致未被触发，补全一次高亮记录
+    if (!currentSentenceHighlighted && isPlaying && !stopImmediate && pendingJumpIndex === null) {
+      triggerCurrentHighlight();
     }
 
     // 播放完成步进（如果用户未点跳转，自然推进到下一句）
@@ -1574,14 +1641,16 @@ function showSummaryCard(summaryList) {
   };
 }
 
-// ====== 句子高亮算法（基于 Range 精确字元定位 + 原生 CSS Custom Highlight 支持） ======
+// ====== 句子高亮算法（基于 Range 精确字元定位 + 原生 CSS Custom Highlight 支持 + 墨阅双层段落体系） ======
 let highlightSpans = [];
 let activeHighlightRange = null;
+let activeParagraphEl = null;
 
 function clearHighlights() {
   if (window.CSS && CSS.highlights) {
     try {
       CSS.highlights.delete('readmate-highlight');
+      CSS.highlights.delete('readmate-word-highlight');
     } catch(e) {}
   }
   highlightSpans.forEach(span => {
@@ -1594,6 +1663,102 @@ function clearHighlights() {
   });
   highlightSpans = [];
   activeHighlightRange = null;
+
+  if (activeParagraphEl) {
+    try {
+      activeParagraphEl.classList.remove('readmate-active-paragraph');
+    } catch(e) {}
+    activeParagraphEl = null;
+  }
+}
+
+/** 向上寻找合适的段落/块级容器元素（墨阅式段落级上下文视觉底座） */
+function findParagraphContainer(node) {
+  if (!node) return null;
+  let el = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+  while (el && el !== document.body && el !== document.documentElement) {
+    const tag = el.tagName.toLowerCase();
+    if (['p', 'li', 'blockquote', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'figcaption'].includes(tag)) {
+      return el;
+    }
+    if (tag === 'div' || tag === 'section' || tag === 'article') {
+      const len = el.textContent ? el.textContent.trim().length : 0;
+      // 避免选中整个大文章容器，只挑选合理长度的独立段落块
+      if (len > 0 && len < 2000) {
+        return el;
+      }
+    }
+    el = el.parentElement;
+  }
+  return null;
+}
+
+/** 更新当前活跃段落的高亮状态（保持平滑无感过渡） */
+function updateActiveParagraph(node) {
+  if (settings.highlightParagraphEnabled === false) return;
+  const newPara = findParagraphContainer(node);
+  if (activeParagraphEl && activeParagraphEl !== newPara) {
+    try { activeParagraphEl.classList.remove('readmate-active-paragraph'); } catch(e) {}
+    activeParagraphEl = null;
+  }
+  if (newPara && newPara !== activeParagraphEl) {
+    activeParagraphEl = newPara;
+    try { activeParagraphEl.classList.add('readmate-active-paragraph'); } catch(e) {}
+  }
+}
+
+/** 句内字词级流动高亮（原生 Speech boundary 事件驱动，卡拉OK式体验） */
+function highlightWordInRange(parentRange, charIndex, charLength = 1) {
+  if (!parentRange || !window.CSS || !CSS.highlights) return;
+  try {
+    const walker = document.createTreeWalker(
+      parentRange.commonAncestorContainer,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode(node) {
+          return parentRange.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        }
+      }
+    );
+
+    let currentOffset = 0;
+    let wordStartNode = null;
+    let wordStartOffset = 0;
+    let wordEndNode = null;
+    let wordEndOffset = 0;
+
+    let node;
+    while ((node = walker.nextNode())) {
+      const nodeStartInParent = Math.max(0, node === parentRange.startContainer ? parentRange.startOffset : 0);
+      const nodeEndInParent = Math.min(node.textContent.length, node === parentRange.endContainer ? parentRange.endOffset : node.textContent.length);
+      const effectiveLen = nodeEndInParent - nodeStartInParent;
+
+      if (!wordStartNode && charIndex >= currentOffset && charIndex < currentOffset + effectiveLen) {
+        wordStartNode = node;
+        wordStartOffset = nodeStartInParent + (charIndex - currentOffset);
+      }
+
+      const targetEnd = charIndex + Math.max(1, charLength);
+      if (!wordEndNode && targetEnd >= currentOffset && targetEnd <= currentOffset + effectiveLen) {
+        wordEndNode = node;
+        wordEndOffset = nodeStartInParent + (targetEnd - currentOffset);
+      }
+
+      currentOffset += effectiveLen;
+    }
+
+    if (wordStartNode) {
+      const wordRange = document.createRange();
+      wordRange.setStart(wordStartNode, wordStartOffset);
+      if (wordEndNode) {
+        wordRange.setEnd(wordEndNode, wordEndOffset);
+      } else {
+        wordRange.setEnd(wordStartNode, Math.min(wordStartNode.textContent.length, wordStartOffset + Math.max(1, charLength)));
+      }
+      const wordHl = new Highlight(wordRange);
+      CSS.highlights.set('readmate-word-highlight', wordHl);
+    }
+  } catch(e) {}
 }
 
 /** 在页面中精确定位目标句子的 Range（支持跨标签、跨行扫描） */
@@ -1688,6 +1853,7 @@ function highlightSentence(index) {
     if (h.textContent.trim().includes(targetText.substring(0, 20))) {
       h.classList.add('readmate-highlight-heading');
       highlightSpans.push(h);
+      updateActiveParagraph(h);
       h.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
@@ -1697,6 +1863,7 @@ function highlightSentence(index) {
   const range = findSentenceRange(targetText);
   if (range) {
     activeHighlightRange = range;
+    updateActiveParagraph(range.commonAncestorContainer || range.startContainer);
     let customHighlightSuccess = false;
     if (window.CSS && CSS.highlights) {
       try {

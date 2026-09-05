@@ -183,6 +183,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         translateTarget: 'Simplified Chinese',
         defaultSummaryView: 'bilingual',
         highlightEnabled: true,
+        highlightParagraphEnabled: true,
+        highlightOffset: 0,
         autoTranslate: false,
         uiLanguage: 'auto',
         enableShortcuts: true,

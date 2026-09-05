@@ -176,6 +176,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('translateTarget').value = settings.translateTarget || 'Simplified Chinese';
     document.getElementById('defaultSummaryView').value = settings.defaultSummaryView || 'bilingual';
     document.getElementById('highlightEnabled').checked = settings.highlightEnabled !== false;
+    document.getElementById('highlightParagraphEnabled').checked = settings.highlightParagraphEnabled !== false;
 
     // Cloud TTS
     document.getElementById('cloudTtsEndpoint').value = settings.cloudTtsEndpoint || 'http://192.168.199.159:5001';
@@ -311,6 +312,7 @@ function saveSettings(silent) {
     translateTarget: document.getElementById('translateTarget').value,
     defaultSummaryView: document.getElementById('defaultSummaryView')?.value || 'bilingual',
     highlightEnabled: document.getElementById('highlightEnabled').checked,
+    highlightParagraphEnabled: document.getElementById('highlightParagraphEnabled').checked,
     uiLanguage: activeUiLang,
   };
 

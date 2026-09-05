@@ -143,6 +143,10 @@
     "message": "Sentence Highlight",
     "description": "Sentence highlight label"
   },
+  "lblHighlightParagraph": {
+    "message": "Paragraph Context Highlight",
+    "description": "Paragraph highlight toggle label"
+  },
   "btnTestAi": {
     "message": "Test AI Connection",
     "description": "Test AI button"

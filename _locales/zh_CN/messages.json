@@ -143,6 +143,10 @@
     "message": "朗读高亮",
     "description": "朗读高亮标签"
   },
+  "lblHighlightParagraph": {
+    "message": "段落上下文高亮",
+    "description": "段落上下文高亮标签"
+  },
   "btnTestAi": {
     "message": "测试 AI 连接",
     "description": "测试AI按钮"
