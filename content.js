@@ -269,6 +269,8 @@ let suppressNextFabClick = false;
 
 function updateFABI18n() {
   if (!fabContainer) return;
+  const readerBtn = fabContainer.querySelector('#readmate-fab-reader');
+  if (readerBtn) readerBtn.title = _t('btnReaderMode', '📖 沉浸净读模式 (Alt+R / F9)');
   const summaryBtn = fabContainer.querySelector('#readmate-fab-summary');
   if (summaryBtn) summaryBtn.title = _t('fabSummaryTip', 'AI 双语摘要');
   const playBtn = fabContainer.querySelector('#readmate-fab-play');
@@ -365,6 +367,8 @@ function updateFloatingBarI18n() {
 
   const summaryBtn = floatingBar.querySelector('#readmate-summary-btn');
   if (summaryBtn) summaryBtn.title = _t('fabSummaryTip', 'AI 双语摘要');
+  const readerBtn = floatingBar.querySelector('#readmate-bar-reader-btn');
+  if (readerBtn) readerBtn.title = _t('btnReaderMode', '📖 沉浸净读模式 (Alt+R / F9)');
 }
 
 /** 智能文本语言检测辅助函数 */
@@ -384,10 +388,17 @@ function createFAB() {
   fabContainer = document.createElement('div');
   fabContainer.id = 'readmate-fab-container';
   fabContainer.innerHTML = `
+    <button id="readmate-fab-reader" class="readmate-fab-btn readmate-fab-btn-sm" title="${_t('btnReaderMode', '📖 沉浸净读模式 (Alt+R / F9)')}">📖</button>
     <button id="readmate-fab-summary" class="readmate-fab-btn readmate-fab-btn-sm" title="${_t('fabSummaryTip', 'AI 双语摘要')}">⚡</button>
     <button id="readmate-fab-play" class="readmate-fab-btn" title="${_t('fabPlayTip', '朗读当前文章 (Ctrl+Shift+P)')}">▶</button>
   `;
   document.body.appendChild(fabContainer);
+
+  const readerBtn = fabContainer.querySelector('#readmate-fab-reader');
+  readerBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleReaderMode();
+  });
 
   const summaryBtn = fabContainer.querySelector('#readmate-fab-summary');
   summaryBtn.addEventListener('click', (e) => {
@@ -480,6 +491,7 @@ function createFloatingBar() {
           <input type="checkbox" id="readmate-sub-chk" ${showBilingualSubtitles ? 'checked' : ''}>
           <span id="readmate-subtitles-text">${_t('lblSubtitles', '字幕')}</span>
         </label>
+        <button class="readmate-btn readmate-btn-reader" id="readmate-bar-reader-btn" title="${_t('btnReaderMode', '📖 沉浸净读模式 (Alt+R / F9)')}">📖</button>
         <button class="readmate-btn readmate-btn-summary" id="readmate-summary-btn" title="${_t('fabSummaryTip', 'AI 双语摘要')}">⚡</button>
         <button class="readmate-btn" id="readmate-debug-btn" title="Debug" style="display:none">🐛</button>
         <button class="readmate-btn readmate-btn-close" id="readmate-close-btn" title="Close">✕</button>
@@ -511,6 +523,7 @@ function createFloatingBar() {
     floatingBar.querySelector('#readmate-close-btn').onclick = () => stopReading(true);
     floatingBar.querySelector('#readmate-prev-sentence').onclick = prevSentence;
     floatingBar.querySelector('#readmate-next-sentence').onclick = nextSentence;
+    floatingBar.querySelector('#readmate-bar-reader-btn').onclick = toggleReaderMode;
     floatingBar.querySelector('#readmate-summary-btn').onclick = generateAISummary;
 
     // 语音流模式切换（立即清空旧缓存，秒级生效）
@@ -739,30 +752,30 @@ function stopReading(isUser = true) {
 
 let pendingJumpIndex = null;
 
-function prevSentence() {
+function jumpToSentence(target) {
   if (!currentSentences || currentSentences.length === 0) return;
-  const target = Math.max(0, currentSentenceIndex - 1);
-  pendingJumpIndex = target;
+  const idx = Math.max(0, Math.min(currentSentences.length - 1, target));
+  pendingJumpIndex = idx;
   isPaused = false;
   const playBtn = floatingBar?.querySelector('#readmate-play-btn');
   if (playBtn) playBtn.textContent = '⏸';
-  DebugLog.add(`prevSentence clicked: jumping to ${target + 1}/${currentSentences.length}`);
+  DebugLog.add(`jumpToSentence clicked: jumping to ${idx + 1}/${currentSentences.length}`);
   if (interruptCurrentPlayback) {
     interruptCurrentPlayback();
   }
+  if (isReaderModeActive) {
+    highlightReaderModeSentence(idx);
+  }
+}
+
+function prevSentence() {
+  if (!currentSentences || currentSentences.length === 0) return;
+  jumpToSentence(currentSentenceIndex - 1);
 }
 
 function nextSentence() {
   if (!currentSentences || currentSentences.length === 0) return;
-  const target = Math.min(currentSentences.length - 1, currentSentenceIndex + 1);
-  pendingJumpIndex = target;
-  isPaused = false;
-  const playBtn = floatingBar?.querySelector('#readmate-play-btn');
-  if (playBtn) playBtn.textContent = '⏸';
-  DebugLog.add(`nextSentence clicked: jumping to ${target + 1}/${currentSentences.length}`);
-  if (interruptCurrentPlayback) {
-    interruptCurrentPlayback();
-  }
+  jumpToSentence(currentSentenceIndex + 1);
 }
 
 // ====== 翻译预取流水线（确保读译文和双语无延迟） ======
@@ -1647,6 +1660,10 @@ let activeHighlightRange = null;
 let activeParagraphEl = null;
 
 function clearHighlights() {
+  if (isReaderModeActive && readerOverlay) {
+    readerOverlay.querySelectorAll('.readmate-reader-active-s').forEach(el => el.classList.remove('readmate-reader-active-s'));
+    readerOverlay.querySelectorAll('.readmate-reader-active-p').forEach(el => el.classList.remove('readmate-reader-active-p'));
+  }
   if (window.CSS && CSS.highlights) {
     try {
       CSS.highlights.delete('readmate-highlight');
@@ -1842,6 +1859,9 @@ function findSentenceRange(targetText) {
 
 function highlightSentence(index) {
   clearHighlights();
+  if (isReaderModeActive) {
+    highlightReaderModeSentence(index);
+  }
   if (!settings.highlightEnabled || !currentSentences[index]) return;
 
   const targetText = currentSentences[index].trim();
@@ -1898,6 +1918,264 @@ function highlightSentence(index) {
         behavior: 'smooth'
       });
     } catch(e) {}
+  }
+}
+
+// ====== 沉浸净读模式（方案 A 全屏纯净书页） ======
+let isReaderModeActive = false;
+let readerOverlay = null;
+let readerTheme = 'sepia';
+let readerFontSize = 19;
+try {
+  readerTheme = localStorage.getItem('readmate_reader_theme') || 'sepia';
+  readerFontSize = parseInt(localStorage.getItem('readmate_reader_font_size') || '19', 10);
+} catch(e) {}
+let cachedReaderContent = null;
+
+function ensureReaderOverlay() {
+  if (readerOverlay) return readerOverlay;
+
+  readerOverlay = document.createElement('div');
+  readerOverlay.id = 'readmate-reader-overlay';
+  readerOverlay.dataset.theme = readerTheme;
+  readerOverlay.style.display = 'none';
+
+  readerOverlay.innerHTML = `
+    <header class="readmate-reader-header">
+      <div class="readmate-reader-header-left">
+        <button id="readmate-reader-close" class="readmate-reader-btn" title="${_t('btnExitReader', '返回网页 (ESC)')}">
+          ✕ ${_t('btnExitReader', '返回网页')}
+        </button>
+      </div>
+      <div class="readmate-reader-header-center">
+        <span class="readmate-reader-stats" id="readmate-reader-stats"></span>
+      </div>
+      <div class="readmate-reader-header-right">
+        <!-- 主题切换 -->
+        <div class="readmate-theme-picker" title="${_t('tipThemePicker', '切换阅读底色')}">
+          <button class="readmate-theme-dot theme-sepia ${readerTheme === 'sepia' ? 'active' : ''}" data-theme="sepia" title="米黄羊皮纸"></button>
+          <button class="readmate-theme-dot theme-light ${readerTheme === 'light' ? 'active' : ''}" data-theme="light" title="纯净白"></button>
+          <button class="readmate-theme-dot theme-green ${readerTheme === 'green' ? 'active' : ''}" data-theme="green" title="护眼绿"></button>
+          <button class="readmate-theme-dot theme-dark ${readerTheme === 'dark' ? 'active' : ''}" data-theme="dark" title="夜间墨黑"></button>
+        </div>
+        <!-- 字号调节 -->
+        <div class="readmate-font-controls" title="${_t('tipFontSize', '调节正文字号')}">
+          <button id="readmate-font-dec" class="readmate-reader-btn-icon" title="缩小字号">A-</button>
+          <span id="readmate-font-val">${readerFontSize}</span>
+          <button id="readmate-font-inc" class="readmate-reader-btn-icon" title="放大字号">A+</button>
+        </div>
+        <!-- 导出 PDF -->
+        <button id="readmate-reader-print-btn" class="readmate-reader-btn readmate-btn-pdf" title="${_t('btnExportPdf', '导出排版 PDF (打印)')}">
+          📄 PDF
+        </button>
+      </div>
+    </header>
+
+    <main class="readmate-reader-main" id="readmate-reader-main">
+      <article class="readmate-reader-article" id="readmate-reader-article">
+        <h1 class="readmate-reader-title" id="readmate-reader-title"></h1>
+        <div class="readmate-reader-meta" id="readmate-reader-meta"></div>
+        <div class="readmate-reader-body" id="readmate-reader-body" style="font-size: ${readerFontSize}px;"></div>
+      </article>
+    </main>
+  `;
+
+  document.body.appendChild(readerOverlay);
+
+  // 绑定事件
+  readerOverlay.querySelector('#readmate-reader-close').onclick = closeReaderMode;
+
+  // 主题切换
+  readerOverlay.querySelectorAll('.readmate-theme-dot').forEach(btn => {
+    btn.onclick = () => {
+      const th = btn.dataset.theme;
+      if (!th) return;
+      readerTheme = th;
+      readerOverlay.dataset.theme = th;
+      readerOverlay.querySelectorAll('.readmate-theme-dot').forEach(b => b.classList.toggle('active', b === btn));
+      try { localStorage.setItem('readmate_reader_theme', th); } catch(e) {}
+    };
+  });
+
+  // 字号增减
+  const fontValEl = readerOverlay.querySelector('#readmate-font-val');
+  const bodyEl = readerOverlay.querySelector('#readmate-reader-body');
+  readerOverlay.querySelector('#readmate-font-dec').onclick = () => {
+    readerFontSize = Math.max(14, readerFontSize - 1);
+    fontValEl.textContent = readerFontSize;
+    bodyEl.style.fontSize = readerFontSize + 'px';
+    try { localStorage.setItem('readmate_reader_font_size', String(readerFontSize)); } catch(e) {}
+  };
+  readerOverlay.querySelector('#readmate-font-inc').onclick = () => {
+    readerFontSize = Math.min(28, readerFontSize + 1);
+    fontValEl.textContent = readerFontSize;
+    bodyEl.style.fontSize = readerFontSize + 'px';
+    try { localStorage.setItem('readmate_reader_font_size', String(readerFontSize)); } catch(e) {}
+  };
+
+  // 导出 PDF
+  readerOverlay.querySelector('#readmate-reader-print-btn').onclick = exportPdf;
+
+  // “指哪读哪”：点击任意句子进行跳转或开播
+  bodyEl.addEventListener('click', async (e) => {
+    const sEl = e.target.closest('.readmate-reader-s');
+    if (!sEl || sEl.dataset.sentenceIdx === undefined) return;
+    const sIdx = parseInt(sEl.dataset.sentenceIdx, 10);
+    if (isNaN(sIdx)) return;
+
+    if (!isPlaying) {
+      currentMode = 'page';
+      let pageText = cachedArticleText;
+      if (!pageText) {
+        pageText = cachedReaderContent ? cachedReaderContent.text : (document.body.innerText || '');
+      }
+      showBar();
+      await startReading(pageText);
+      jumpToSentence(sIdx);
+    } else {
+      jumpToSentence(sIdx);
+    }
+  });
+
+  return readerOverlay;
+}
+
+function renderReaderModeContent() {
+  ensureReaderOverlay();
+  let content = null;
+  try {
+    content = ContentExtractor.extract(document);
+  } catch(e) {
+    DebugLog.add('ContentExtractor in reader mode error: ' + e.message);
+  }
+
+  const titleEl = readerOverlay.querySelector('#readmate-reader-title');
+  const metaEl = readerOverlay.querySelector('#readmate-reader-meta');
+  const bodyEl = readerOverlay.querySelector('#readmate-reader-body');
+  const statsEl = readerOverlay.querySelector('#readmate-reader-stats');
+
+  const pageTitle = (content && content.title) ? content.title : (document.title || 'Untitled Article');
+  titleEl.textContent = pageTitle;
+
+  // 提取段落
+  let paras = (content && content.paragraphs && content.paragraphs.length > 0)
+    ? content.paragraphs
+    : (content && content.text ? content.text.split(/\n{2,}/) : document.body.innerText.split(/\n{2,}/));
+  paras = paras.map(p => p.trim()).filter(p => p.length > 0);
+
+  // 统计与 Meta
+  const totalChars = paras.reduce((sum, p) => sum + p.length, 0);
+  const estMinutes = Math.max(1, Math.round(totalChars / 350));
+  const domain = window.location.hostname.replace(/^www\./, '');
+
+  statsEl.textContent = `${totalChars} ${_t('statChars', '字')} · ${_t('statEst', '约')} ${estMinutes} ${_t('statMins', '分钟')}`;
+  metaEl.innerHTML = `
+    <span>🌐 ${domain}</span>
+    <span>⏱️ ${_t('statEst', '约')} ${estMinutes} ${_t('statMins', '分钟朗读')}</span>
+    <span>📝 ${paras.length} ${_t('statParas', '个段落')}</span>
+  `;
+
+  // 构建段落与句子 HTML（全局句子编号与 currentSentences 保持严格对应）
+  let globalSentenceCounter = 0;
+  const validSentencesList = [];
+  const parasHtml = paras.map((p, pIdx) => {
+    let cleanP = p;
+    try {
+      cleanP = TextUtils.preprocess(p, {
+        stripHtml: true,
+        collapseWhitespace: true,
+      });
+    } catch(e) {}
+
+    let sentences = [];
+    try {
+      sentences = TextUtils.splitSentences(cleanP);
+    } catch(e) {
+      sentences = [cleanP];
+    }
+
+    sentences = sentences.filter(s => {
+      const cl = getSpeechText(s);
+      return cl && cl.replace(/[\s.,!?;:，。！？；：'"`~—\-_/\\|]+/g, '').length > 0;
+    });
+
+    if (sentences.length === 0) return '';
+
+    const spansHtml = sentences.map(s => {
+      const idx = globalSentenceCounter++;
+      validSentencesList.push(s);
+      const safeText = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      return `<span class="readmate-reader-s" data-sentence-idx="${idx}">${safeText}</span>`;
+    }).join(' ');
+
+    return `<p class="readmate-reader-p" data-para-idx="${pIdx}">${spansHtml}</p>`;
+  }).join('\n');
+
+  bodyEl.innerHTML = parasHtml;
+
+  // 缓存文章文本
+  const allFullText = validSentencesList.join('\n\n');
+  cachedReaderContent = { title: pageTitle, text: allFullText, paragraphs: paras };
+  if (!cachedArticleText) cachedArticleText = allFullText;
+}
+
+function openReaderMode() {
+  if (isReaderModeActive) return;
+  isReaderModeActive = true;
+  ensureReaderOverlay();
+  renderReaderModeContent();
+  readerOverlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  hideFAB();
+  if (isPlaying && floatingBar) {
+    showBar();
+    highlightReaderModeSentence(currentSentenceIndex);
+  }
+  DebugLog.add('Reader Mode opened');
+}
+
+function closeReaderMode() {
+  if (!isReaderModeActive) return;
+  isReaderModeActive = false;
+  if (readerOverlay) {
+    readerOverlay.style.display = 'none';
+  }
+  document.body.style.overflow = '';
+  showFAB();
+  if (isPlaying) {
+    highlightSentence(currentSentenceIndex);
+  }
+  DebugLog.add('Reader Mode closed');
+}
+
+function toggleReaderMode() {
+  if (isReaderModeActive) closeReaderMode();
+  else openReaderMode();
+}
+
+function exportPdf() {
+  if (!isReaderModeActive) openReaderMode();
+  document.body.classList.add('readmate-print-mode');
+  showTranslation(_t('toastPreparingPdf', '📄 正在唤起系统打印/保存为 PDF...'), true);
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => {
+      document.body.classList.remove('readmate-print-mode');
+    }, 500);
+  }, 150);
+}
+
+function highlightReaderModeSentence(index) {
+  if (!readerOverlay || !isReaderModeActive) return;
+  readerOverlay.querySelectorAll('.readmate-reader-active-s').forEach(el => el.classList.remove('readmate-reader-active-s'));
+  readerOverlay.querySelectorAll('.readmate-reader-active-p').forEach(el => el.classList.remove('readmate-reader-active-p'));
+
+  const targetSpan = readerOverlay.querySelector(`.readmate-reader-s[data-sentence-idx="${index}"]`);
+  if (targetSpan) {
+    targetSpan.classList.add('readmate-reader-active-s');
+    const p = targetSpan.closest('.readmate-reader-p');
+    if (p) p.classList.add('readmate-reader-active-p');
+    targetSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 }
 
@@ -1985,6 +2263,22 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       togglePlayPause();
       sendResponse({ ok: true });
       break;
+    case 'toggleReaderMode':
+      toggleReaderMode();
+      sendResponse({ ok: true });
+      break;
+  }
+});
+
+// 全局键盘快捷键监听（ESC 退出净读模式 / 摘要，Alt+R 或 F9 切换净读模式）
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' || e.keyCode === 27) {
+    if (isReaderModeActive) {
+      closeReaderMode();
+    }
+  } else if ((e.altKey && (e.key === 'r' || e.key === 'R')) || e.key === 'F9') {
+    e.preventDefault();
+    toggleReaderMode();
   }
 });
 

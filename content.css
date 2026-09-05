@@ -652,3 +652,307 @@ h6.readmate-active-paragraph {
   border-left: 4px solid #38bdf8 !important;
   padding-left: 6px !important;
 }
+
+/* ========================================================
+   沉浸净读模式（Reader Mode 抽屉） — 方案 A 全屏纯净书页
+   ======================================================== */
+
+#readmate-reader-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 2147483640 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif !important;
+  transition: background-color 0.25s ease, color 0.25s ease !important;
+  scroll-behavior: smooth !important;
+}
+
+/* 4 种经典主题配色 */
+#readmate-reader-overlay[data-theme="sepia"] {
+  background-color: #FAF8F5 !important;
+  color: #2D2A26 !important;
+}
+#readmate-reader-overlay[data-theme="light"] {
+  background-color: #FFFFFF !important;
+  color: #1E293B !important;
+}
+#readmate-reader-overlay[data-theme="green"] {
+  background-color: #F0F7F4 !important;
+  color: #233831 !important;
+}
+#readmate-reader-overlay[data-theme="dark"] {
+  background-color: #181825 !important;
+  color: #CDD6F4 !important;
+}
+
+/* 顶部极简工具条 */
+.readmate-reader-header {
+  position: sticky !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 56px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 24px !important;
+  box-sizing: border-box !important;
+  backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  z-index: 10 !important;
+}
+#readmate-reader-overlay[data-theme="dark"] .readmate-reader-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.readmate-reader-header-left,
+.readmate-reader-header-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.readmate-reader-stats {
+  font-size: 13px !important;
+  opacity: 0.65 !important;
+  user-select: none !important;
+}
+
+/* 通用按钮 */
+.readmate-reader-btn {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  color: inherit !important;
+  padding: 6px 14px !important;
+  border-radius: 20px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  transition: all 0.2s ease !important;
+}
+#readmate-reader-overlay[data-theme="dark"] .readmate-reader-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+.readmate-reader-btn:hover {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border-color: #3b82f6 !important;
+  color: #2563eb !important;
+}
+#readmate-reader-overlay[data-theme="dark"] .readmate-reader-btn:hover {
+  color: #60a5fa !important;
+}
+
+.readmate-btn-pdf {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #fff !important;
+}
+.readmate-btn-pdf:hover {
+  background: #1d4ed8 !important;
+  color: #fff !important;
+}
+
+/* 主题选择圆点 */
+.readmate-theme-picker {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 4px 8px !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-radius: 20px !important;
+}
+#readmate-reader-overlay[data-theme="dark"] .readmate-theme-picker {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+.readmate-theme-dot {
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 50% !important;
+  border: 2px solid transparent !important;
+  cursor: pointer !important;
+  transition: transform 0.2s ease, border-color 0.2s ease !important;
+  padding: 0 !important;
+}
+.readmate-theme-dot:hover {
+  transform: scale(1.15) !important;
+}
+.readmate-theme-dot.active {
+  border-color: #3b82f6 !important;
+  transform: scale(1.12) !important;
+}
+.readmate-theme-dot.theme-sepia { background-color: #FAF8F5 !important; border-color: #d1cdc7 !important; }
+.readmate-theme-dot.theme-light { background-color: #FFFFFF !important; border-color: #cbd5e1 !important; }
+.readmate-theme-dot.theme-green { background-color: #E2ECE7 !important; border-color: #b5c7bf !important; }
+.readmate-theme-dot.theme-dark  { background-color: #181825 !important; border-color: #45475a !important; }
+.readmate-theme-dot.active.theme-sepia { border-color: #3b82f6 !important; }
+.readmate-theme-dot.active.theme-light { border-color: #3b82f6 !important; }
+.readmate-theme-dot.active.theme-green { border-color: #3b82f6 !important; }
+.readmate-theme-dot.active.theme-dark  { border-color: #3b82f6 !important; }
+
+/* 字号缩放控制组 */
+.readmate-font-controls {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+  padding: 2px 8px !important;
+  border-radius: 20px !important;
+}
+#readmate-reader-overlay[data-theme="dark"] .readmate-font-controls {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+.readmate-reader-btn-icon {
+  background: none !important;
+  border: none !important;
+  color: inherit !important;
+  font-size: 13px !important;
+  font-weight: bold !important;
+  padding: 4px 6px !important;
+  cursor: pointer !important;
+  border-radius: 4px !important;
+}
+.readmate-reader-btn-icon:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+#readmate-font-val {
+  font-size: 12px !important;
+  font-family: monospace !important;
+  min-width: 18px !important;
+  text-align: center !important;
+  user-select: none !important;
+}
+
+/* 正文卷轴区域 */
+.readmate-reader-main {
+  flex: 1 !important;
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+.readmate-reader-article {
+  width: 100% !important;
+  max-width: 820px !important;
+  padding: 48px 32px 140px 32px !important;
+  box-sizing: border-box !important;
+}
+
+.readmate-reader-title {
+  font-size: 32px !important;
+  line-height: 1.35 !important;
+  font-weight: 700 !important;
+  margin-bottom: 16px !important;
+  letter-spacing: -0.01em !important;
+}
+
+.readmate-reader-meta {
+  font-size: 13.5px !important;
+  opacity: 0.65 !important;
+  margin-bottom: 36px !important;
+  padding-bottom: 16px !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  display: flex !important;
+  gap: 16px !important;
+  flex-wrap: wrap !important;
+}
+#readmate-reader-overlay[data-theme="dark"] .readmate-reader-meta {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.readmate-reader-body {
+  font-size: 19px;
+  line-height: 1.85 !important;
+}
+
+.readmate-reader-p {
+  margin-bottom: 1.6em !important;
+  transition: all 0.25s ease !important;
+  border-left: 3.5px solid transparent !important;
+  padding-left: 12px !important;
+  border-radius: 4px !important;
+}
+
+/* 墨阅同款：净读模式下的段落激活指示 */
+.readmate-reader-p.readmate-reader-active-p {
+  border-left: 3.5px solid #3b82f6 !important;
+  background-color: rgba(59, 130, 246, 0.06) !important;
+}
+
+/* 句子包装与点击指哪读哪 */
+.readmate-reader-s {
+  cursor: pointer !important;
+  border-radius: 3px !important;
+  padding: 1px 2px !important;
+  transition: background-color 0.2s ease, color 0.2s ease !important;
+}
+.readmate-reader-s:hover {
+  background-color: rgba(59, 130, 246, 0.12) !important;
+}
+
+/* 句子正在朗读焦点 */
+.readmate-reader-s.readmate-reader-active-s {
+  background-color: rgba(254, 240, 138, 0.8) !important;
+  color: #1c1917 !important;
+  box-shadow: 0 0 0 2px rgba(254, 240, 138, 0.6) !important;
+  font-weight: 500 !important;
+}
+#readmate-reader-overlay[data-theme="dark"] .readmate-reader-s.readmate-reader-active-s {
+  background-color: rgba(234, 179, 8, 0.85) !important;
+  color: #0f172a !important;
+  box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.5) !important;
+}
+
+/* 页面内图片排版美化 */
+.readmate-reader-body img {
+  max-width: 100% !important;
+  height: auto !important;
+  border-radius: 8px !important;
+  margin: 1.5em auto !important;
+  display: block !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ====== 📄 纯净 PDF 打印专用样式 ====== */
+@media print {
+  body.readmate-print-mode > *:not(#readmate-reader-overlay) {
+    display: none !important;
+  }
+  body.readmate-print-mode #readmate-reader-overlay {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+  body.readmate-print-mode .readmate-reader-header,
+  body.readmate-print-mode #readmate-bar,
+  body.readmate-print-mode #readmate-fab-container,
+  body.readmate-print-mode .readmate-reader-btn {
+    display: none !important;
+  }
+  body.readmate-print-mode .readmate-reader-article {
+    max-width: 100% !important;
+    padding: 24px !important;
+  }
+  body.readmate-print-mode .readmate-reader-s.readmate-reader-active-s {
+    background: none !important;
+    color: inherit !important;
+    box-shadow: none !important;
+  }
+  body.readmate-print-mode .readmate-reader-p.readmate-reader-active-p {
+    border-left-color: transparent !important;
+    background: none !important;
+  }
+}

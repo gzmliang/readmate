@@ -314,5 +314,45 @@
   "lblEnableBilingual": {
     "message": "Bilingual translation (saves tokens when off)",
     "description": "Bilingual toggle tooltip"
+  },
+  "btnReaderMode": {
+    "message": "Immersive Reader Mode",
+    "description": "Reader mode button label"
+  },
+  "btnExitReader": {
+    "message": "Back to Webpage",
+    "description": "Exit reader mode label"
+  },
+  "btnExportPdf": {
+    "message": "Export PDF",
+    "description": "Export PDF label"
+  },
+  "tipThemePicker": {
+    "message": "Switch reader background theme",
+    "description": "Theme picker tip"
+  },
+  "tipFontSize": {
+    "message": "Adjust reading font size",
+    "description": "Font size tip"
+  },
+  "statChars": {
+    "message": "chars",
+    "description": "Characters unit"
+  },
+  "statEst": {
+    "message": "approx.",
+    "description": "Approximately"
+  },
+  "statMins": {
+    "message": "min read",
+    "description": "Minutes of reading"
+  },
+  "statParas": {
+    "message": "paragraphs",
+    "description": "Paragraphs count"
+  },
+  "toastPreparingPdf": {
+    "message": "📄 Opening print preview for PDF export...",
+    "description": "Preparing PDF toast"
   }
 }

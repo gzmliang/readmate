@@ -314,5 +314,45 @@
   "lblEnableBilingual": {
     "message": "双语翻译 (不勾选省Token)",
     "description": "双语勾选提示"
+  },
+  "btnReaderMode": {
+    "message": "沉浸净读模式",
+    "description": "Reader mode button label"
+  },
+  "btnExitReader": {
+    "message": "返回网页",
+    "description": "Exit reader mode label"
+  },
+  "btnExportPdf": {
+    "message": "导出 PDF",
+    "description": "Export PDF label"
+  },
+  "tipThemePicker": {
+    "message": "切换阅读底色",
+    "description": "Theme picker tip"
+  },
+  "tipFontSize": {
+    "message": "调节正文字号",
+    "description": "Font size tip"
+  },
+  "statChars": {
+    "message": "字",
+    "description": "Characters unit"
+  },
+  "statEst": {
+    "message": "约",
+    "description": "Approximately"
+  },
+  "statMins": {
+    "message": "分钟朗读",
+    "description": "Minutes of reading"
+  },
+  "statParas": {
+    "message": "个段落",
+    "description": "Paragraphs count"
+  },
+  "toastPreparingPdf": {
+    "message": "📄 正在唤起系统打印/保存为 PDF...",
+    "description": "Preparing PDF toast"
   }
 }
