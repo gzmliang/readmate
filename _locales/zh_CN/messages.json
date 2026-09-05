@@ -370,5 +370,21 @@
   "statSentences": {
     "message": "个句子",
     "description": "Sentences count unit"
+  },
+  "btnDownloadAudio": {
+    "message": "下载整篇语音 (MP3)",
+    "description": "Download audio button"
+  },
+  "btnAudio": {
+    "message": "下载语音",
+    "description": "Download audio button label"
+  },
+  "btnVocabNotebook": {
+    "message": "我的生词本",
+    "description": "Vocab notebook button"
+  },
+  "btnVocab": {
+    "message": "生词本",
+    "description": "Vocab button label"
   }
 }

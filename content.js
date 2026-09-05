@@ -1972,8 +1972,16 @@ function ensureReaderOverlay() {
           <button id="readmate-font-inc" class="readmate-reader-btn-icon" title="放大字号">A+</button>
         </div>
         <!-- 导出 PDF -->
-        <button id="readmate-reader-print-btn" class="readmate-reader-btn readmate-btn-pdf" title="${_t('btnExportPdf', '导出排版 PDF (打印)')}">
+        <button id="readmate-reader-print-btn" class="readmate-reader-btn" title="${_t('btnExportPdf', '导出排版 PDF (打印)')}">
           📄 PDF
+        </button>
+        <!-- 导出整篇有声书 -->
+        <button id="readmate-reader-download-audio-btn" class="readmate-reader-btn readmate-btn-pdf" title="${_t('btnDownloadAudio', '下载整篇语音 (MP3)')}">
+          📥 ${_t('btnAudio', '下载语音')}
+        </button>
+        <!-- 生词本 -->
+        <button id="readmate-reader-vocab-btn" class="readmate-reader-btn" title="${_t('btnVocabNotebook', '我的生词本')}">
+          📚 ${_t('btnVocab', '生词本')}
         </button>
       </div>
     </header>
@@ -2042,6 +2050,12 @@ function ensureReaderOverlay() {
 
   // 导出 PDF
   readerOverlay.querySelector('#readmate-reader-print-btn').onclick = exportPdf;
+
+  // 下载整篇语音 MP3
+  readerOverlay.querySelector('#readmate-reader-download-audio-btn').onclick = downloadFullAudio;
+
+  // 生词本抽屉
+  readerOverlay.querySelector('#readmate-reader-vocab-btn').onclick = openVocabDrawer;
 
   // “指哪读哪”：点击任意句子直接精准跳转到该句播放！
   bodyEl.addEventListener('click', async (e) => {
@@ -2268,6 +2282,368 @@ function highlightReaderModeSentence(index) {
     targetSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 }
+
+// ========================================================
+// 📥 整篇语音有声书合成打包下载（离线听书导出）
+// ========================================================
+let isDownloadingAudio = false;
+
+async function downloadFullAudio() {
+  if (isDownloadingAudio) {
+    showTranslation(_t('toastAudioDownloading', '⏳ 正在合成中，请稍候...'), true);
+    return;
+  }
+  if (!readerSentences || readerSentences.length === 0) {
+    renderReaderModeContent();
+  }
+  if (!readerSentences || readerSentences.length === 0) {
+    showTranslation(_t('toastNoContentToDownload', '⚠️ 没有可下载的文章内容'), true);
+    return;
+  }
+
+  isDownloadingAudio = true;
+  await loadSettings();
+  const title = (cachedReaderContent && cachedReaderContent.title) ? cachedReaderContent.title : (document.title || 'ReadMate_Article');
+  const cleanTitle = title.replace(/[\\/:*?"<>|]+/g, '_').substring(0, 40);
+
+  const ttsEndpoint = (settings.cloudTtsEndpoint || 'http://192.168.199.159:5001').replace(/\/+$/, '') + '/tts';
+  const origVoice = getBestVoiceForLang(detectedDocLang, settings.cloudTtsVoiceOrig || settings.cloudTtsVoice) || 'zh-CN-XiaoxiaoNeural';
+  const speed = settings.ttsSpeed || 1.0;
+
+  showTranslation(`📥 开始合成整篇有声书（共 ${readerSentences.length} 句）...`, true);
+
+  const audioBuffers = [];
+  try {
+    for (let i = 0; i < readerSentences.length; i++) {
+      const sentence = readerSentences[i];
+      const speech = getSpeechText(sentence);
+      if (!speech) continue;
+
+      showTranslation(`📥 正在合成语音 (${i + 1}/${readerSentences.length} 句)...`, true);
+
+      // 请求单句音频
+      const dataUrl = await getOrFetchTtsAudio(ttsEndpoint, speech, origVoice, speed);
+      if (dataUrl && dataUrl.startsWith('data:')) {
+        const base64Data = dataUrl.split(',')[1];
+        const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let b = 0; b < binaryString.length; b++) {
+          bytes[b] = binaryString.charCodeAt(b);
+        }
+        audioBuffers.push(bytes);
+      }
+    }
+
+    if (audioBuffers.length === 0) {
+      throw new Error('未获取到音频数据');
+    }
+
+    // 顺序拼接所有 MP3 帧为单个完整音频文件
+    const mergedBlob = new Blob(audioBuffers, { type: 'audio/mpeg' });
+    const downloadUrl = URL.createObjectURL(mergedBlob);
+
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = `${cleanTitle}_ReadMate有声朗读.mp3`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      a.remove();
+      URL.revokeObjectURL(downloadUrl);
+    }, 6000);
+
+    showTranslation('🎉 整篇有声书已合成完毕并开始下载！', true);
+  } catch(err) {
+    DebugLog.add('downloadFullAudio error: ' + err.message);
+    showTranslation('❌ 语音合成下载失败: ' + err.message, true);
+  } finally {
+    isDownloadingAudio = false;
+  }
+}
+
+// ========================================================
+// 📚 点词查词小气泡与生词本管理（Vocab Notebook）
+// ========================================================
+let dictBubble = null;
+let vocabDrawer = null;
+let currentLookupWord = null;
+let currentLookupContext = '';
+
+function getStoredVocabList() {
+  return new Promise((resolve) => {
+    try {
+      chrome.storage.local.get(['readmate_vocab_list'], (res) => {
+        resolve(res?.readmate_vocab_list || []);
+      });
+    } catch(e) { resolve([]); }
+  });
+}
+
+function saveStoredVocabList(list) {
+  return new Promise((resolve) => {
+    try {
+      chrome.storage.local.set({ readmate_vocab_list: list }, () => resolve());
+    } catch(e) { resolve(); }
+  });
+}
+
+function showDictBubble(word, rect, contextSentence = '') {
+  hideDictBubble();
+  currentLookupWord = word;
+  currentLookupContext = contextSentence;
+
+  dictBubble = document.createElement('div');
+  dictBubble.id = 'readmate-dict-bubble';
+  dictBubble.innerHTML = `
+    <div class="readmate-dict-header">
+      <div class="readmate-dict-word-wrap">
+        <span class="readmate-dict-word">${word}</span>
+        <span class="readmate-dict-phonetic" id="readmate-dict-ph">...</span>
+      </div>
+      <div class="readmate-dict-actions">
+        <button class="readmate-dict-btn" id="readmate-dict-pron" title="发音">🔊</button>
+        <button class="readmate-dict-btn" id="readmate-dict-fav" title="收藏到生词本">⭐</button>
+      </div>
+    </div>
+    <div class="readmate-dict-trans" id="readmate-dict-tr">🔍 正在查询释义...</div>
+    ${contextSentence ? `<div class="readmate-dict-context">"${contextSentence.substring(0, 120)}"</div>` : ''}
+  `;
+
+  document.body.appendChild(dictBubble);
+
+  const scrollY = window.scrollY || window.pageYOffset || 0;
+  const scrollX = window.scrollX || window.pageXOffset || 0;
+  let top = rect.top + scrollY - dictBubble.offsetHeight - 10;
+  let left = rect.left + scrollX + (rect.width / 2) - (dictBubble.offsetWidth / 2);
+
+  if (top < scrollY + 60) top = rect.bottom + scrollY + 10;
+  if (left < 10) left = 10;
+  if (left + dictBubble.offsetWidth > window.innerWidth - 10) {
+    left = window.innerWidth - dictBubble.offsetWidth - 10;
+  }
+
+  dictBubble.style.top = top + 'px';
+  dictBubble.style.left = left + 'px';
+
+  // 绑定发音
+  dictBubble.querySelector('#readmate-dict-pron').onclick = (e) => {
+    e.stopPropagation();
+    if (window.speechSynthesis) {
+      const u = new SpeechSynthesisUtterance(word);
+      u.lang = detectTextLanguage(word);
+      window.speechSynthesis.speak(u);
+    }
+  };
+
+  // 检查是否已收藏
+  getStoredVocabList().then(list => {
+    const isFav = list.some(item => item.word.toLowerCase() === word.toLowerCase());
+    const favBtn = dictBubble?.querySelector('#readmate-dict-fav');
+    if (favBtn && isFav) {
+      favBtn.textContent = '★';
+      favBtn.classList.add('is-fav');
+    }
+  });
+
+  // 绑定收藏
+  dictBubble.querySelector('#readmate-dict-fav').onclick = async (e) => {
+    e.stopPropagation();
+    const favBtn = dictBubble.querySelector('#readmate-dict-fav');
+    const ph = dictBubble.querySelector('#readmate-dict-ph').textContent;
+    const tr = dictBubble.querySelector('#readmate-dict-tr').textContent;
+    const list = await getStoredVocabList();
+    const idx = list.findIndex(item => item.word.toLowerCase() === word.toLowerCase());
+
+    if (idx !== -1) {
+      list.splice(idx, 1);
+      await saveStoredVocabList(list);
+      favBtn.textContent = '⭐';
+      favBtn.classList.remove('is-fav');
+      showTranslation('已从生词本移除', true);
+    } else {
+      list.unshift({
+        word,
+        phonetic: ph !== '...' ? ph : '',
+        trans: tr,
+        context: contextSentence,
+        time: Date.now(),
+        domain: window.location.hostname,
+      });
+      await saveStoredVocabList(list);
+      favBtn.textContent = '★';
+      favBtn.classList.add('is-fav');
+      showTranslation('⭐ 已收藏到生词本！', true);
+    }
+    renderVocabDrawer();
+  };
+
+  // 执行释义查询
+  fetchWordDefinition(word, contextSentence).then(res => {
+    if (!dictBubble) return;
+    const phEl = dictBubble.querySelector('#readmate-dict-ph');
+    const trEl = dictBubble.querySelector('#readmate-dict-tr');
+    if (phEl) phEl.textContent = res.phonetic ? `[${res.phonetic}]` : '';
+    if (trEl) trEl.textContent = res.trans || '暂无释义';
+  });
+}
+
+function hideDictBubble() {
+  if (dictBubble) {
+    dictBubble.remove();
+    dictBubble = null;
+  }
+}
+
+async function fetchWordDefinition(word, context) {
+  let phonetic = '';
+  try {
+    const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+    if (r.ok) {
+      const data = await r.json();
+      phonetic = data[0]?.phonetic || data[0]?.phonetics?.find(p => p.text)?.text || '';
+    }
+  } catch(e) {}
+
+  let trans = '';
+  try {
+    trans = await fetchTranslation(word);
+  } catch(e) {}
+
+  return { word, phonetic, trans: trans || '暂未查到中文释义' };
+}
+
+function ensureVocabDrawer() {
+  if (vocabDrawer) return vocabDrawer;
+
+  vocabDrawer = document.createElement('div');
+  vocabDrawer.id = 'readmate-vocab-drawer';
+  vocabDrawer.style.display = 'none';
+
+  vocabDrawer.innerHTML = `
+    <div class="readmate-vocab-header">
+      <div class="readmate-vocab-title">
+        <span>📚</span>
+        <span id="readmate-vocab-count-title">我的生词本</span>
+      </div>
+      <button class="readmate-dict-btn" id="readmate-vocab-close" title="关闭">✕</button>
+    </div>
+    <div class="readmate-vocab-list" id="readmate-vocab-list"></div>
+    <div class="readmate-vocab-footer">
+      <button class="readmate-reader-btn" id="readmate-vocab-export">📋 导出 Markdown</button>
+      <button class="readmate-reader-btn" id="readmate-vocab-clear" style="color:#ef4444;">🗑️ 清空</button>
+    </div>
+  `;
+
+  document.body.appendChild(vocabDrawer);
+
+  vocabDrawer.querySelector('#readmate-vocab-close').onclick = closeVocabDrawer;
+
+  vocabDrawer.querySelector('#readmate-vocab-export').onclick = async () => {
+    const list = await getStoredVocabList();
+    if (list.length === 0) {
+      showTranslation('生词本为空', true);
+      return;
+    }
+    const md = `# ReadMate 生词本 (${list.length}词)\n\n` + list.map(item => `### ${item.word} ${item.phonetic}\n- **释义**: ${item.trans}\n${item.context ? `- **例句**: *${item.context}*\n` : ''}`).join('\n');
+    navigator.clipboard?.writeText(md);
+    showTranslation('✓ 已导出为 Markdown 并复制到剪贴板！', true);
+  };
+
+  vocabDrawer.querySelector('#readmate-vocab-clear').onclick = async () => {
+    if (confirm('确定要清空生词本中的所有单词吗？')) {
+      await saveStoredVocabList([]);
+      renderVocabDrawer();
+      showTranslation('生词本已清空', true);
+    }
+  };
+
+  return vocabDrawer;
+}
+
+async function renderVocabDrawer() {
+  ensureVocabDrawer();
+  const list = await getStoredVocabList();
+  const titleEl = vocabDrawer.querySelector('#readmate-vocab-count-title');
+  const container = vocabDrawer.querySelector('#readmate-vocab-list');
+
+  if (titleEl) titleEl.textContent = `我的生词本 (${list.length})`;
+
+  if (list.length === 0) {
+    container.innerHTML = `<div class="readmate-vocab-empty">📭 暂无收藏的生词<br>在净读模式下双击单词即可一键查词与收藏</div>`;
+    return;
+  }
+
+  container.innerHTML = list.map((item, idx) => `
+    <div class="readmate-vocab-card" data-vocab-idx="${idx}">
+      <div class="readmate-vocab-card-head">
+        <div>
+          <span class="readmate-vocab-card-word">${item.word}</span>
+          ${item.phonetic ? `<span class="readmate-vocab-card-phonetic">${item.phonetic}</span>` : ''}
+        </div>
+        <div>
+          <button class="readmate-dict-btn btn-vocab-pron" data-word="${item.word}" title="发音">🔊</button>
+          <button class="readmate-dict-btn btn-vocab-del" data-idx="${idx}" title="删除">🗑️</button>
+        </div>
+      </div>
+      <div class="readmate-vocab-card-trans">${item.trans || ''}</div>
+      ${item.context ? `<div class="readmate-vocab-card-context">"${item.context}"</div>` : ''}
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.btn-vocab-pron').forEach(btn => {
+    btn.onclick = () => {
+      const w = btn.dataset.word;
+      if (w && window.speechSynthesis) {
+        const u = new SpeechSynthesisUtterance(w);
+        u.lang = detectTextLanguage(w);
+        window.speechSynthesis.speak(u);
+      }
+    };
+  });
+
+  container.querySelectorAll('.btn-vocab-del').forEach(btn => {
+    btn.onclick = async () => {
+      const i = parseInt(btn.dataset.idx, 10);
+      list.splice(i, 1);
+      await saveStoredVocabList(list);
+      renderVocabDrawer();
+    };
+  });
+}
+
+function openVocabDrawer() {
+  ensureVocabDrawer();
+  renderVocabDrawer();
+  vocabDrawer.style.display = 'flex';
+}
+
+function closeVocabDrawer() {
+  if (vocabDrawer) {
+    vocabDrawer.style.display = 'none';
+  }
+}
+
+// 净读模式下双击单词查词监听
+document.addEventListener('dblclick', (e) => {
+  if (!isReaderModeActive) return;
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed) return;
+  const text = sel.toString().trim();
+  if (text && text.length >= 2 && text.length <= 35 && !text.includes('\n')) {
+    const range = sel.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    const sSpan = e.target.closest('.readmate-reader-s');
+    const context = sSpan ? sSpan.textContent.trim() : '';
+    showDictBubble(text, rect, context);
+  }
+});
+
+// 点击空白关闭查词小气泡
+document.addEventListener('mousedown', (e) => {
+  if (dictBubble && !dictBubble.contains(e.target)) {
+    hideDictBubble();
+  }
+});
 
 // ====== 提示与小气泡（Toast） ======
 function showTranslation(text, isToast = false) {

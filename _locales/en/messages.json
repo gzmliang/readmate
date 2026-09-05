@@ -370,5 +370,21 @@
   "statSentences": {
     "message": "sentences",
     "description": "Sentences count unit"
+  },
+  "btnDownloadAudio": {
+    "message": "Download Audio (MP3)",
+    "description": "Download audio button"
+  },
+  "btnAudio": {
+    "message": "Audio",
+    "description": "Download audio button label"
+  },
+  "btnVocabNotebook": {
+    "message": "Vocab Notebook",
+    "description": "Vocab notebook button"
+  },
+  "btnVocab": {
+    "message": "Vocab",
+    "description": "Vocab button label"
   }
 }
