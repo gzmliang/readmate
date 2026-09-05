@@ -383,6 +383,84 @@ function detectTextLanguage(txt) {
   return 'en-US';
 }
 
+/** 全局唯一权威语料源提取器（确保原网页朗读与沉浸模式句子序号 100% 绝对一致） */
+function getCanonicalArticle() {
+  if (cachedReaderContent && readerSentences && readerSentences.length > 0) {
+    return cachedReaderContent;
+  }
+
+  let content = null;
+  try {
+    content = ContentExtractor.extract(document);
+  } catch(e) {
+    DebugLog.add('ContentExtractor in getCanonicalArticle error: ' + e.message);
+  }
+
+  const pageTitle = (content && content.title && content.title.trim().length > 2)
+    ? content.title.trim()
+    : (document.title || 'Untitled Article');
+
+  let paras = [];
+  if (content && content.paragraphs && content.paragraphs.length > 0) {
+    paras = [...content.paragraphs];
+  } else if (content && content.text && content.text.length > 50) {
+    paras = content.text.split(/\n{2,}/);
+  } else {
+    const pEls = document.querySelectorAll('article p, main p, [role="main"] p, p');
+    pEls.forEach(p => {
+      const t = p.textContent.trim();
+      if (t.length > 15) paras.push(t);
+    });
+  }
+  paras = paras.map(p => p.trim()).filter(p => p.length > 0);
+
+  if (paras.length > 0 && paras[0] === pageTitle) {
+    paras.shift();
+  }
+
+  const allSentences = [];
+  if (pageTitle && pageTitle.length > 1) {
+    allSentences.push(pageTitle);
+  }
+
+  for (const p of paras) {
+    let cleanP = p;
+    try {
+      cleanP = TextUtils.preprocess(p, {
+        stripHtml: true,
+        collapseWhitespace: true,
+      });
+    } catch(e) {}
+
+    let sentences = [];
+    try {
+      sentences = TextUtils.splitSentences(cleanP);
+    } catch(e) {
+      sentences = [cleanP];
+    }
+
+    sentences = sentences.filter(s => {
+      const cl = getSpeechText(s);
+      return cl && cl.replace(/[\s.,!?;:，。！？；：'"`~—\-_/\\|]+/g, '').length > 0;
+    });
+
+    for (const s of sentences) {
+      allSentences.push(s);
+    }
+  }
+
+  readerSentences = allSentences;
+  cachedReaderContent = {
+    title: pageTitle,
+    paragraphs: paras,
+    sentences: allSentences,
+    text: allSentences.join('\n\n'),
+  };
+  cachedArticleText = cachedReaderContent.text;
+
+  return cachedReaderContent;
+}
+
 function createFAB() {
   if (fabContainer) return;
   fabContainer = document.createElement('div');
@@ -416,27 +494,15 @@ function createFAB() {
     }
     DebugLog.add('Single FAB clicked: reading current page');
 
-    let pageText = cachedArticleText;
-    if (!pageText) {
-      try {
-        const content = ContentExtractor.extract(document);
-        if (content && content.success && content.text && content.text.trim().length >= 30) {
-          pageText = content.text;
-          cachedArticleText = pageText;
-          DebugLog.add(`Extracted article: ${pageText.length} chars (title: ${content.title || ''})`);
-        }
-      } catch(e) {
-        DebugLog.add('ContentExtractor error: ' + e.message);
-      }
-    }
-
-    if (!pageText || pageText.trim().length < 30) {
+    const canonical = getCanonicalArticle();
+    let pageText = canonical ? canonical.text : '';
+    if (!pageText || pageText.trim().length < 20) {
       pageText = document.body.innerText || '';
       DebugLog.add(`Fallback body text: ${pageText.length} chars`);
     }
 
-    if (pageText.trim().length < 30) {
-      showTranslation(_t('toastTextTooShort', '⚠️ 正文过短（<30字），无法朗读'), true);
+    if (pageText.trim().length < 20) {
+      showTranslation(_t('toastTextTooShort', '⚠️ 正文过短，无法朗读'), true);
       return;
     }
 
@@ -2007,8 +2073,8 @@ function ensureReaderOverlay() {
 
   document.body.appendChild(readerOverlay);
 
-  // 绑定事件
-  readerOverlay.querySelector('#readmate-reader-close').onclick = closeReaderMode;
+  // 绑定事件：点返回按钮时退出并回退 history
+  readerOverlay.querySelector('#readmate-reader-close').onclick = () => closeReaderMode(true);
 
   // 主播放按钮
   const mainPlayBtn = readerOverlay.querySelector('#readmate-reader-play-main');
@@ -2057,22 +2123,39 @@ function ensureReaderOverlay() {
   // 生词本抽屉
   readerOverlay.querySelector('#readmate-reader-vocab-btn').onclick = openVocabDrawer;
 
-  // “指哪读哪”：点击任意句子直接精准跳转到该句播放！
-  bodyEl.addEventListener('click', async (e) => {
+  // “指哪读哪”：防抖 220ms，若 220ms 内触发了双击查词，此定时器被即刻取消，绝不误触朗读！
+  bodyEl.addEventListener('click', (e) => {
+    if (e.target.closest('#readmate-dict-bubble') || e.target.closest('#readmate-vocab-drawer')) return;
+
+    if (dictBubble) {
+      hideDictBubble();
+      return;
+    }
+
     const sEl = e.target.closest('.readmate-reader-s');
     if (!sEl || sEl.dataset.sentenceIdx === undefined) return;
     const sIdx = parseInt(sEl.dataset.sentenceIdx, 10);
     if (isNaN(sIdx)) return;
 
-    if (!isPlaying) {
-      await playReaderModeSentences(sIdx);
-    } else {
-      jumpToSentence(sIdx);
-    }
+    if (readerClickTimer) clearTimeout(readerClickTimer);
+    readerClickTimer = setTimeout(async () => {
+      readerClickTimer = null;
+      const sel = window.getSelection();
+      if (sel && !sel.isCollapsed && sel.toString().trim().length > 0) return;
+
+      DebugLog.add(`Single click confirmed on sentence #${sIdx}`);
+      if (!isPlaying) {
+        await playReaderModeSentences(sIdx);
+      } else {
+        jumpToSentence(sIdx);
+      }
+    }, 220);
   });
 
   return readerOverlay;
 }
+
+let readerClickTimer = null;
 
 function updateReaderPlayButton() {
   if (!readerOverlay) return;
@@ -2094,51 +2177,21 @@ function updateReaderPlayButton() {
 
 function renderReaderModeContent() {
   ensureReaderOverlay();
-  let content = null;
-  try {
-    content = ContentExtractor.extract(document);
-  } catch(e) {
-    DebugLog.add('ContentExtractor in reader mode error: ' + e.message);
-  }
+  const canonical = getCanonicalArticle();
+  const pageTitle = canonical.title;
+  const paras = canonical.paragraphs;
 
   const titleEl = readerOverlay.querySelector('#readmate-reader-title');
   const metaEl = readerOverlay.querySelector('#readmate-reader-meta');
   const bodyEl = readerOverlay.querySelector('#readmate-reader-body');
   const statsEl = readerOverlay.querySelector('#readmate-reader-stats');
 
-  const pageTitle = (content && content.title && content.title.trim().length > 2)
-    ? content.title.trim()
-    : (document.title || 'Untitled Article');
-
-  // 提取段落（保证完整度，如果语义提取结果太少，做正文段落回退补充）
-  let paras = [];
-  if (content && content.paragraphs && content.paragraphs.length > 0) {
-    paras = [...content.paragraphs];
-  } else if (content && content.text && content.text.length > 50) {
-    paras = content.text.split(/\n{2,}/);
-  } else {
-    const pEls = document.querySelectorAll('article p, main p, [role="main"] p, p');
-    pEls.forEach(p => {
-      const t = p.textContent.trim();
-      if (t.length > 15) paras.push(t);
-    });
-  }
-  paras = paras.map(p => p.trim()).filter(p => p.length > 0);
-
-  // 如果正文段落第 0 项与大标题完全一样，去除重复
-  if (paras.length > 0 && paras[0] === pageTitle) {
-    paras.shift();
-  }
-
-  // 构建权威句子列表 readerSentences（核心：音频朗读完全使用该列表，100% 对应）
-  readerSentences = [];
   let globalSentenceCounter = 0;
 
   // 大标题作为第 0 句
   if (pageTitle && pageTitle.length > 1) {
     const safeTitle = pageTitle.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     titleEl.innerHTML = `<span class="readmate-reader-s" data-sentence-idx="0">${safeTitle}</span>`;
-    readerSentences.push(pageTitle);
     globalSentenceCounter = 1;
   } else {
     titleEl.textContent = pageTitle;
@@ -2169,7 +2222,6 @@ function renderReaderModeContent() {
 
     const spansHtml = sentences.map(s => {
       const idx = globalSentenceCounter++;
-      readerSentences.push(s);
       const safeText = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       return `<span class="readmate-reader-s" data-sentence-idx="${idx}">${safeText}</span>`;
     }).join(' ');
@@ -2180,7 +2232,7 @@ function renderReaderModeContent() {
   bodyEl.innerHTML = parasHtml;
 
   // 统计信息
-  const totalChars = readerSentences.reduce((sum, s) => sum + s.length, 0);
+  const totalChars = canonical.sentences.reduce((sum, s) => sum + s.length, 0);
   const estMinutes = Math.max(1, Math.round(totalChars / 350));
   const domain = window.location.hostname.replace(/^www\./, '');
 
@@ -2188,21 +2240,19 @@ function renderReaderModeContent() {
   metaEl.innerHTML = `
     <span>🌐 ${domain}</span>
     <span>⏱️ ${_t('statEst', '约')} ${estMinutes} ${_t('statMins', '分钟朗读')}</span>
-    <span>📝 ${readerSentences.length} ${_t('statParas', '个句子')}</span>
+    <span>📝 ${canonical.sentences.length} ${_t('statParas', '个句子')}</span>
   `;
 
   const progEl = readerOverlay.querySelector('#readmate-reader-play-progress');
   if (progEl) {
-    progEl.textContent = `共 ${readerSentences.length} 句 · 预计朗读 ${estMinutes} 分钟 · 点击任意句可直接开播`;
+    progEl.textContent = `共 ${canonical.sentences.length} 句 · 预计朗读 ${estMinutes} 分钟 · 单击任意句可直接开播`;
   }
 }
 
 /** 启动净读模式的朗读流（彻底解决语音文字不同步，100% 对应屏幕展示句子） */
 async function playReaderModeSentences(startIdx = 0) {
-  if (!readerSentences || readerSentences.length === 0) {
-    renderReaderModeContent();
-  }
-  if (!readerSentences || readerSentences.length === 0) return;
+  const canonical = getCanonicalArticle();
+  if (!canonical || !canonical.sentences || canonical.sentences.length === 0) return;
 
   currentMode = 'reader';
   showBar();
@@ -2215,7 +2265,7 @@ async function playReaderModeSentences(startIdx = 0) {
   if (startIdx > 0) {
     pendingJumpIndex = startIdx;
   }
-  await playSentencesFlow(readerSentences);
+  await playSentencesFlow(canonical.sentences);
 }
 
 function openReaderMode() {
@@ -2231,29 +2281,48 @@ function openReaderMode() {
   showBar();
   updateReaderPlayButton();
 
+  // 压入 history 状态，防止用户点浏览器后退键或鼠标手势直接跳出网站！
+  try {
+    window.history.pushState({ readmateReaderOpen: true }, '');
+  } catch(e) {}
+
   if (isPlaying) {
     highlightReaderModeSentence(currentSentenceIndex);
   }
   DebugLog.add('Reader Mode opened');
 }
 
-function closeReaderMode() {
+function closeReaderMode(needPop = false) {
   if (!isReaderModeActive) return;
   isReaderModeActive = false;
   if (readerOverlay) {
     readerOverlay.style.display = 'none';
   }
+  closeVocabDrawer();
+  hideDictBubble();
+
   document.body.style.overflow = '';
   showFAB();
   updateReaderPlayButton();
-  if (isPlaying) {
-    highlightSentence(currentSentenceIndex);
+
+  // 若由点击返回网页触发且历史栈在 reader 状态，安全回退
+  if (needPop && window.history.state && window.history.state.readmateReaderOpen) {
+    try {
+      window.history.back();
+    } catch(e) {}
+  }
+
+  // ★ 核心改进：从净读模式退回原网页时，无缝将原网页滚动并高亮到当前句子！
+  if (isPlaying && currentSentences && currentSentences[currentSentenceIndex]) {
+    setTimeout(() => {
+      highlightSentence(currentSentenceIndex);
+    }, 80);
   }
   DebugLog.add('Reader Mode closed');
 }
 
 function toggleReaderMode() {
-  if (isReaderModeActive) closeReaderMode();
+  if (isReaderModeActive) closeReaderMode(true);
   else openReaderMode();
 }
 
@@ -2625,6 +2694,11 @@ function closeVocabDrawer() {
 
 // 净读模式下双击单词查词监听
 document.addEventListener('dblclick', (e) => {
+  // ★ 核心改进：一旦触发双击，立即掐断单击跳转定时器，绝不误触朗读！
+  if (readerClickTimer) {
+    clearTimeout(readerClickTimer);
+    readerClickTimer = null;
+  }
   if (!isReaderModeActive) return;
   const sel = window.getSelection();
   if (!sel || sel.isCollapsed) return;
@@ -2740,11 +2814,18 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' || e.keyCode === 27) {
     if (isReaderModeActive) {
-      closeReaderMode();
+      closeReaderMode(true);
     }
   } else if ((e.altKey && (e.key === 'r' || e.key === 'R')) || e.key === 'F9') {
     e.preventDefault();
     toggleReaderMode();
+  }
+});
+
+// 监听浏览器自带后退按钮或鼠标后退手势（优雅退出净读模式并留在当前网页）
+window.addEventListener('popstate', (e) => {
+  if (isReaderModeActive) {
+    closeReaderMode(false);
   }
 });
 
