@@ -365,11 +365,6 @@ function updateFloatingBarI18n() {
   const biText = floatingBar.querySelector('#readmate-bilingual-text');
   if (biText) biText.textContent = _t('lblBilingual', '双语');
 
-  const subLabel = floatingBar.querySelector('#readmate-subtitles-toggle') || floatingBar.querySelector('#readmate-subtitles-label');
-  if (subLabel) subLabel.title = _t('lblBilingualSubtitles', '字幕显示');
-  const subText = floatingBar.querySelector('#readmate-subtitles-text');
-  if (subText) subText.textContent = _t('lblSubtitles', '字幕');
-
   const summaryBtn = floatingBar.querySelector('#readmate-summary-btn');
   if (summaryBtn) summaryBtn.title = _t('fabSummaryTip', 'AI 双语摘要');
   const readerBtn = floatingBar.querySelector('#readmate-bar-reader-btn');
@@ -579,10 +574,6 @@ function createFloatingBar() {
           <input type="checkbox" id="readmate-bilingual-chk" ${enableBilingual ? 'checked' : ''}>
           <span id="readmate-bilingual-text">${_t('lblBilingual', '双语')}</span>
         </label>
-        <div class="readmate-sub-toggle" id="readmate-subtitles-toggle" title="${_t('lblBilingualSubtitles', '字幕显示')}">
-          <input type="checkbox" id="readmate-sub-chk" ${showBilingualSubtitles ? 'checked' : ''}>
-          <span id="readmate-subtitles-text">${_t('lblSubtitles', '字幕')}</span>
-        </div>
         <button class="readmate-btn readmate-btn-reader" id="readmate-bar-reader-btn" title="${_t('btnReaderMode', '📖 沉浸净读模式 (Alt+R / F9)')}">📖</button>
         <button class="readmate-btn readmate-btn-summary" id="readmate-summary-btn" title="${_t('fabSummaryTip', 'AI 双语摘要')}">⚡</button>
         <button class="readmate-btn" id="readmate-debug-btn" title="Debug" style="display:none">🐛</button>
@@ -590,8 +581,8 @@ function createFloatingBar() {
       </div>
     </div>
 
-    <!-- 下层：动态双语字幕区（可勾选折叠） -->
-    <div class="readmate-subtitles-wrap" id="readmate-subtitles-wrap" style="${showBilingualSubtitles ? '' : 'display:none;'}">
+    <!-- 下层：动态双语字幕区（常驻优雅展示，受双语开关与播放模式智能驱动） -->
+    <div class="readmate-subtitles-wrap" id="readmate-subtitles-wrap">
       <div class="readmate-sub-original" id="readmate-sub-original" title="Original"></div>
       <div class="readmate-sub-translated" id="readmate-sub-translated" title="Translated"></div>
     </div>
@@ -672,40 +663,6 @@ function createFloatingBar() {
       };
     }
 
-    // 字幕折叠开关（直接绑定 toggle 容器与 checkbox，确保点击文字或复选框 100% 灵敏翻转）
-    const subToggle = floatingBar.querySelector('#readmate-subtitles-toggle');
-    const subChk = floatingBar.querySelector('#readmate-sub-chk');
-    const subWrap = floatingBar.querySelector('#readmate-subtitles-wrap');
-
-    function applySubtitleState(val) {
-      showBilingualSubtitles = !!val;
-      if (subChk) subChk.checked = showBilingualSubtitles;
-      if (subWrap) {
-        subWrap.style.setProperty('display', showBilingualSubtitles ? 'flex' : 'none', 'important');
-      }
-      chrome.runtime.sendMessage({ action: 'saveSettings', settings: { showBilingualSubtitles } });
-      DebugLog.add(`Subtitle toggle changed: ${showBilingualSubtitles}`);
-    }
-
-    if (subChk) {
-      subChk.checked = showBilingualSubtitles;
-      subChk.addEventListener('change', (e) => {
-        applySubtitleState(subChk.checked);
-      });
-      subChk.addEventListener('click', (e) => {
-        e.stopPropagation();
-      });
-    }
-
-    if (subToggle) {
-      subToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (e.target !== subChk) {
-          applySubtitleState(!showBilingualSubtitles);
-        }
-      });
-    }
-
     // 调试日志
     floatingBar.querySelector('#readmate-debug-btn').onclick = toggleDebugPanel;
     document.getElementById('readmate-debug-count')?.addEventListener('click', copyDebugLogs);
@@ -725,10 +682,6 @@ function showBar() {
     floatingBar.classList.add('readmate-active');
     floatingBar.style.display = 'flex';
     floatingBar.style.zIndex = '2147483647';
-    const subWrap = floatingBar.querySelector('#readmate-subtitles-wrap');
-    const subChk = floatingBar.querySelector('#readmate-sub-chk');
-    if (subChk) subChk.checked = showBilingualSubtitles;
-    if (subWrap) subWrap.style.setProperty('display', showBilingualSubtitles ? 'flex' : 'none', 'important');
   }
   hideFAB();
   startDebugTimer();
@@ -755,10 +708,6 @@ function updateBarProgress(cur, total) {
 
 function updateSubtitleDisplay(original, translated) {
   if (!floatingBar) return;
-  const wrap = floatingBar.querySelector('#readmate-subtitles-wrap');
-  if (wrap) {
-    wrap.style.setProperty('display', showBilingualSubtitles ? 'flex' : 'none', 'important');
-  }
   const origEl = floatingBar.querySelector('#readmate-sub-original');
   const transEl = floatingBar.querySelector('#readmate-sub-translated');
   if (origEl) origEl.textContent = original || '';
@@ -2878,13 +2827,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           enableBilingual = msg.settings.enableBilingual;
           const biChk = floatingBar?.querySelector('#readmate-bilingual-chk');
           if (biChk) biChk.checked = enableBilingual;
-        }
-        if (msg.settings.showBilingualSubtitles !== undefined) {
-          showBilingualSubtitles = msg.settings.showBilingualSubtitles;
-          const subChk = floatingBar?.querySelector('#readmate-sub-chk');
-          if (subChk) subChk.checked = showBilingualSubtitles;
-          const wrap = floatingBar?.querySelector('#readmate-subtitles-wrap');
-          if (wrap) wrap.style.display = showBilingualSubtitles ? '' : 'none';
         }
         if (msg.settings.uiLanguage) {
           loadContentI18n(msg.settings.uiLanguage).then(() => {
