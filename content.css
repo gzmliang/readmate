@@ -149,8 +149,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
-  cursor: move;
+  padding: 10px 18px;
+  cursor: default;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   gap: 8px;
 }
@@ -160,6 +160,7 @@
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+  cursor: move;
 }
 
 .readmate-progress {
@@ -304,33 +305,39 @@
 
 /* 下层：动态双语字幕区 */
 .readmate-subtitles-wrap {
-  padding: 14px 28px 16px 28px !important;
+  padding: 16px 40px 18px 40px !important;
   display: flex;
   flex-direction: column;
   gap: 8px;
   background: rgba(0, 0, 0, 0.25) !important;
   box-sizing: border-box !important;
   width: 100% !important;
+  overflow: visible !important;
 }
 
 .readmate-sub-original {
-  font-size: 14px !important;
+  font-size: 14.5px !important;
   font-weight: 500;
-  line-height: 1.5;
+  line-height: 1.55;
   color: #f8fafc;
   word-break: break-word;
-  padding-left: 20px !important;
-  padding-right: 20px !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
   box-sizing: border-box !important;
   display: block !important;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
 .readmate-sub-translated {
-  font-size: 13px !important;
-  line-height: 1.45;
+  font-size: 13.5px !important;
+  line-height: 1.5;
   color: #38bdf8;
   word-break: break-word;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  box-sizing: border-box !important;
+  display: block !important;
+}
   padding-left: 20px !important;
   padding-right: 20px !important;
   box-sizing: border-box !important;

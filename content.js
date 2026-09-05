@@ -365,7 +365,7 @@ function updateFloatingBarI18n() {
   const biText = floatingBar.querySelector('#readmate-bilingual-text');
   if (biText) biText.textContent = _t('lblBilingual', '双语');
 
-  const subLabel = floatingBar.querySelector('#readmate-subtitles-label');
+  const subLabel = floatingBar.querySelector('#readmate-subtitles-toggle') || floatingBar.querySelector('#readmate-subtitles-label');
   if (subLabel) subLabel.title = _t('lblBilingualSubtitles', '字幕显示');
   const subText = floatingBar.querySelector('#readmate-subtitles-text');
   if (subText) subText.textContent = _t('lblSubtitles', '字幕');
@@ -579,10 +579,10 @@ function createFloatingBar() {
           <input type="checkbox" id="readmate-bilingual-chk" ${enableBilingual ? 'checked' : ''}>
           <span id="readmate-bilingual-text">${_t('lblBilingual', '双语')}</span>
         </label>
-        <label class="readmate-sub-toggle" id="readmate-subtitles-label" title="${_t('lblBilingualSubtitles', '字幕显示')}">
+        <div class="readmate-sub-toggle" id="readmate-subtitles-toggle" title="${_t('lblBilingualSubtitles', '字幕显示')}">
           <input type="checkbox" id="readmate-sub-chk" ${showBilingualSubtitles ? 'checked' : ''}>
           <span id="readmate-subtitles-text">${_t('lblSubtitles', '字幕')}</span>
-        </label>
+        </div>
         <button class="readmate-btn readmate-btn-reader" id="readmate-bar-reader-btn" title="${_t('btnReaderMode', '📖 沉浸净读模式 (Alt+R / F9)')}">📖</button>
         <button class="readmate-btn readmate-btn-summary" id="readmate-summary-btn" title="${_t('fabSummaryTip', 'AI 双语摘要')}">⚡</button>
         <button class="readmate-btn" id="readmate-debug-btn" title="Debug" style="display:none">🐛</button>
@@ -672,22 +672,38 @@ function createFloatingBar() {
       };
     }
 
-    // 字幕折叠开关
+    // 字幕折叠开关（直接绑定 toggle 容器与 checkbox，确保点击文字或复选框 100% 灵敏翻转）
+    const subToggle = floatingBar.querySelector('#readmate-subtitles-toggle');
     const subChk = floatingBar.querySelector('#readmate-sub-chk');
     const subWrap = floatingBar.querySelector('#readmate-subtitles-wrap');
+
+    function applySubtitleState(val) {
+      showBilingualSubtitles = !!val;
+      if (subChk) subChk.checked = showBilingualSubtitles;
+      if (subWrap) {
+        subWrap.style.setProperty('display', showBilingualSubtitles ? 'flex' : 'none', 'important');
+      }
+      chrome.runtime.sendMessage({ action: 'saveSettings', settings: { showBilingualSubtitles } });
+      DebugLog.add(`Subtitle toggle changed: ${showBilingualSubtitles}`);
+    }
+
     if (subChk) {
       subChk.checked = showBilingualSubtitles;
-      if (subWrap) subWrap.style.setProperty('display', showBilingualSubtitles ? 'flex' : 'none', 'important');
+      subChk.addEventListener('change', (e) => {
+        applySubtitleState(subChk.checked);
+      });
+      subChk.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
 
-      const handleSubToggle = (e) => {
-        showBilingualSubtitles = subChk.checked;
-        if (subWrap) {
-          subWrap.style.setProperty('display', showBilingualSubtitles ? 'flex' : 'none', 'important');
+    if (subToggle) {
+      subToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (e.target !== subChk) {
+          applySubtitleState(!showBilingualSubtitles);
         }
-        chrome.runtime.sendMessage({ action: 'saveSettings', settings: { showBilingualSubtitles } });
-      };
-      subChk.onchange = handleSubToggle;
-      subChk.addEventListener('input', handleSubToggle);
+      });
     }
 
     // 调试日志
@@ -709,6 +725,10 @@ function showBar() {
     floatingBar.classList.add('readmate-active');
     floatingBar.style.display = 'flex';
     floatingBar.style.zIndex = '2147483647';
+    const subWrap = floatingBar.querySelector('#readmate-subtitles-wrap');
+    const subChk = floatingBar.querySelector('#readmate-sub-chk');
+    if (subChk) subChk.checked = showBilingualSubtitles;
+    if (subWrap) subWrap.style.setProperty('display', showBilingualSubtitles ? 'flex' : 'none', 'important');
   }
   hideFAB();
   startDebugTimer();
