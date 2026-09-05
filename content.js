@@ -762,7 +762,7 @@ function updateSubtitleDisplay(original, translated) {
   const origEl = floatingBar.querySelector('#readmate-sub-original');
   const transEl = floatingBar.querySelector('#readmate-sub-translated');
   if (origEl) origEl.textContent = original || '';
-  if (transEl) transEl.textContent = translated || (original ? '正在翻译...' : '');
+  if (transEl) transEl.textContent = translated || (original ? _t('translatingText', '正在翻译...') : '');
 }
 
 // ====== 拖拽移动支持（排除交互元素与标签，防止阻止复选框默认点击） ======
@@ -805,7 +805,7 @@ function refreshDebugPanel() {
   const b = document.getElementById('readmate-debug-body');
   const c = document.getElementById('readmate-debug-count');
   if (b) b.innerHTML = DebugLog.getHTML();
-  if (c) c.textContent = `${DebugLog.logs.length} 条 (点击复制)`;
+  if (c) c.textContent = _t('debugLogCount', '{count} 条 (点击复制)').replace('{count}', DebugLog.logs.length);
 }
 function copyDebugLogs() {
   DebugLog.copy();
@@ -2105,9 +2105,9 @@ function ensureReaderOverlay() {
         </div>
         <!-- 字号调节 -->
         <div class="readmate-font-controls" title="${_t('tipFontSize', '调节正文字号')}">
-          <button id="readmate-font-dec" class="readmate-reader-btn-icon" title="缩小字号">A-</button>
+          <button id="readmate-font-dec" class="readmate-reader-btn-icon" title="${_t('tipFontDec', '缩小字号')}">A-</button>
           <span id="readmate-font-val">${readerFontSize}</span>
-          <button id="readmate-font-inc" class="readmate-reader-btn-icon" title="放大字号">A+</button>
+          <button id="readmate-font-inc" class="readmate-reader-btn-icon" title="${_t('tipFontInc', '放大字号')}">A+</button>
         </div>
         <!-- 导出 PDF -->
         <button id="readmate-reader-print-btn" class="readmate-reader-btn" title="${_t('btnExportPdf', '导出排版 PDF (打印)')}">
@@ -2305,7 +2305,9 @@ function renderReaderModeContent() {
 
   const progEl = readerOverlay.querySelector('#readmate-reader-play-progress');
   if (progEl) {
-    progEl.textContent = `共 ${allS.length} 句 · 预计朗读 ${estMinutes} 分钟 · 单击任意句可直接开播`;
+    progEl.textContent = _t('readerProgressTip', '共 {count} 句 · 预计朗读 {time} 分钟 · 单击任意句可直接开播')
+      .replace('{count}', allS.length)
+      .replace('{time}', estMinutes);
   }
 }
 
@@ -2476,7 +2478,7 @@ async function downloadFullAudio() {
 
     const a = document.createElement('a');
     a.href = downloadUrl;
-    a.download = `${cleanTitle}_ReadMate有声朗读.mp3`;
+    a.download = `${cleanTitle}${_t('audioFilenameSuffix', '_有声朗读')}.mp3`;
     document.body.appendChild(a);
     a.click();
     setTimeout(() => {
@@ -2533,11 +2535,11 @@ function showDictBubble(word, rect, contextSentence = '') {
         <span class="readmate-dict-phonetic" id="readmate-dict-ph">...</span>
       </div>
       <div class="readmate-dict-actions">
-        <button class="readmate-dict-btn" id="readmate-dict-pron" title="发音">🔊</button>
-        <button class="readmate-dict-btn" id="readmate-dict-fav" title="收藏到生词本">⭐</button>
+        <button class="readmate-dict-btn" id="readmate-dict-pron" title="${_t('tipPronounce', '发音')}">🔊</button>
+        <button class="readmate-dict-btn" id="readmate-dict-fav" title="${_t('tipAddToVocab', '收藏到生词本')}">⭐</button>
       </div>
     </div>
-    <div class="readmate-dict-trans" id="readmate-dict-tr">🔍 正在查询释义...</div>
+    <div class="readmate-dict-trans" id="readmate-dict-tr">${_t('dictSearching', '🔍 正在查询释义...')}</div>
     ${contextSentence ? `<div class="readmate-dict-context">"${contextSentence.substring(0, 120)}"</div>` : ''}
   `;
 
@@ -2681,14 +2683,14 @@ function ensureVocabDrawer() {
     <div class="readmate-vocab-header">
       <div class="readmate-vocab-title">
         <span>📚</span>
-        <span id="readmate-vocab-count-title">我的生词本</span>
+        <span id="readmate-vocab-count-title">${_t('btnVocabNotebook', '我的生词本')}</span>
       </div>
-      <button class="readmate-dict-btn" id="readmate-vocab-close" title="关闭">✕</button>
+      <button class="readmate-dict-btn" id="readmate-vocab-close" title="${_t('tipClose', '关闭')}">✕</button>
     </div>
     <div class="readmate-vocab-list" id="readmate-vocab-list"></div>
     <div class="readmate-vocab-footer">
-      <button class="readmate-reader-btn" id="readmate-vocab-export">📋 导出 Markdown</button>
-      <button class="readmate-reader-btn" id="readmate-vocab-clear" style="color:#ef4444;">🗑️ 清空</button>
+      <button class="readmate-reader-btn" id="readmate-vocab-export">${_t('vocabExportMd', '📋 导出 Markdown')}</button>
+      <button class="readmate-reader-btn" id="readmate-vocab-clear" style="color:#ef4444;">${_t('vocabClearAll', '🗑️ 清空')}</button>
     </div>
   `;
 
@@ -2702,7 +2704,9 @@ function ensureVocabDrawer() {
       showTranslation(_t('toastVocabEmpty', '生词本为空'), true);
       return;
     }
-    const md = `# ReadMate 生词本 (${list.length}词)\n\n` + list.map(item => `### ${item.word} ${item.phonetic}\n- **释义**: ${item.trans}\n${item.context ? `- **例句**: *${item.context}*\n` : ''}`).join('\n');
+    const mdTitle = _t('btnVocabNotebook', '生词本');
+    const mdTransLbl = _t('modeTranslated', '释义');
+    const md = `# ReadMate ${mdTitle} (${list.length})\n\n` + list.map(item => `### ${item.word} ${item.phonetic}\n- **${mdTransLbl}**: ${item.trans}\n${item.context ? `- **Context**: *${item.context}*\n` : ''}`).join('\n');
     navigator.clipboard?.writeText(md);
     showTranslation(_t('toastVocabExported', '✓ 已导出为 Markdown 并复制到剪贴板！'), true);
   };
@@ -2739,8 +2743,8 @@ async function renderVocabDrawer() {
           ${item.phonetic ? `<span class="readmate-vocab-card-phonetic">${item.phonetic}</span>` : ''}
         </div>
         <div>
-          <button class="readmate-dict-btn btn-vocab-pron" data-word="${item.word}" title="发音">🔊</button>
-          <button class="readmate-dict-btn btn-vocab-del" data-idx="${idx}" title="删除">🗑️</button>
+          <button class="readmate-dict-btn btn-vocab-pron" data-word="${item.word}" title="${_t('tipPronounce', '发音')}">🔊</button>
+          <button class="readmate-dict-btn btn-vocab-del" data-idx="${idx}" title="${_t('tipDelete', '删除')}">🗑️</button>
         </div>
       </div>
       <div class="readmate-vocab-card-trans">${item.trans || ''}</div>

@@ -498,5 +498,45 @@
   "vocabClearAll": {
     "message": "🗑️ Clear All",
     "description": "Clear all vocab button"
+  },
+  "readerProgressTip": {
+    "message": "{count} sentences · approx. {time} min read · Click any sentence to play",
+    "description": "Reader mode progress banner tip"
+  },
+  "tipFontDec": {
+    "message": "Decrease font size",
+    "description": "Decrease font size"
+  },
+  "tipFontInc": {
+    "message": "Increase font size",
+    "description": "Increase font size"
+  },
+  "tipPronounce": {
+    "message": "Pronounce",
+    "description": "Pronounce word"
+  },
+  "tipAddToVocab": {
+    "message": "Save to Vocab Notebook",
+    "description": "Add to vocab notebook"
+  },
+  "tipClose": {
+    "message": "Close",
+    "description": "Close button tip"
+  },
+  "tipDelete": {
+    "message": "Delete",
+    "description": "Delete button tip"
+  },
+  "translatingText": {
+    "message": "Translating...",
+    "description": "Translating text fallback"
+  },
+  "debugLogCount": {
+    "message": "{count} entries (click to copy)",
+    "description": "Debug log count"
+  },
+  "audioFilenameSuffix": {
+    "message": "_Audiobook",
+    "description": "Audio filename suffix"
   }
 }

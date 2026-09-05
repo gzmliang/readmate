@@ -498,5 +498,45 @@
   "vocabClearAll": {
     "message": "🗑️ 清空",
     "description": "Clear all vocab button"
+  },
+  "readerProgressTip": {
+    "message": "共 {count} 句 · 预计朗读 {time} 分钟 · 单击任意句可直接开播",
+    "description": "Reader mode progress banner tip"
+  },
+  "tipFontDec": {
+    "message": "缩小字号",
+    "description": "Decrease font size"
+  },
+  "tipFontInc": {
+    "message": "放大字号",
+    "description": "Increase font size"
+  },
+  "tipPronounce": {
+    "message": "发音",
+    "description": "Pronounce word"
+  },
+  "tipAddToVocab": {
+    "message": "收藏到生词本",
+    "description": "Add to vocab notebook"
+  },
+  "tipClose": {
+    "message": "关闭",
+    "description": "Close button tip"
+  },
+  "tipDelete": {
+    "message": "删除",
+    "description": "Delete button tip"
+  },
+  "translatingText": {
+    "message": "正在翻译...",
+    "description": "Translating text fallback"
+  },
+  "debugLogCount": {
+    "message": "{count} 条 (点击复制)",
+    "description": "Debug log count"
+  },
+  "audioFilenameSuffix": {
+    "message": "_有声朗读",
+    "description": "Audio filename suffix"
   }
 }
