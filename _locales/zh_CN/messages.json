@@ -371,6 +371,10 @@
     "message": "开始朗读全文",
     "description": "Start reading entire article button"
   },
+  "btnPause": {
+    "message": "暂停朗读",
+    "description": "Pause reading button"
+  },
   "btnResume": {
     "message": "继续朗读",
     "description": "Resume reading button"

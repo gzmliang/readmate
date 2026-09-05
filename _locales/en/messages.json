@@ -371,6 +371,10 @@
     "message": "Start Reading Article",
     "description": "Start reading entire article button"
   },
+  "btnPause": {
+    "message": "Pause Reading",
+    "description": "Pause reading button"
+  },
   "btnResume": {
     "message": "Resume",
     "description": "Resume reading button"
