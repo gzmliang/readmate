@@ -36,54 +36,74 @@
   transform: scale(1.1);
 }
 
-/* ====== 右下角悬浮圆钮（FAB 回归单一极简 ▶ 按钮） ====== */
+/* ====== 右下角悬浮圆钮（极简折叠胶囊球，悬停动态展开） ====== */
 #readmate-fab-container {
   display: none;
   position: fixed;
   bottom: 80px;
-  right: 24px;
+  right: 22px;
   z-index: 2147483646;
   user-select: none;
-  flex-direction: column;
+  flex-direction: column-reverse; /* 主按钮在最下，展开按钮向上冒出 */
   align-items: center;
   gap: 8px;
+  padding: 6px;
+  transition: all 0.25s ease;
 }
 
 .readmate-fab-btn {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: none;
   color: #ffffff;
-  font-size: 20px;
+  font-size: 17px;
   cursor: pointer;
   background: linear-gradient(135deg, #3b82f6, #2563eb);
-  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.readmate-fab-btn-sm {
-  width: 38px;
-  height: 38px;
-  font-size: 16px;
-  background: linear-gradient(135deg, #eab308, #f59e0b);
-  box-shadow: 0 3px 12px rgba(245, 158, 11, 0.4);
-}
-
-.readmate-fab-btn-sm:hover {
-  box-shadow: 0 5px 16px rgba(245, 158, 11, 0.6);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.88;
 }
 
 .readmate-fab-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+  opacity: 1;
+  transform: scale(1.08);
+  box-shadow: 0 5px 18px rgba(37, 99, 235, 0.55);
 }
 
 .readmate-fab-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.94);
+}
+
+/* 展开子按钮（📖 净读、⚡ 摘要）：平时收起隐藏，Hover 时向上弹出 */
+.readmate-fab-sub {
+  width: 36px;
+  height: 36px;
+  font-size: 15px;
+  opacity: 0;
+  transform: translateY(12px) scale(0.7);
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#readmate-fab-reader {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);
+}
+
+#readmate-fab-summary {
+  background: linear-gradient(135deg, #eab308, #f59e0b);
+  box-shadow: 0 3px 10px rgba(245, 158, 11, 0.35);
+}
+
+/* 鼠标悬停在整个容器上时，平滑展开另外两个按钮 */
+#readmate-fab-container:hover .readmate-fab-sub {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
 }
 
 /* ====== 全新双层歌词卡片控制条（Card Bar） ====== */
@@ -859,7 +879,7 @@ h6.readmate-active-paragraph {
 .readmate-reader-meta {
   font-size: 13.5px !important;
   opacity: 0.65 !important;
-  margin-bottom: 36px !important;
+  margin-bottom: 24px !important;
   padding-bottom: 16px !important;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
   display: flex !important;
@@ -868,6 +888,48 @@ h6.readmate-active-paragraph {
 }
 #readmate-reader-overlay[data-theme="dark"] .readmate-reader-meta {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* 净读模式正文顶部专属播放条 */
+.readmate-reader-action-bar {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  margin-bottom: 32px !important;
+  padding: 12px 18px !important;
+  background: rgba(59, 130, 246, 0.08) !important;
+  border: 1px solid rgba(59, 130, 246, 0.25) !important;
+  border-radius: 12px !important;
+  box-sizing: border-box !important;
+}
+#readmate-reader-overlay[data-theme="dark"] .readmate-reader-action-bar {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+.readmate-reader-play-btn {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 24px !important;
+  padding: 8px 22px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.35) !important;
+  transition: all 0.2s ease !important;
+}
+.readmate-reader-play-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 5px 16px rgba(37, 99, 235, 0.5) !important;
+}
+.readmate-reader-play-progress {
+  font-size: 13.5px !important;
+  opacity: 0.8 !important;
+  font-weight: 500 !important;
 }
 
 .readmate-reader-body {

@@ -185,6 +185,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         highlightEnabled: true,
         highlightParagraphEnabled: true,
         highlightOffset: 0,
+        showFab: true,
         autoTranslate: false,
         uiLanguage: 'auto',
         enableShortcuts: true,

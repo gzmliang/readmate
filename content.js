@@ -388,8 +388,8 @@ function createFAB() {
   fabContainer = document.createElement('div');
   fabContainer.id = 'readmate-fab-container';
   fabContainer.innerHTML = `
-    <button id="readmate-fab-reader" class="readmate-fab-btn readmate-fab-btn-sm" title="${_t('btnReaderMode', '📖 沉浸净读模式 (Alt+R / F9)')}">📖</button>
-    <button id="readmate-fab-summary" class="readmate-fab-btn readmate-fab-btn-sm" title="${_t('fabSummaryTip', 'AI 双语摘要')}">⚡</button>
+    <button id="readmate-fab-reader" class="readmate-fab-btn readmate-fab-sub" title="${_t('btnReaderMode', '📖 沉浸净读模式 (Alt+R / F9)')}">📖</button>
+    <button id="readmate-fab-summary" class="readmate-fab-btn readmate-fab-sub" title="${_t('fabSummaryTip', 'AI 双语摘要')}">⚡</button>
     <button id="readmate-fab-play" class="readmate-fab-btn" title="${_t('fabPlayTip', '朗读当前文章 (Ctrl+Shift+P)')}">▶</button>
   `;
   document.body.appendChild(fabContainer);
@@ -447,6 +447,7 @@ function createFAB() {
 }
 
 function showFAB() {
+  if (settings.showFab === false) return;
   if (!fabContainer) createFAB();
   if (fabContainer) fabContainer.style.display = 'flex';
 }
@@ -704,6 +705,7 @@ function togglePlayPause() {
       window.speechSynthesis.resume();
     }
     DebugLog.add(`Playback resumed at sentence ${currentSentenceIndex + 1}`);
+    updateReaderPlayButton();
   } else if (isPlaying) {
     isPaused = true;
     const playBtn = floatingBar?.querySelector('#readmate-play-btn');
@@ -714,6 +716,7 @@ function togglePlayPause() {
       window.speechSynthesis.pause();
     }
     DebugLog.add(`Playback paused at sentence ${currentSentenceIndex + 1}`);
+    updateReaderPlayButton();
   }
 }
 
@@ -739,6 +742,7 @@ function cancelPlayback() {
   }
   audioPrefetchCache.clear();
   clearHighlights();
+  updateReaderPlayButton();
 }
 
 function stopReading(isUser = true) {
@@ -1158,6 +1162,7 @@ async function playSentencesFlow(sentences) {
   pendingJumpIndex = null;
   currentSentenceIndex = 0;
   showBar();
+  updateReaderPlayButton();
   const playBtn = floatingBar?.querySelector('#readmate-play-btn');
   if (playBtn) playBtn.textContent = '⏸';
   DebugLog.add(`playSentencesFlow started: ${sentences.length} sentences`);
@@ -1352,6 +1357,7 @@ async function playSentencesFlow(sentences) {
 
   const finishedNaturally = isPlaying && !stopImmediate;
   isPlaying = false;
+  updateReaderPlayButton();
   hideBar();
   if (finishedNaturally) {
     showTranslation(_t('toastArticleFinished', '🎉 当前文章已朗读完毕'), true);
@@ -1926,6 +1932,7 @@ let isReaderModeActive = false;
 let readerOverlay = null;
 let readerTheme = 'sepia';
 let readerFontSize = 19;
+let readerSentences = []; // 权威句子列表：确保眼睛看到的每一句与耳朵听到的每一句 100% 绝对一致！
 try {
   readerTheme = localStorage.getItem('readmate_reader_theme') || 'sepia';
   readerFontSize = parseInt(localStorage.getItem('readmate_reader_font_size') || '19', 10);
@@ -1975,6 +1982,16 @@ function ensureReaderOverlay() {
       <article class="readmate-reader-article" id="readmate-reader-article">
         <h1 class="readmate-reader-title" id="readmate-reader-title"></h1>
         <div class="readmate-reader-meta" id="readmate-reader-meta"></div>
+
+        <!-- 显式专属朗读条（解决进入后找不到播放按钮的痛点） -->
+        <div class="readmate-reader-action-bar">
+          <button id="readmate-reader-play-main" class="readmate-reader-play-btn">
+            <span class="readmate-reader-play-icon">▶</span>
+            <span class="readmate-reader-play-text">${_t('btnPlayArticle', '开始朗读全文')}</span>
+          </button>
+          <span class="readmate-reader-play-progress" id="readmate-reader-play-progress"></span>
+        </div>
+
         <div class="readmate-reader-body" id="readmate-reader-body" style="font-size: ${readerFontSize}px;"></div>
       </article>
     </main>
@@ -1984,6 +2001,16 @@ function ensureReaderOverlay() {
 
   // 绑定事件
   readerOverlay.querySelector('#readmate-reader-close').onclick = closeReaderMode;
+
+  // 主播放按钮
+  const mainPlayBtn = readerOverlay.querySelector('#readmate-reader-play-main');
+  mainPlayBtn.onclick = () => {
+    if (isPlaying) {
+      togglePlayPause();
+    } else {
+      playReaderModeSentences(0);
+    }
+  };
 
   // 主题切换
   readerOverlay.querySelectorAll('.readmate-theme-dot').forEach(btn => {
@@ -2016,7 +2043,7 @@ function ensureReaderOverlay() {
   // 导出 PDF
   readerOverlay.querySelector('#readmate-reader-print-btn').onclick = exportPdf;
 
-  // “指哪读哪”：点击任意句子进行跳转或开播
+  // “指哪读哪”：点击任意句子直接精准跳转到该句播放！
   bodyEl.addEventListener('click', async (e) => {
     const sEl = e.target.closest('.readmate-reader-s');
     if (!sEl || sEl.dataset.sentenceIdx === undefined) return;
@@ -2024,20 +2051,31 @@ function ensureReaderOverlay() {
     if (isNaN(sIdx)) return;
 
     if (!isPlaying) {
-      currentMode = 'page';
-      let pageText = cachedArticleText;
-      if (!pageText) {
-        pageText = cachedReaderContent ? cachedReaderContent.text : (document.body.innerText || '');
-      }
-      showBar();
-      await startReading(pageText);
-      jumpToSentence(sIdx);
+      await playReaderModeSentences(sIdx);
     } else {
       jumpToSentence(sIdx);
     }
   });
 
   return readerOverlay;
+}
+
+function updateReaderPlayButton() {
+  if (!readerOverlay) return;
+  const icon = readerOverlay.querySelector('.readmate-reader-play-icon');
+  const txt = readerOverlay.querySelector('.readmate-reader-play-text');
+  if (icon && txt) {
+    if (isPlaying && !isPaused) {
+      icon.textContent = '⏸';
+      txt.textContent = _t('btnPause', '暂停朗读');
+    } else if (isPaused) {
+      icon.textContent = '▶';
+      txt.textContent = _t('btnResume', '继续朗读');
+    } else {
+      icon.textContent = '▶';
+      txt.textContent = _t('btnPlayArticle', '开始朗读全文');
+    }
+  }
 }
 
 function renderReaderModeContent() {
@@ -2054,30 +2092,44 @@ function renderReaderModeContent() {
   const bodyEl = readerOverlay.querySelector('#readmate-reader-body');
   const statsEl = readerOverlay.querySelector('#readmate-reader-stats');
 
-  const pageTitle = (content && content.title) ? content.title : (document.title || 'Untitled Article');
-  titleEl.textContent = pageTitle;
+  const pageTitle = (content && content.title && content.title.trim().length > 2)
+    ? content.title.trim()
+    : (document.title || 'Untitled Article');
 
-  // 提取段落
-  let paras = (content && content.paragraphs && content.paragraphs.length > 0)
-    ? content.paragraphs
-    : (content && content.text ? content.text.split(/\n{2,}/) : document.body.innerText.split(/\n{2,}/));
+  // 提取段落（保证完整度，如果语义提取结果太少，做正文段落回退补充）
+  let paras = [];
+  if (content && content.paragraphs && content.paragraphs.length > 0) {
+    paras = [...content.paragraphs];
+  } else if (content && content.text && content.text.length > 50) {
+    paras = content.text.split(/\n{2,}/);
+  } else {
+    const pEls = document.querySelectorAll('article p, main p, [role="main"] p, p');
+    pEls.forEach(p => {
+      const t = p.textContent.trim();
+      if (t.length > 15) paras.push(t);
+    });
+  }
   paras = paras.map(p => p.trim()).filter(p => p.length > 0);
 
-  // 统计与 Meta
-  const totalChars = paras.reduce((sum, p) => sum + p.length, 0);
-  const estMinutes = Math.max(1, Math.round(totalChars / 350));
-  const domain = window.location.hostname.replace(/^www\./, '');
+  // 如果正文段落第 0 项与大标题完全一样，去除重复
+  if (paras.length > 0 && paras[0] === pageTitle) {
+    paras.shift();
+  }
 
-  statsEl.textContent = `${totalChars} ${_t('statChars', '字')} · ${_t('statEst', '约')} ${estMinutes} ${_t('statMins', '分钟')}`;
-  metaEl.innerHTML = `
-    <span>🌐 ${domain}</span>
-    <span>⏱️ ${_t('statEst', '约')} ${estMinutes} ${_t('statMins', '分钟朗读')}</span>
-    <span>📝 ${paras.length} ${_t('statParas', '个段落')}</span>
-  `;
-
-  // 构建段落与句子 HTML（全局句子编号与 currentSentences 保持严格对应）
+  // 构建权威句子列表 readerSentences（核心：音频朗读完全使用该列表，100% 对应）
+  readerSentences = [];
   let globalSentenceCounter = 0;
-  const validSentencesList = [];
+
+  // 大标题作为第 0 句
+  if (pageTitle && pageTitle.length > 1) {
+    const safeTitle = pageTitle.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    titleEl.innerHTML = `<span class="readmate-reader-s" data-sentence-idx="0">${safeTitle}</span>`;
+    readerSentences.push(pageTitle);
+    globalSentenceCounter = 1;
+  } else {
+    titleEl.textContent = pageTitle;
+  }
+
   const parasHtml = paras.map((p, pIdx) => {
     let cleanP = p;
     try {
@@ -2103,20 +2155,53 @@ function renderReaderModeContent() {
 
     const spansHtml = sentences.map(s => {
       const idx = globalSentenceCounter++;
-      validSentencesList.push(s);
+      readerSentences.push(s);
       const safeText = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       return `<span class="readmate-reader-s" data-sentence-idx="${idx}">${safeText}</span>`;
     }).join(' ');
 
     return `<p class="readmate-reader-p" data-para-idx="${pIdx}">${spansHtml}</p>`;
-  }).join('\n');
+  }).filter(Boolean).join('\n');
 
   bodyEl.innerHTML = parasHtml;
 
-  // 缓存文章文本
-  const allFullText = validSentencesList.join('\n\n');
-  cachedReaderContent = { title: pageTitle, text: allFullText, paragraphs: paras };
-  if (!cachedArticleText) cachedArticleText = allFullText;
+  // 统计信息
+  const totalChars = readerSentences.reduce((sum, s) => sum + s.length, 0);
+  const estMinutes = Math.max(1, Math.round(totalChars / 350));
+  const domain = window.location.hostname.replace(/^www\./, '');
+
+  statsEl.textContent = `${totalChars} ${_t('statChars', '字')} · ${_t('statEst', '约')} ${estMinutes} ${_t('statMins', '分钟')}`;
+  metaEl.innerHTML = `
+    <span>🌐 ${domain}</span>
+    <span>⏱️ ${_t('statEst', '约')} ${estMinutes} ${_t('statMins', '分钟朗读')}</span>
+    <span>📝 ${readerSentences.length} ${_t('statParas', '个句子')}</span>
+  `;
+
+  const progEl = readerOverlay.querySelector('#readmate-reader-play-progress');
+  if (progEl) {
+    progEl.textContent = `共 ${readerSentences.length} 句 · 预计朗读 ${estMinutes} 分钟 · 点击任意句可直接开播`;
+  }
+}
+
+/** 启动净读模式的朗读流（彻底解决语音文字不同步，100% 对应屏幕展示句子） */
+async function playReaderModeSentences(startIdx = 0) {
+  if (!readerSentences || readerSentences.length === 0) {
+    renderReaderModeContent();
+  }
+  if (!readerSentences || readerSentences.length === 0) return;
+
+  currentMode = 'reader';
+  showBar();
+  updateReaderPlayButton();
+
+  cancelPlayback();
+  stopImmediate = false;
+  userStopped = false;
+
+  if (startIdx > 0) {
+    pendingJumpIndex = startIdx;
+  }
+  await playSentencesFlow(readerSentences);
 }
 
 function openReaderMode() {
@@ -2127,8 +2212,12 @@ function openReaderMode() {
   readerOverlay.style.display = 'flex';
   document.body.style.overflow = 'hidden';
   hideFAB();
-  if (isPlaying && floatingBar) {
-    showBar();
+
+  // 核心改进：进入净读模式时，底部控制条立即浮现可用
+  showBar();
+  updateReaderPlayButton();
+
+  if (isPlaying) {
     highlightReaderModeSentence(currentSentenceIndex);
   }
   DebugLog.add('Reader Mode opened');
@@ -2142,6 +2231,7 @@ function closeReaderMode() {
   }
   document.body.style.overflow = '';
   showFAB();
+  updateReaderPlayButton();
   if (isPlaying) {
     highlightSentence(currentSentenceIndex);
   }

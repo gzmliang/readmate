@@ -147,6 +147,10 @@
     "message": "段落上下文高亮",
     "description": "段落上下文高亮标签"
   },
+  "lblShowFab": {
+    "message": "显示右下角悬浮球",
+    "description": "显示右下角悬浮球标签"
+  },
   "btnTestAi": {
     "message": "测试 AI 连接",
     "description": "测试AI按钮"
@@ -354,5 +358,17 @@
   "toastPreparingPdf": {
     "message": "📄 正在唤起系统打印/保存为 PDF...",
     "description": "Preparing PDF toast"
+  },
+  "btnPlayArticle": {
+    "message": "开始朗读全文",
+    "description": "Start reading entire article button"
+  },
+  "btnResume": {
+    "message": "继续朗读",
+    "description": "Resume reading button"
+  },
+  "statSentences": {
+    "message": "个句子",
+    "description": "Sentences count unit"
   }
 }

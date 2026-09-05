@@ -177,6 +177,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('defaultSummaryView').value = settings.defaultSummaryView || 'bilingual';
     document.getElementById('highlightEnabled').checked = settings.highlightEnabled !== false;
     document.getElementById('highlightParagraphEnabled').checked = settings.highlightParagraphEnabled !== false;
+    document.getElementById('showFab').checked = settings.showFab !== false;
 
     // Cloud TTS
     document.getElementById('cloudTtsEndpoint').value = settings.cloudTtsEndpoint || 'http://192.168.199.159:5001';
@@ -313,6 +314,7 @@ function saveSettings(silent) {
     defaultSummaryView: document.getElementById('defaultSummaryView')?.value || 'bilingual',
     highlightEnabled: document.getElementById('highlightEnabled').checked,
     highlightParagraphEnabled: document.getElementById('highlightParagraphEnabled').checked,
+    showFab: document.getElementById('showFab').checked,
     uiLanguage: activeUiLang,
   };
 

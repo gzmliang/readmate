@@ -147,6 +147,10 @@
     "message": "Paragraph Context Highlight",
     "description": "Paragraph highlight toggle label"
   },
+  "lblShowFab": {
+    "message": "Show Floating Action Button",
+    "description": "Show FAB toggle label"
+  },
   "btnTestAi": {
     "message": "Test AI Connection",
     "description": "Test AI button"
@@ -354,5 +358,17 @@
   "toastPreparingPdf": {
     "message": "📄 Opening print preview for PDF export...",
     "description": "Preparing PDF toast"
+  },
+  "btnPlayArticle": {
+    "message": "Start Reading Article",
+    "description": "Start reading entire article button"
+  },
+  "btnResume": {
+    "message": "Resume",
+    "description": "Resume reading button"
+  },
+  "statSentences": {
+    "message": "sentences",
+    "description": "Sentences count unit"
   }
 }
