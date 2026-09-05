@@ -440,11 +440,11 @@
     "description": "Debug log copied"
   },
   "toastAudioStart": {
-    "message": "📥 开始合成整篇有声书（共 $COUNT$ 句）...",
+    "message": "📥 开始合成整篇有声书（共 {count} 句）...",
     "description": "Start synthesizing full audio"
   },
   "toastAudioProgress": {
-    "message": "📥 正在合成语音 ($CURRENT$/$TOTAL$ 句)...",
+    "message": "📥 正在合成语音 ({current}/{total} 句)...",
     "description": "Synthesizing progress"
   },
   "toastAudioSuccess": {

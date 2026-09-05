@@ -440,11 +440,11 @@
     "description": "Debug log copied"
   },
   "toastAudioStart": {
-    "message": "📥 Synthesizing audiobook ($COUNT$ sentences)...",
+    "message": "📥 Synthesizing audiobook ({count} sentences)...",
     "description": "Start synthesizing full audio"
   },
   "toastAudioProgress": {
-    "message": "📥 Synthesizing audio ($CURRENT$/$TOTAL$ sentences)...",
+    "message": "📥 Synthesizing audio ({current}/{total} sentences)...",
     "description": "Synthesizing progress"
   },
   "toastAudioSuccess": {

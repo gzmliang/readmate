@@ -2407,7 +2407,7 @@ async function downloadFullAudio() {
   const origVoice = getBestVoiceForLang(detectedDocLang, settings.cloudTtsVoiceOrig || settings.cloudTtsVoice) || 'zh-CN-XiaoxiaoNeural';
   const speed = settings.ttsSpeed || 1.0;
 
-  const startMsg = _t('toastAudioStart', '📥 开始合成整篇有声书（共 $COUNT$ 句）...').replace('$COUNT$', readerSentences.length);
+  const startMsg = _t('toastAudioStart', '📥 开始合成整篇有声书（共 {count} 句）...').replace('{count}', readerSentences.length);
   showTranslation(startMsg, true);
 
   const audioBuffers = [];
@@ -2417,9 +2417,9 @@ async function downloadFullAudio() {
       const speech = getSpeechText(sentence);
       if (!speech) continue;
 
-      const progMsg = _t('toastAudioProgress', '📥 正在合成语音 ($CURRENT$/$TOTAL$ 句)...')
-        .replace('$CURRENT$', i + 1)
-        .replace('$TOTAL$', readerSentences.length);
+      const progMsg = _t('toastAudioProgress', '📥 正在合成语音 ({current}/{total} 句)...')
+        .replace('{current}', i + 1)
+        .replace('{total}', readerSentences.length);
       showTranslation(progMsg, true);
 
       // 请求单句音频
