@@ -313,6 +313,42 @@ ${(text || '').substring(0, 5000)}`;
       return true;
     }
 
+    // ====== Bing 极速查词代理 ======
+    case 'proxyBingDict': {
+      const { word } = msg;
+      if (!word || !word.trim()) {
+        sendResponse({ ok: false, error: 'Empty query' });
+        return true;
+      }
+      fetch(`https://cn.bing.com/dict/search?q=${encodeURIComponent(word.trim())}`, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+      })
+        .then(async (resp) => {
+          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+          const html = await resp.text();
+          let phonetic = '';
+          const usMatch = html.match(/class="hd_prUS[^"]*">.*?\[(.*?)\]/);
+          const ukMatch = html.match(/class="hd_pr[^"]*">.*?\[(.*?)\]/);
+          if (usMatch) phonetic = usMatch[1];
+          else if (ukMatch) phonetic = ukMatch[1];
+
+          // 提取释义
+          const defs = [];
+          const liRegex = /<li>\s*<span class="pos">([^<]+)<\/span>\s*<span class="def[^"]*">([\s\S]*?)<\/span>\s*<\/li>/g;
+          let m;
+          while ((m = liRegex.exec(html)) !== null) {
+            const pos = m[1].trim();
+            const def = m[2].replace(/<[^>]+>/g, '').trim();
+            if (def) defs.push(`${pos} ${def}`);
+          }
+          sendResponse({ ok: true, phonetic, defs, trans: defs.slice(0, 3).join('； ') });
+        })
+        .catch((err) => {
+          sendResponse({ ok: false, error: err.message });
+        });
+      return true;
+    }
+
     // ====== AI 翻译代理 ======
     case 'proxyTranslate': {
       const { endpoint, apiKey, model, text, targetLang } = msg;

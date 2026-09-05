@@ -7,6 +7,12 @@
   display: none;
   gap: 6px;
   align-items: center;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 4px 6px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 .readmate-sel-btn {
   width: 32px;
@@ -698,22 +704,34 @@ h6.readmate-active-paragraph {
   display: flex !important;
 }
 
-/* 4 种经典主题配色 */
+/* 6 种经典质感主题配色 */
 #readmate-reader-overlay[data-theme="sepia"] {
-  background-color: #FAF8F5 !important;
-  color: #2D2A26 !important;
+  background-color: #F4ECD8 !important;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 0), radial-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 0) !important;
+  background-size: 24px 24px, 48px 48px !important;
+  background-position: 0 0, 12px 12px !important;
+  box-shadow: inset 0 0 100px rgba(180, 150, 110, 0.25) !important;
+  color: #382B22 !important;
 }
 #readmate-reader-overlay[data-theme="light"] {
   background-color: #FFFFFF !important;
   color: #1E293B !important;
 }
 #readmate-reader-overlay[data-theme="green"] {
-  background-color: #F0F7F4 !important;
-  color: #233831 !important;
+  background-color: #CCE8CF !important;
+  color: #1B382B !important;
+}
+#readmate-reader-overlay[data-theme="eink"] {
+  background-color: #E7E7E7 !important;
+  color: #111111 !important;
+}
+#readmate-reader-overlay[data-theme="midnight"] {
+  background-color: #0F172A !important;
+  color: #E2E8F0 !important;
 }
 #readmate-reader-overlay[data-theme="dark"] {
-  background-color: #181825 !important;
-  color: #CDD6F4 !important;
+  background-color: #121212 !important;
+  color: #E5E7EB !important;
 }
 
 /* 顶部极简工具条 */
@@ -732,7 +750,8 @@ h6.readmate-active-paragraph {
   border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
   z-index: 10 !important;
 }
-#readmate-reader-overlay[data-theme="dark"] .readmate-reader-header {
+#readmate-reader-overlay[data-theme="dark"] .readmate-reader-header,
+#readmate-reader-overlay[data-theme="midnight"] .readmate-reader-header {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
@@ -764,7 +783,8 @@ h6.readmate-active-paragraph {
   gap: 6px !important;
   transition: all 0.2s ease !important;
 }
-#readmate-reader-overlay[data-theme="dark"] .readmate-reader-btn {
+#readmate-reader-overlay[data-theme="dark"] .readmate-reader-btn,
+#readmate-reader-overlay[data-theme="midnight"] .readmate-reader-btn {
   background: rgba(255, 255, 255, 0.08) !important;
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
 }
@@ -773,7 +793,8 @@ h6.readmate-active-paragraph {
   border-color: #3b82f6 !important;
   color: #2563eb !important;
 }
-#readmate-reader-overlay[data-theme="dark"] .readmate-reader-btn:hover {
+#readmate-reader-overlay[data-theme="dark"] .readmate-reader-btn:hover,
+#readmate-reader-overlay[data-theme="midnight"] .readmate-reader-btn:hover {
   color: #60a5fa !important;
 }
 
@@ -812,7 +833,8 @@ h6.readmate-active-paragraph {
   background: rgba(0, 0, 0, 0.04) !important;
   border-radius: 20px !important;
 }
-#readmate-reader-overlay[data-theme="dark"] .readmate-theme-picker {
+#readmate-reader-overlay[data-theme="dark"] .readmate-theme-picker,
+#readmate-reader-overlay[data-theme="midnight"] .readmate-theme-picker {
   background: rgba(255, 255, 255, 0.06) !important;
 }
 .readmate-theme-dot {
@@ -831,13 +853,17 @@ h6.readmate-active-paragraph {
   border-color: #3b82f6 !important;
   transform: scale(1.12) !important;
 }
-.readmate-theme-dot.theme-sepia { background-color: #FAF8F5 !important; border-color: #d1cdc7 !important; }
+.readmate-theme-dot.theme-sepia { background-color: #F4ECD8 !important; border-color: #c4b59d !important; }
 .readmate-theme-dot.theme-light { background-color: #FFFFFF !important; border-color: #cbd5e1 !important; }
-.readmate-theme-dot.theme-green { background-color: #E2ECE7 !important; border-color: #b5c7bf !important; }
-.readmate-theme-dot.theme-dark  { background-color: #181825 !important; border-color: #45475a !important; }
+.readmate-theme-dot.theme-green { background-color: #CCE8CF !important; border-color: #9fcca5 !important; }
+.readmate-theme-dot.theme-eink  { background-color: #E7E7E7 !important; border-color: #9e9e9e !important; }
+.readmate-theme-dot.theme-midnight { background-color: #0F172A !important; border-color: #334155 !important; }
+.readmate-theme-dot.theme-dark  { background-color: #121212 !important; border-color: #374151 !important; }
 .readmate-theme-dot.active.theme-sepia { border-color: #3b82f6 !important; }
 .readmate-theme-dot.active.theme-light { border-color: #3b82f6 !important; }
 .readmate-theme-dot.active.theme-green { border-color: #3b82f6 !important; }
+.readmate-theme-dot.active.theme-eink  { border-color: #3b82f6 !important; }
+.readmate-theme-dot.active.theme-midnight { border-color: #3b82f6 !important; }
 .readmate-theme-dot.active.theme-dark  { border-color: #3b82f6 !important; }
 
 /* 字号缩放控制组 */
@@ -849,7 +875,8 @@ h6.readmate-active-paragraph {
   padding: 2px 8px !important;
   border-radius: 20px !important;
 }
-#readmate-reader-overlay[data-theme="dark"] .readmate-font-controls {
+#readmate-reader-overlay[data-theme="dark"] .readmate-font-controls,
+#readmate-reader-overlay[data-theme="midnight"] .readmate-font-controls {
   background: rgba(255, 255, 255, 0.06) !important;
 }
 .readmate-reader-btn-icon {

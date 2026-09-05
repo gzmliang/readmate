@@ -311,6 +311,14 @@
     "message": "模式已切换: ",
     "description": "模式切换提示"
   },
+  "toastAudioDownloading": {
+    "message": "⏳ 正在合成中，请稍候...",
+    "description": "Audio is downloading"
+  },
+  "toastNoContentToDownload": {
+    "message": "⚠️ 没有可下载的文章内容",
+    "description": "No content to download"
+  },
   "lblBilingual": {
     "message": "双语",
     "description": "双语勾选标签"
@@ -386,5 +394,109 @@
   "btnVocab": {
     "message": "生词本",
     "description": "Vocab button label"
+  },
+  "themeSepia": {
+    "message": "复古羊皮纸",
+    "description": "Sepia theme"
+  },
+  "themeLight": {
+    "message": "纯净白",
+    "description": "Light theme"
+  },
+  "themeGreen": {
+    "message": "护眼绿",
+    "description": "Green theme"
+  },
+  "themeEink": {
+    "message": "水墨灰",
+    "description": "E-ink gray theme"
+  },
+  "themeMidnight": {
+    "message": "深海蓝",
+    "description": "Midnight blue theme"
+  },
+  "themeDark": {
+    "message": "夜间黑",
+    "description": "Dark theme"
+  },
+  "toastTranslatingSelection": {
+    "message": "🌐 正在进行深度 AI 语境翻译...",
+    "description": "Translating selection"
+  },
+  "toastTranslateFailed": {
+    "message": "❌ 翻译失败，请检查 AI 配置",
+    "description": "Translate failed"
+  },
+  "toastBilingualEnabled": {
+    "message": "🌐 已开启双语翻译",
+    "description": "Bilingual enabled"
+  },
+  "toastBilingualDisabled": {
+    "message": "📄 已关闭翻译 (纯原文省Token模式)",
+    "description": "Bilingual disabled"
+  },
+  "toastDebugCopied": {
+    "message": "✓ 调试日志已复制",
+    "description": "Debug log copied"
+  },
+  "toastAudioStart": {
+    "message": "📥 开始合成整篇有声书（共 $COUNT$ 句）...",
+    "description": "Start synthesizing full audio"
+  },
+  "toastAudioProgress": {
+    "message": "📥 正在合成语音 ($CURRENT$/$TOTAL$ 句)...",
+    "description": "Synthesizing progress"
+  },
+  "toastAudioSuccess": {
+    "message": "🎉 整篇有声书已合成完毕并开始下载！",
+    "description": "Audio download success"
+  },
+  "toastAudioFailed": {
+    "message": "❌ 语音合成下载失败: ",
+    "description": "Audio download failed prefix"
+  },
+  "toastVocabRemoved": {
+    "message": "已从生词本移除",
+    "description": "Removed from vocab"
+  },
+  "toastVocabAdded": {
+    "message": "⭐ 已收藏到生词本！",
+    "description": "Added to vocab"
+  },
+  "toastVocabEmpty": {
+    "message": "生词本为空",
+    "description": "Vocab is empty"
+  },
+  "toastVocabExported": {
+    "message": "✓ 已导出为 Markdown 并复制到剪贴板！",
+    "description": "Vocab exported"
+  },
+  "toastVocabCleared": {
+    "message": "生词本已清空",
+    "description": "Vocab cleared"
+  },
+  "confirmClearVocab": {
+    "message": "确定要清空生词本中的所有单词吗？",
+    "description": "Confirm clear vocab"
+  },
+  "dictSearching": {
+    "message": "🔍 正在查询释义...",
+    "description": "Searching definition"
+  },
+  "dictNoResult": {
+    "message": "暂未查到中文释义",
+    "description": "No definition found"
+  },
+  "vocabEmptyPlaceholder": {
+    "message": "📭 暂无收藏的生词<br>在净读模式下双击单词即可一键查词与收藏",
+    "description": "Vocab empty placeholder"
+  },
+  "vocabExportMd": {
+    "message": "📋 导出 Markdown",
+    "description": "Export markdown button"
+  },
+  "vocabClearAll": {
+    "message": "🗑️ 清空",
+    "description": "Clear all vocab button"
   }
 }

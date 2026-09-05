@@ -222,21 +222,22 @@ function createSelectionPlayBtn() {
   selectionPlayBtn.querySelector('#readmate-sel-trans-btn').onclick = (e) => {
     e.stopPropagation();
     if (selectionText) {
-      window._readmateMouseX = e.clientX;
-      window._readmateMouseY = e.clientY;
       hideSelectionBtn();
-      translateAndShow(selectionText);
+      translateAndShow(selectionText, currentSelectionRect);
     }
   };
 }
 
-function showSelectionBtn(x, y) {
+let currentSelectionRect = null;
+
+function showSelectionBtn(x, y, rect = null) {
+  currentSelectionRect = rect;
   createSelectionPlayBtn();
-  const pad = 12;
+  const pad = 10;
   let left = x + pad;
-  let top = y + pad;
-  if (left + 70 > window.innerWidth) left = x - 70;
-  if (top + 40 > window.innerHeight) top = y - 40;
+  let top = y - 36;
+  if (left + 80 > window.innerWidth) left = window.innerWidth - 85;
+  if (top < 10) top = y + pad;
   selectionPlayBtn.style.left = `${left}px`;
   selectionPlayBtn.style.top = `${top}px`;
   selectionPlayBtn.style.display = 'flex';
@@ -248,7 +249,7 @@ function hideSelectionBtn() {
 
 // 划词监听
 document.addEventListener('mouseup', (e) => {
-  if (e.target.closest('#readmate-sel-btn-group') || e.target.closest('#readmate-bar') || e.target.closest('#readmate-fab-container')) {
+  if (e.target.closest('#readmate-sel-btn-group') || e.target.closest('#readmate-bar') || e.target.closest('#readmate-fab-container') || e.target.closest('#readmate-dict-bubble') || e.target.closest('#readmate-vocab-drawer')) {
     return;
   }
   setTimeout(() => {
@@ -256,7 +257,11 @@ document.addEventListener('mouseup', (e) => {
     const txt = sel ? sel.toString().trim() : '';
     if (txt && txt.length >= 2) {
       selectionText = txt;
-      showSelectionBtn(e.clientX, e.clientY);
+      let rect = null;
+      try {
+        rect = sel.getRangeAt(0).getBoundingClientRect();
+      } catch(err) {}
+      showSelectionBtn(e.clientX, e.clientY, rect);
     } else {
       hideSelectionBtn();
     }
@@ -641,7 +646,7 @@ function createFloatingBar() {
         enableBilingual = e.target.checked;
         chrome.runtime.sendMessage({ action: 'saveSettings', settings: { enableBilingual } });
         if (enableBilingual) {
-          showTranslation('🌐 已开启双语翻译', true);
+          showTranslation(_t('toastBilingualEnabled', '🌐 已开启双语翻译'), true);
           // 正在播放时，立即在后台异步预取当前句翻译
           if (isPlaying && currentSentences.length > 0) {
             const curOrig = currentSentences[currentSentenceIndex];
@@ -654,7 +659,7 @@ function createFloatingBar() {
             }
           }
         } else {
-          showTranslation('📄 已关闭翻译 (纯原文省Token模式)', true);
+          showTranslation(_t('toastBilingualDisabled', '📄 已关闭翻译 (纯原文省Token模式)'), true);
           // 若之前处于仅读译文或双语模式，自动切回仅读原文
           if (readVoiceMode !== 'original') {
             readVoiceMode = 'original';
@@ -773,7 +778,7 @@ function refreshDebugPanel() {
 }
 function copyDebugLogs() {
   DebugLog.copy();
-  showTranslation('✓ 调试日志已复制', true);
+  showTranslation(_t('toastDebugCopied', '✓ 调试日志已复制'), true);
 }
 let debugTimer = null;
 function startDebugTimer() { stopDebugTimer(); debugTimer = setInterval(refreshDebugPanel, 600); }
@@ -2060,10 +2065,12 @@ function ensureReaderOverlay() {
       <div class="readmate-reader-header-right">
         <!-- 主题切换 -->
         <div class="readmate-theme-picker" title="${_t('tipThemePicker', '切换阅读底色')}">
-          <button class="readmate-theme-dot theme-sepia ${readerTheme === 'sepia' ? 'active' : ''}" data-theme="sepia" title="米黄羊皮纸"></button>
-          <button class="readmate-theme-dot theme-light ${readerTheme === 'light' ? 'active' : ''}" data-theme="light" title="纯净白"></button>
-          <button class="readmate-theme-dot theme-green ${readerTheme === 'green' ? 'active' : ''}" data-theme="green" title="护眼绿"></button>
-          <button class="readmate-theme-dot theme-dark ${readerTheme === 'dark' ? 'active' : ''}" data-theme="dark" title="夜间墨黑"></button>
+          <button class="readmate-theme-dot theme-sepia ${readerTheme === 'sepia' ? 'active' : ''}" data-theme="sepia" title="${_t('themeSepia', '复古羊皮纸')}"></button>
+          <button class="readmate-theme-dot theme-light ${readerTheme === 'light' ? 'active' : ''}" data-theme="light" title="${_t('themeLight', '纯净白')}"></button>
+          <button class="readmate-theme-dot theme-green ${readerTheme === 'green' ? 'active' : ''}" data-theme="green" title="${_t('themeGreen', '护眼绿')}"></button>
+          <button class="readmate-theme-dot theme-eink ${readerTheme === 'eink' ? 'active' : ''}" data-theme="eink" title="${_t('themeEink', '水墨灰')}"></button>
+          <button class="readmate-theme-dot theme-midnight ${readerTheme === 'midnight' ? 'active' : ''}" data-theme="midnight" title="${_t('themeMidnight', '深海蓝')}"></button>
+          <button class="readmate-theme-dot theme-dark ${readerTheme === 'dark' ? 'active' : ''}" data-theme="dark" title="${_t('themeDark', '夜间黑')}"></button>
         </div>
         <!-- 字号调节 -->
         <div class="readmate-font-controls" title="${_t('tipFontSize', '调节正文字号')}">
@@ -2400,7 +2407,8 @@ async function downloadFullAudio() {
   const origVoice = getBestVoiceForLang(detectedDocLang, settings.cloudTtsVoiceOrig || settings.cloudTtsVoice) || 'zh-CN-XiaoxiaoNeural';
   const speed = settings.ttsSpeed || 1.0;
 
-  showTranslation(`📥 开始合成整篇有声书（共 ${readerSentences.length} 句）...`, true);
+  const startMsg = _t('toastAudioStart', '📥 开始合成整篇有声书（共 $COUNT$ 句）...').replace('$COUNT$', readerSentences.length);
+  showTranslation(startMsg, true);
 
   const audioBuffers = [];
   try {
@@ -2409,7 +2417,10 @@ async function downloadFullAudio() {
       const speech = getSpeechText(sentence);
       if (!speech) continue;
 
-      showTranslation(`📥 正在合成语音 (${i + 1}/${readerSentences.length} 句)...`, true);
+      const progMsg = _t('toastAudioProgress', '📥 正在合成语音 ($CURRENT$/$TOTAL$ 句)...')
+        .replace('$CURRENT$', i + 1)
+        .replace('$TOTAL$', readerSentences.length);
+      showTranslation(progMsg, true);
 
       // 请求单句音频
       const dataUrl = await getOrFetchTtsAudio(ttsEndpoint, speech, origVoice, speed);
@@ -2425,7 +2436,7 @@ async function downloadFullAudio() {
     }
 
     if (audioBuffers.length === 0) {
-      throw new Error('未获取到音频数据');
+      throw new Error('No audio data received');
     }
 
     // 顺序拼接所有 MP3 帧为单个完整音频文件
@@ -2442,10 +2453,10 @@ async function downloadFullAudio() {
       URL.revokeObjectURL(downloadUrl);
     }, 6000);
 
-    showTranslation('🎉 整篇有声书已合成完毕并开始下载！', true);
+    showTranslation(_t('toastAudioSuccess', '🎉 整篇有声书已合成完毕并开始下载！'), true);
   } catch(err) {
     DebugLog.add('downloadFullAudio error: ' + err.message);
-    showTranslation('❌ 语音合成下载失败: ' + err.message, true);
+    showTranslation(_t('toastAudioFailed', '❌ 语音合成下载失败: ') + err.message, true);
   } finally {
     isDownloadingAudio = false;
   }
@@ -2549,7 +2560,7 @@ function showDictBubble(word, rect, contextSentence = '') {
       await saveStoredVocabList(list);
       favBtn.textContent = '⭐';
       favBtn.classList.remove('is-fav');
-      showTranslation('已从生词本移除', true);
+      showTranslation(_t('toastVocabRemoved', '已从生词本移除'), true);
     } else {
       list.unshift({
         word,
@@ -2562,18 +2573,18 @@ function showDictBubble(word, rect, contextSentence = '') {
       await saveStoredVocabList(list);
       favBtn.textContent = '★';
       favBtn.classList.add('is-fav');
-      showTranslation('⭐ 已收藏到生词本！', true);
+      showTranslation(_t('toastVocabAdded', '⭐ 已收藏到生词本！'), true);
     }
     renderVocabDrawer();
   };
 
-  // 执行释义查询
+  // 执行极速 Bing + AI 兜底查词
   fetchWordDefinition(word, contextSentence).then(res => {
     if (!dictBubble) return;
     const phEl = dictBubble.querySelector('#readmate-dict-ph');
     const trEl = dictBubble.querySelector('#readmate-dict-tr');
     if (phEl) phEl.textContent = res.phonetic ? `[${res.phonetic}]` : '';
-    if (trEl) trEl.textContent = res.trans || '暂无释义';
+    if (trEl) trEl.textContent = res.trans || _t('dictNoResult', '暂无释义');
   });
 }
 
@@ -2584,22 +2595,48 @@ function hideDictBubble() {
   }
 }
 
+// 单词查词缓存（LRU/Map 毫秒级秒开）
+const dictWordCache = new Map();
+
+/** 优先 Bing 极速查词，无结果或超时自动降级 AI */
 async function fetchWordDefinition(word, context) {
-  let phonetic = '';
-  try {
-    const r = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
-    if (r.ok) {
-      const data = await r.json();
-      phonetic = data[0]?.phonetic || data[0]?.phonetics?.find(p => p.text)?.text || '';
-    }
-  } catch(e) {}
+  const cleanWord = (word || '').trim();
+  if (!cleanWord) return { word: '', phonetic: '', trans: '' };
+  if (dictWordCache.has(cleanWord.toLowerCase())) {
+    return dictWordCache.get(cleanWord.toLowerCase());
+  }
 
-  let trans = '';
-  try {
-    trans = await fetchTranslation(word);
-  } catch(e) {}
+  // 1. 优先调用 background 走 Bing 极速通道
+  const bingPromise = new Promise((resolve) => {
+    chrome.runtime.sendMessage({ action: 'proxyBingDict', word: cleanWord }, (resp) => {
+      if (resp && resp.ok && resp.trans) {
+        resolve({ word: cleanWord, phonetic: resp.phonetic || '', trans: resp.trans });
+      } else {
+        resolve(null);
+      }
+    });
+  });
 
-  return { word, phonetic, trans: trans || '暂未查到中文释义' };
+  // 2 秒超时熔断
+  const timeoutPromise = new Promise((r) => setTimeout(() => r(null), 2000));
+  let result = await Promise.race([bingPromise, timeoutPromise]);
+
+  // 2. 若 Bing 查无结果或超时，自动无缝降级走 AI 大模型
+  if (!result || !result.trans) {
+    let aiTrans = '';
+    try {
+      aiTrans = await fetchTranslation(cleanWord);
+    } catch(e) {}
+
+    result = {
+      word: cleanWord,
+      phonetic: result?.phonetic || '',
+      trans: aiTrans || _t('dictNoResult', '暂未查到中文释义'),
+    };
+  }
+
+  dictWordCache.set(cleanWord.toLowerCase(), result);
+  return result;
 }
 
 function ensureVocabDrawer() {
@@ -2631,19 +2668,19 @@ function ensureVocabDrawer() {
   vocabDrawer.querySelector('#readmate-vocab-export').onclick = async () => {
     const list = await getStoredVocabList();
     if (list.length === 0) {
-      showTranslation('生词本为空', true);
+      showTranslation(_t('toastVocabEmpty', '生词本为空'), true);
       return;
     }
     const md = `# ReadMate 生词本 (${list.length}词)\n\n` + list.map(item => `### ${item.word} ${item.phonetic}\n- **释义**: ${item.trans}\n${item.context ? `- **例句**: *${item.context}*\n` : ''}`).join('\n');
     navigator.clipboard?.writeText(md);
-    showTranslation('✓ 已导出为 Markdown 并复制到剪贴板！', true);
+    showTranslation(_t('toastVocabExported', '✓ 已导出为 Markdown 并复制到剪贴板！'), true);
   };
 
   vocabDrawer.querySelector('#readmate-vocab-clear').onclick = async () => {
-    if (confirm('确定要清空生词本中的所有单词吗？')) {
+    if (confirm(_t('confirmClearVocab', '确定要清空生词本中的所有单词吗？'))) {
       await saveStoredVocabList([]);
       renderVocabDrawer();
-      showTranslation('生词本已清空', true);
+      showTranslation(_t('toastVocabCleared', '生词本已清空'), true);
     }
   };
 
@@ -2656,10 +2693,10 @@ async function renderVocabDrawer() {
   const titleEl = vocabDrawer.querySelector('#readmate-vocab-count-title');
   const container = vocabDrawer.querySelector('#readmate-vocab-list');
 
-  if (titleEl) titleEl.textContent = `我的生词本 (${list.length})`;
+  if (titleEl) titleEl.textContent = `${_t('btnVocabNotebook', '我的生词本')} (${list.length})`;
 
   if (list.length === 0) {
-    container.innerHTML = `<div class="readmate-vocab-empty">📭 暂无收藏的生词<br>在净读模式下双击单词即可一键查词与收藏</div>`;
+    container.innerHTML = `<div class="readmate-vocab-empty">${_t('vocabEmptyPlaceholder', '📭 暂无收藏的生词<br>在净读模式下双击单词即可一键查词与收藏')}</div>`;
     return;
   }
 
@@ -2740,8 +2777,8 @@ document.addEventListener('mousedown', (e) => {
   }
 });
 
-// ====== 提示与小气泡（Toast） ======
-function showTranslation(text, isToast = false) {
+// ====== 提示与小气泡（Toast 就近智能定位） ======
+function showTranslation(text, isToast = false, targetRect = null) {
   let toast = document.getElementById('readmate-toast');
   if (!toast) {
     toast = document.createElement('div');
@@ -2750,17 +2787,46 @@ function showTranslation(text, isToast = false) {
   }
   toast.textContent = text;
   toast.style.display = 'block';
+
+  if (targetRect) {
+    // 划选翻译：就近显示在划词文本的下方或上方，绝不跑偏到底部控制栏！
+    const scrollY = window.scrollY || window.pageYOffset || 0;
+    const scrollX = window.scrollX || window.pageXOffset || 0;
+    toast.style.position = 'absolute';
+    toast.style.bottom = 'auto';
+    toast.style.transform = 'none';
+
+    let top = targetRect.bottom + scrollY + 8;
+    let left = targetRect.left + scrollX;
+
+    // 屏幕右侧防溢出
+    if (left + 320 > window.innerWidth) {
+      left = Math.max(10, window.innerWidth - 330);
+    }
+    toast.style.top = `${top}px`;
+    toast.style.left = `${left}px`;
+    toast.style.maxWidth = '360px';
+  } else {
+    // 全局通知默认居中在底部
+    toast.style.position = 'fixed';
+    toast.style.bottom = '86px';
+    toast.style.top = 'auto';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.maxWidth = 'none';
+  }
+
   clearTimeout(toast._timer);
   toast._timer = setTimeout(() => {
     toast.style.display = 'none';
-  }, 2500);
+  }, 3500);
 }
 
-async function translateAndShow(text) {
-  showTranslation('🌐 正在翻译选中文本...', true);
+async function translateAndShow(text, targetRect = null) {
+  showTranslation(_t('toastTranslatingSelection', '🌐 正在进行深度 AI 语境翻译...'), true, targetRect);
   const trans = await fetchTranslation(text);
-  if (trans) showTranslation(trans, true);
-  else showTranslation('❌ 翻译失败，请检查 AI 配置', true);
+  if (trans) showTranslation(trans, true, targetRect);
+  else showTranslation(_t('toastTranslateFailed', '❌ 翻译失败，请检查 AI 配置'), true, targetRect);
 }
 
 // ====== 初始化监听 ======
