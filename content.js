@@ -674,13 +674,20 @@ function createFloatingBar() {
 
     // 字幕折叠开关
     const subChk = floatingBar.querySelector('#readmate-sub-chk');
+    const subWrap = floatingBar.querySelector('#readmate-subtitles-wrap');
     if (subChk) {
-      subChk.onchange = (e) => {
-        showBilingualSubtitles = e.target.checked;
-        const wrap = floatingBar.querySelector('#readmate-subtitles-wrap');
-        if (wrap) wrap.style.display = showBilingualSubtitles ? '' : 'none';
+      subChk.checked = showBilingualSubtitles;
+      if (subWrap) subWrap.style.setProperty('display', showBilingualSubtitles ? 'flex' : 'none', 'important');
+
+      const handleSubToggle = (e) => {
+        showBilingualSubtitles = subChk.checked;
+        if (subWrap) {
+          subWrap.style.setProperty('display', showBilingualSubtitles ? 'flex' : 'none', 'important');
+        }
         chrome.runtime.sendMessage({ action: 'saveSettings', settings: { showBilingualSubtitles } });
       };
+      subChk.onchange = handleSubToggle;
+      subChk.addEventListener('input', handleSubToggle);
     }
 
     // 调试日志
@@ -728,6 +735,10 @@ function updateBarProgress(cur, total) {
 
 function updateSubtitleDisplay(original, translated) {
   if (!floatingBar) return;
+  const wrap = floatingBar.querySelector('#readmate-subtitles-wrap');
+  if (wrap) {
+    wrap.style.setProperty('display', showBilingualSubtitles ? 'flex' : 'none', 'important');
+  }
   const origEl = floatingBar.querySelector('#readmate-sub-original');
   const transEl = floatingBar.querySelector('#readmate-sub-translated');
   if (origEl) origEl.textContent = original || '';

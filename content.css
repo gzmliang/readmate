@@ -304,27 +304,37 @@
 
 /* 下层：动态双语字幕区 */
 .readmate-subtitles-wrap {
-  padding: 12px 32px 14px 32px;
+  padding: 14px 28px 16px 28px !important;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  background: rgba(0, 0, 0, 0.2);
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.25) !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
 }
 
 .readmate-sub-original {
-  font-size: 13.5px;
+  font-size: 14px !important;
   font-weight: 500;
-  line-height: 1.45;
+  line-height: 1.5;
   color: #f8fafc;
   word-break: break-word;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+  box-sizing: border-box !important;
+  display: block !important;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
 .readmate-sub-translated {
-  font-size: 12.5px;
-  line-height: 1.4;
+  font-size: 13px !important;
+  line-height: 1.45;
   color: #38bdf8;
   word-break: break-word;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+  box-sizing: border-box !important;
+  display: block !important;
 }
 
 /* ====== ⚡ AI 双语摘要卡片弹窗 ====== */
