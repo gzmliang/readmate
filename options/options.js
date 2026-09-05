@@ -403,25 +403,27 @@ function setupHelpModal() {
   closeBtn.onclick = () => modal.style.display = 'none';
   modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
 
-  // TTS 帮助与自建说明书
+  // TTS 帮助与自建说明书 (中英双语)
   document.getElementById('btnHelpTts')?.addEventListener('click', () => {
-    open('☁️ 语音朗读引擎完全指南 & 自建 Edge-TTS 服务教程', `
-      <div style="background:rgba(56,189,248,0.1);border-left:4px solid #38bdf8;padding:10px 14px;border-radius:4px;margin-bottom:16px;">
-        💡 <strong>Edge 浏览器原生免搭技巧（强烈推荐）</strong>：<br>
-        如果您使用的是微软 Edge 浏览器，安装本插件后直接在上方选择【🔊 浏览器原生】引擎，即可直接免费调用微软最高清的自然语音（如晓晓、Yunxi），完全本地极速发音，零网络延迟！
-      </div>
+    const isZh = activeUiLang && activeUiLang.startsWith('zh');
+    if (isZh) {
+      open('☁️ 语音朗读引擎完全指南 & 自建 Edge-TTS 服务教程', `
+        <div style="background:rgba(56,189,248,0.1);border-left:4px solid #38bdf8;padding:10px 14px;border-radius:4px;margin-bottom:16px;">
+          💡 <strong>Edge 浏览器原生免搭技巧（强烈推荐）</strong>：<br>
+          如果您使用的是微软 Edge 浏览器，安装本插件后直接在上方选择【🔊 浏览器原生】引擎，即可直接免费调用微软最高清的自然语音（如晓晓、Yunxi），完全本地极速发音，零网络延迟！
+        </div>
 
-      <h4 style="color:#facc15;margin:16px 0 8px;">1. 默认公共服务</h4>
-      <p>插件默认内置了梁老师为大家长期维护的免费高音质服务：<code>http://powerplus.blogsyte.com:5001</code>，全球开箱即用，无需配置。</p>
+        <h4 style="color:#facc15;margin:16px 0 8px;">1. 默认公共服务</h4>
+        <p>插件默认内置了梁老师为大家长期维护的免费高音质服务：<code>http://powerplus.blogsyte.com:5001</code>，全球开箱即用，无需配置。</p>
 
-      <h4 style="color:#facc15;margin:16px 0 8px;">2. 5分钟在自己的 VPS/服务器 上搭建专属 Edge-TTS（附完整代码）</h4>
-      <p>如果您有自己的云服务器（Ubuntu/Debian/CentOS），可以自建专属节点，完全独享带宽：</p>
-      
-      <p><strong>第一步：安装 Python 依赖</strong></p>
-      <pre style="background:#0f172a;padding:10px;border-radius:6px;overflow-x:auto;">pip3 install edge-tts flask flask-cors gunicorn</pre>
+        <h4 style="color:#facc15;margin:16px 0 8px;">2. 5分钟在自己的 VPS/服务器 上搭建专属 Edge-TTS（附完整代码）</h4>
+        <p>如果您有自己的云服务器（Ubuntu/Debian/CentOS），可以自建专属节点，完全独享带宽：</p>
+        
+        <p><strong>第一步：安装 Python 依赖</strong></p>
+        <pre style="background:#0f172a;padding:10px;border-radius:6px;overflow-x:auto;">pip3 install edge-tts flask flask-cors gunicorn</pre>
 
-      <p><strong>第二步：新建服务脚本 <code>server.py</code></strong></p>
-      <pre style="background:#0f172a;padding:10px;border-radius:6px;overflow-x:auto;font-size:12px;">import edge_tts, asyncio, tempfile, os
+        <p><strong>第二步：新建服务脚本 <code>server.py</code></strong></p>
+        <pre style="background:#0f172a;padding:10px;border-radius:6px;overflow-x:auto;font-size:12px;">import edge_tts, asyncio, tempfile, os
 from flask import Flask, request, jsonify, send_file, make_response
 from flask_cors import CORS
 
@@ -451,39 +453,121 @@ def tts():
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)</pre>
 
-      <p><strong>第三步：后台长期运行</strong></p>
-      <pre style="background:#0f172a;padding:10px;border-radius:6px;overflow-x:auto;">gunicorn -w 2 -b 0.0.0.0:5001 server:app --timeout 900</pre>
+        <p><strong>第三步：后台长期运行</strong></p>
+        <pre style="background:#0f172a;padding:10px;border-radius:6px;overflow-x:auto;">gunicorn -w 2 -b 0.0.0.0:5001 server:app --timeout 900</pre>
 
-      <h4 style="color:#facc15;margin:16px 0 8px;">3. 通用 AI 语音接口 (OpenAI 兼容) 说明</h4>
-      <p>支持任何兼容 OpenAI <code>/v1/audio/speech</code> 规范的服务（如 OpenAI 官方 tts-1、硅基流动 CosyVoice、Fish Audio、自建 GPT-SoVITS 等）。只需填入 API 端点与 Key 即可畅享超拟真发音！</p>
-    `);
+        <h4 style="color:#facc15;margin:16px 0 8px;">3. 通用 AI 语音接口 (OpenAI 兼容) 说明</h4>
+        <p>支持任何兼容 OpenAI <code>/v1/audio/speech</code> 规范的服务（如 OpenAI 官方 tts-1、硅基流动 CosyVoice、Fish Audio、自建 GPT-SoVITS 等）。只需填入 API 端点与 Key 即可畅享超拟真发音！</p>
+      `);
+    } else {
+      open('☁️ TTS Engine Guide & Self-Hosting Edge-TTS Tutorial', `
+        <div style="background:rgba(56,189,248,0.1);border-left:4px solid #38bdf8;padding:10px 14px;border-radius:4px;margin-bottom:16px;">
+          💡 <strong>Pro Tip for Microsoft Edge Users</strong>:<br>
+          If you are using Microsoft Edge browser, simply choose <strong>Browser Native</strong> engine above. It directly accesses Microsoft's premium neural voices (e.g., Jenny, Guy, Xiaoxiao) completely locally with zero network latency!
+        </div>
+
+        <h4 style="color:#facc15;margin:16px 0 8px;">1. Default Public Service</h4>
+        <p>ReadMate comes with teacher Liang's permanently maintained free public node: <code>http://powerplus.blogsyte.com:5001</code>. Works out of the box worldwide.</p>
+
+        <h4 style="color:#facc15;margin:16px 0 8px;">2. Self-Host Edge-TTS on Your Own VPS (in 5 minutes)</h4>
+        <p>If you have a Linux VPS (Ubuntu/Debian), deploy your own dedicated node for unlimited bandwidth:</p>
+        
+        <p><strong>Step 1: Install Python dependencies</strong></p>
+        <pre style="background:#0f172a;padding:10px;border-radius:6px;overflow-x:auto;">pip3 install edge-tts flask flask-cors gunicorn</pre>
+
+        <p><strong>Step 2: Create server script <code>server.py</code></strong></p>
+        <pre style="background:#0f172a;padding:10px;border-radius:6px;overflow-x:auto;font-size:12px;">import edge_tts, asyncio, tempfile, os
+from flask import Flask, request, jsonify, send_file, make_response
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
+
+@app.route('/voices')
+def list_voices():
+    return jsonify(asyncio.run(edge_tts.list_voices()))
+
+@app.route('/tts', methods=['POST', 'OPTIONS'])
+def tts():
+    if request.method == 'OPTIONS':
+        res = make_response()
+        res.headers['Access-Control-Allow-Origin'] = '*'
+        res.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return res
+    d = request.get_json() or {}
+    text = d.get('text', '')
+    voice = d.get('voice', 'en-US-JennyNeural')
+    rate = d.get('rate', '+0%')
+    with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as tmp:
+        p = tmp.name
+    asyncio.run(edge_tts.Communicate(text=text, voice=voice, rate=rate).save(p))
+    return send_file(p, mimetype='audio/mpeg')
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5001)</pre>
+
+        <p><strong>Step 3: Run with Gunicorn daemon</strong></p>
+        <pre style="background:#0f172a;padding:10px;border-radius:6px;overflow-x:auto;">gunicorn -w 2 -b 0.0.0.0:5001 server:app --timeout 900</pre>
+
+        <h4 style="color:#facc15;margin:16px 0 8px;">3. Universal AI Voice (OpenAI Compatible)</h4>
+        <p>Compatible with any service following OpenAI <code>/v1/audio/speech</code> format (OpenAI tts-1, SiliconFlow CosyVoice, Fish Audio, etc.). Enjoy hyper-realistic AI voices!</p>
+      `);
+    }
   });
 
-  // AI 大模型帮助说明
+  // AI 大模型帮助说明 (中英双语)
   document.getElementById('btnHelpAi')?.addEventListener('click', () => {
-    open('🤖 AI 大模型与翻译接口配置指南', `
-      <p>ReadMate 支持任何兼容 OpenAI 协议的国际主流大模型（无需购买昂贵专有服务，按量计费极低）：</p>
+    const isZh = activeUiLang && activeUiLang.startsWith('zh');
+    if (isZh) {
+      open('🤖 AI 大模型与翻译接口配置指南', `
+        <p>ReadMate 支持任何兼容 OpenAI 协议的国际主流大模型（无需购买昂贵专有服务，按量计费极低）：</p>
 
-      <div style="background:rgba(255,255,255,0.05);padding:12px;border-radius:8px;margin-bottom:12px;">
-        <strong style="color:#60a5fa;">1. DeepSeek（强烈推荐 / 超高性价比）</strong><br>
-        • API 端点：<code>https://api.deepseek.com/v1</code><br>
-        • 推荐模型：<code>deepseek-chat</code><br>
-        • 获取 Key：访问 <a href="https://platform.deepseek.com" target="_blank" style="color:#38bdf8;">platform.deepseek.com</a> 注册充值 5~10 元即可精读上千篇文章。
-      </div>
+        <div style="background:rgba(255,255,255,0.05);padding:12px;border-radius:8px;margin-bottom:12px;">
+          <strong style="color:#60a5fa;">1. DeepSeek（强烈推荐 / 超高性价比）</strong><br>
+          • API 端点：<code>https://api.deepseek.com/v1</code><br>
+          • 推荐模型：<code>deepseek-chat</code><br>
+          • 获取 Key：访问 <a href="https://platform.deepseek.com" target="_blank" style="color:#38bdf8;">platform.deepseek.com</a> 注册充值 5~10 元即可精读上千篇文章。
+        </div>
 
-      <div style="background:rgba(255,255,255,0.05);padding:12px;border-radius:8px;margin-bottom:12px;">
-        <strong style="color:#60a5fa;">2. SiliconFlow 硅基流动（免费额度多）</strong><br>
-        • API 端点：<code>https://api.siliconflow.cn/v1</code><br>
-        • 推荐模型：<code>Qwen/Qwen2.5-7B-Instruct</code>（永久免费）或 <code>deepseek-ai/DeepSeek-V3</code><br>
-        • 获取 Key：访问 <a href="https://cloud.siliconflow.cn" target="_blank" style="color:#38bdf8;">cloud.siliconflow.cn</a> 注册即送免费 Token。
-      </div>
+        <div style="background:rgba(255,255,255,0.05);padding:12px;border-radius:8px;margin-bottom:12px;">
+          <strong style="color:#60a5fa;">2. SiliconFlow 硅基流动（免费额度多）</strong><br>
+          • API 端点：<code>https://api.siliconflow.cn/v1</code><br>
+          • 推荐模型：<code>Qwen/Qwen2.5-7B-Instruct</code>（永久免费）或 <code>deepseek-ai/DeepSeek-V3</code><br>
+          • 获取 Key：访问 <a href="https://cloud.siliconflow.cn" target="_blank" style="color:#38bdf8;">cloud.siliconflow.cn</a> 注册即送免费 Token。
+        </div>
 
-      <div style="background:rgba(255,255,255,0.05);padding:12px;border-radius:8px;margin-bottom:12px;">
-        <strong style="color:#60a5fa;">3. OpenAI 官方 ChatGPT</strong><br>
-        • API 端点：<code>https://api.openai.com/v1</code><br>
-        • 推荐模型：<code>gpt-4o-mini</code>（极速、翻译优美）<br>
-        • 获取 Key：访问 <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#38bdf8;">platform.openai.com</a> 申请。
-      </div>
-    `);
+        <div style="background:rgba(255,255,255,0.05);padding:12px;border-radius:8px;margin-bottom:12px;">
+          <strong style="color:#60a5fa;">3. OpenAI 官方 ChatGPT</strong><br>
+          • API 端点：<code>https://api.openai.com/v1</code><br>
+          • 推荐模型：<code>gpt-4o-mini</code>（极速、翻译优美）<br>
+          • 获取 Key：访问 <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#38bdf8;">platform.openai.com</a> 申请。
+        </div>
+      `);
+    } else {
+      open('🤖 LLM & Translation API Setup Guide', `
+        <p>ReadMate supports any standard OpenAI-compatible API provider (pay-as-you-go, low-cost and high quality):</p>
+
+        <div style="background:rgba(255,255,255,0.05);padding:12px;border-radius:8px;margin-bottom:12px;">
+          <strong style="color:#60a5fa;">1. OpenAI Official</strong><br>
+          • API Endpoint: <code>https://api.openai.com/v1</code><br>
+          • Recommended Model: <code>gpt-4o-mini</code><br>
+          • Get Key: Visit <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#38bdf8;">platform.openai.com</a>.
+        </div>
+
+        <div style="background:rgba(255,255,255,0.05);padding:12px;border-radius:8px;margin-bottom:12px;">
+          <strong style="color:#60a5fa;">2. DeepSeek (Top Quality & Affordable)</strong><br>
+          • API Endpoint: <code>https://api.deepseek.com/v1</code><br>
+          • Recommended Model: <code>deepseek-chat</code><br>
+          • Get Key: Visit <a href="https://platform.deepseek.com" target="_blank" style="color:#38bdf8;">platform.deepseek.com</a>.
+        </div>
+
+        <div style="background:rgba(255,255,255,0.05);padding:12px;border-radius:8px;margin-bottom:12px;">
+          <strong style="color:#60a5fa;">3. SiliconFlow (Generous Free Quota)</strong><br>
+          • API Endpoint: <code>https://api.siliconflow.cn/v1</code><br>
+          • Recommended Model: <code>Qwen/Qwen2.5-7B-Instruct</code> or <code>deepseek-ai/DeepSeek-V3</code><br>
+          • Get Key: Visit <a href="https://cloud.siliconflow.cn" target="_blank" style="color:#38bdf8;">cloud.siliconflow.cn</a>.
+        </div>
+      `);
+    }
   });
 }
