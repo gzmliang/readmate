@@ -63,7 +63,10 @@
 
     <!-- 引擎切换 -->
     <div class="section">
-      <div class="section-title" id="lblTtsSection">语音朗读</div>
+      <div class="section-title-wrap" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div class="section-title" id="lblTtsSection" style="margin:0;">语音朗读</div>
+        <button class="btn-help-link" id="btnHelpTtsPopup" type="button" style="background:none;border:none;color:#38bdf8;cursor:pointer;font-size:12px;text-decoration:underline;">❓ 帮助与自建指南</button>
+      </div>
       <div class="engine-switch">
         <label class="engine-option">
           <input type="radio" name="ttsEngine" value="cloud" checked>
@@ -118,7 +121,10 @@
 
     <!-- AI 翻译与多语种摘要设置 -->
     <div class="section">
-      <div class="section-title" id="lblAiSection">AI 服务商与摘要</div>
+      <div class="section-title-wrap" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div class="section-title" id="lblAiSection" style="margin:0;">AI 服务商与摘要</div>
+        <button class="btn-help-link" id="btnHelpAiPopup" type="button" style="background:none;border:none;color:#38bdf8;cursor:pointer;font-size:12px;text-decoration:underline;">❓ Key申请与配置</button>
+      </div>
 
       <div class="setting-row">
         <label id="lblProvider">服务商预设</label>
@@ -188,6 +194,15 @@
         <button id="btnPopupDonate" class="btn-settings" style="color:#facc15;border-color:rgba(250,204,21,0.3);background:rgba(250,204,21,0.1);cursor:pointer;"></button>
         <button id="openOptionsBtn" class="btn-settings">⚙ 完整设置</button>
       </div>
+    </div>
+
+    <!-- 快捷帮助弹层 -->
+    <div id="popupHelpModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.96);z-index:9999;flex-direction:column;box-sizing:border-box;padding:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:10px;margin-bottom:12px;">
+        <h4 id="popupHelpTitle" style="margin:0;color:#38bdf8;font-size:14px;"></h4>
+        <button id="popupHelpClose" style="background:none;border:none;color:#94a3b8;font-size:16px;cursor:pointer;">✕</button>
+      </div>
+      <div id="popupHelpBody" style="flex:1;overflow-y:auto;font-size:12.5px;line-height:1.65;color:#cbd5e1;padding-right:4px;"></div>
     </div>
   </div>
   <script src="popup.js"></script>

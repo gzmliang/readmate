@@ -90,6 +90,7 @@ function localize() {
   setText('lblChkShowSubtitles', _('chkShowSubtitles'));
 
   setText('lblTtsSection', _('ttsEngineSection'));
+  setText('btnHelpTtsPopup', _('btnHelpTtsLink'));
   setText('lblEngineBrowser', _('engineBrowser'));
   setText('lblEngineCloud', _('engineCloud'));
   setText('lblSpeed', _('speedLabel'));
@@ -104,6 +105,7 @@ function localize() {
   setText('testCloudVoiceBtn', _('btnTestCloud'));
 
   setText('lblAiSection', _('aiSectionTitle'));
+  setText('btnHelpAiPopup', _('btnHelpAiLink'));
   setText('lblProvider', _('lblProvider'));
   setText('optProviderOpenAI', _('optProviderOpenAI'));
   setText('optProviderDeepSeek', _('optProviderDeepSeek'));
@@ -484,3 +486,85 @@ function debounce(fn, delay) {
   let timer;
   return function(...args) { clearTimeout(timer); timer = setTimeout(() => fn.apply(this, args), delay); };
 }
+
+// ====== 快捷面板专属帮助浮层 ======
+function openPopupHelp(title, contentHtml) {
+  const modal = document.getElementById('popupHelpModal');
+  const titleEl = document.getElementById('popupHelpTitle');
+  const bodyEl = document.getElementById('popupHelpBody');
+  const closeBtn = document.getElementById('popupHelpClose');
+  if (!modal || !titleEl || !bodyEl) return;
+
+  titleEl.textContent = title;
+  bodyEl.innerHTML = contentHtml;
+  modal.style.display = 'flex';
+
+  closeBtn.onclick = () => { modal.style.display = 'none'; };
+}
+
+document.getElementById('btnHelpTtsPopup')?.addEventListener('click', () => {
+  const isZh = activeUiLang && activeUiLang.startsWith('zh');
+  if (isZh) {
+    openPopupHelp('☁️ 语音朗读引擎指南', `
+      <div style="background:rgba(56,189,248,0.12);padding:8px 10px;border-left:3px solid #38bdf8;border-radius:4px;margin-bottom:10px;">
+        💡 <strong>Edge 浏览器原生免搭技巧（强烈推荐）</strong>：<br>
+        如果您使用的是微软 Edge 浏览器，直接在上方选择【🔊 浏览器本地】引擎，即可免费调用微软晓晓、Yunxi 等自然语音，零网络延迟！
+      </div>
+      <p><strong>1. 默认云端服务</strong><br>插件已默认内置梁老师为大家长期维护的高音质公共节点：<br><code>http://powerplus.blogsyte.com:5001</code>，开箱即用无需改动。</p>
+      <p><strong>2. 自建专属服务</strong><br>若您有自己的云服务器，可通过完整设置页（⚙ 完整设置）查看一键部署 Python 脚本教程，独享高速带宽。</p>
+    `);
+  } else {
+    openPopupHelp('☁️ TTS Engine Guide', `
+      <div style="background:rgba(56,189,248,0.12);padding:8px 10px;border-left:3px solid #38bdf8;border-radius:4px;margin-bottom:10px;">
+        💡 <strong>Microsoft Edge Users</strong>:<br>
+        Simply select <strong>Browser Native</strong> above to access Microsoft's neural voices (Jenny, Guy, Xiaoxiao) locally with zero latency!
+      </div>
+      <p><strong>1. Default Cloud Service</strong><br>Comes pre-configured with teacher Liang's permanently maintained free public node: <code>http://powerplus.blogsyte.com:5001</code>.</p>
+      <p><strong>2. Self-Host Dedicated Node</strong><br>Check full options (⚙ Full Options) for the complete 5-minute Python server script.</p>
+    `);
+  }
+});
+
+document.getElementById('btnHelpAiPopup')?.addEventListener('click', () => {
+  const isZh = activeUiLang && activeUiLang.startsWith('zh');
+  if (isZh) {
+    openPopupHelp('🤖 AI 服务商与 API Key 配置指南', `
+      <p>读伴支持任何兼容 OpenAI 规范的大模型，推荐以下高性价比/免费方案：</p>
+      <div style="background:rgba(255,255,255,0.05);padding:8px 10px;border-radius:6px;margin-bottom:8px;">
+        <strong style="color:#60a5fa;">1. DeepSeek（强烈推荐 / 超低成本）</strong><br>
+        • 服务商选：DeepSeek<br>
+        • Key 申请：访问 <a href="https://platform.deepseek.com" target="_blank" style="color:#38bdf8;">platform.deepseek.com</a> 充值5元可用几个月。
+      </div>
+      <div style="background:rgba(255,255,255,0.05);padding:8px 10px;border-radius:6px;margin-bottom:8px;">
+        <strong style="color:#60a5fa;">2. 硅基流动 SiliconFlow（注册送免费额度）</strong><br>
+        • 服务商选：SiliconFlow<br>
+        • 推荐模型：<code>Qwen/Qwen2.5-7B-Instruct</code>（永久免费）<br>
+        • Key 申请：访问 <a href="https://cloud.siliconflow.cn" target="_blank" style="color:#38bdf8;">cloud.siliconflow.cn</a> 注册即送额度。
+      </div>
+      <div style="background:rgba(255,255,255,0.05);padding:8px 10px;border-radius:6px;">
+        <strong style="color:#60a5fa;">3. OpenAI 官方 ChatGPT</strong><br>
+        • 服务商选：OpenAI<br>
+        • 填入您自己的 <code>sk-...</code> API Key 即可。
+      </div>
+    `);
+  } else {
+    openPopupHelp('🤖 AI Provider & API Key Setup', `
+      <p>ReadMate supports any OpenAI-compatible LLM service:</p>
+      <div style="background:rgba(255,255,255,0.05);padding:8px 10px;border-radius:6px;margin-bottom:8px;">
+        <strong style="color:#60a5fa;">1. DeepSeek (Top Quality & Super Low Cost)</strong><br>
+        • Select DeepSeek preset.<br>
+        • Get Key at <a href="https://platform.deepseek.com" target="_blank" style="color:#38bdf8;">platform.deepseek.com</a>.
+      </div>
+      <div style="background:rgba(255,255,255,0.05);padding:8px 10px;border-radius:6px;margin-bottom:8px;">
+        <strong style="color:#60a5fa;">2. SiliconFlow (Free Quota Included)</strong><br>
+        • Select SiliconFlow preset.<br>
+        • Free model: <code>Qwen/Qwen2.5-7B-Instruct</code>.<br>
+        • Get Key at <a href="https://cloud.siliconflow.cn" target="_blank" style="color:#38bdf8;">cloud.siliconflow.cn</a>.
+      </div>
+      <div style="background:rgba(255,255,255,0.05);padding:8px 10px;border-radius:6px;">
+        <strong style="color:#60a5fa;">3. OpenAI Official</strong><br>
+        • Select OpenAI preset and paste your <code>sk-...</code> API Key.
+      </div>
+    `);
+  }
+});
