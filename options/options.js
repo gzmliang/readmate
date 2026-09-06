@@ -72,6 +72,8 @@ function localize() {
   setText('lblTtsSection', _('ttsEngineSection'));
   setText('lblEngineBrowser', _('engineBrowser'));
   setText('lblEngineCloud', _('engineCloud'));
+  setText('lblEngineOpenAI', _('lblEngineOpenAI') || '🎙️ AI Voice');
+  setText('btnHelpTts', _('btnHelpTtsLink'));
   setText('lblSpeed', _('speedLabel'));
   setText('lblVoice', _('voiceLabel'));
   setText('optVoiceAuto', _('voiceAutoLang'));
@@ -81,18 +83,44 @@ function localize() {
   setText('lblCloudEndpoint', _('lblCloudEndpoint'));
   setText('lblCloudVoice', _('lblCloudVoice'));
   setText('optCloudAuto', _('optCloudAuto'));
+  setText('lblTransVoice', _('lblTransVoice'));
+  setText('optTransVoiceAuto', _('optTransVoiceAuto'));
   setText('testCloudVoiceBtn', _('btnTestCloud'));
 
+  // 通用 OpenAI TTS
+  setText('lblOpenAiEndpoint', _('lblOpenAiEndpoint'));
+  setText('lblOpenAiKey', _('lblOpenAiKey'));
+  setText('lblOpenAiModel', _('lblOpenAiModel'));
+  setText('lblOpenAiVoice', _('lblOpenAiVoice'));
+  setText('testOpenAiTtsBtn', _('btnTestOpenAiTts'));
+
   setText('lblAiSection', _('aiSectionTitle'));
+  setText('btnHelpAi', _('btnHelpAiLink'));
   setText('lblProvider', _('lblProvider'));
+  setText('optProviderOpenAI', _('optProviderOpenAI'));
+  setText('optProviderDeepSeek', _('optProviderDeepSeek'));
+  setText('optProviderSiliconFlow', _('optProviderSiliconFlow'));
+  setText('optProviderGemini', _('optProviderGemini'));
+  setText('optProviderMoonshot', _('optProviderMoonshot'));
+  setText('optProviderQwen', _('optProviderQwen'));
+  setText('optProviderCustom', _('optProviderCustom'));
+
   setText('lblEndpoint', _('lblEndpoint'));
   setText('lblApiKey', _('lblApiKey'));
   setText('lblModel', _('lblModel'));
+  setText('optModelGpt4oMini', _('optModelGpt4oMini'));
+  setText('optModelSiliconFree', _('optModelSiliconFree'));
   setText('lblTargetLanguage', _('lblTargetLanguage'));
   setText('lblSummaryViewMode', _('lblSummaryViewMode'));
+  setText('optSummaryBilingual', _('optSummaryBilingual'));
+  setText('optSummaryOriginal', _('optSummaryOriginal'));
+  setText('optSummaryTranslated', _('optSummaryTranslated'));
   setText('lblHighlight', _('lblHighlight'));
+  setText('lblHighlightParagraph', _('lblHighlightParagraph'));
+  setText('lblShowFab', _('lblShowFab'));
   setText('testAiBtn', _('btnTestAi'));
   setText('saveBtn', _('btnSave'));
+  setText('btnOptionsDonate', _('btnDonateCapsule'));
 
   // 同步下拉框状态
   const sel = document.getElementById('uiLangSelect');

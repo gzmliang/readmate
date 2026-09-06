@@ -59,7 +59,7 @@
     <div class="section">
       <div class="section-title-wrap" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
         <div class="section-title" id="lblTtsSection" style="margin:0;">语音朗读引擎</div>
-        <button class="btn-help-link" id="btnHelpTts" type="button" style="background:none;border:none;color:#38bdf8;cursor:pointer;font-size:12.5px;text-decoration:underline;">❓ 语音引擎说明与自建 Edge-TTS 服务指南</button>
+        <button class="btn-help-link" id="btnHelpTts" type="button" style="background:none;border:none;color:#38bdf8;cursor:pointer;font-size:12.5px;text-decoration:underline;"></button>
       </div>
 
       <div class="engine-switch" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
@@ -98,9 +98,9 @@
           </select>
         </div>
         <div class="setting-row">
-          <label>🌐 译文专用音色</label>
+          <label id="lblTransVoice">🌐 译文专用音色</label>
           <select id="cloudTtsVoiceTrans">
-            <option value="">跟随母语最佳音色 (中文自动用晓晓)</option>
+            <option value="" id="optTransVoiceAuto">跟随母语最佳音色 (中文自动用晓晓)</option>
           </select>
         </div>
         <div class="test-row">
@@ -112,19 +112,19 @@
       <!-- 通用 OpenAI 兼容 AI 语音配置 -->
       <div id="openaiTtsSection" style="display:none;">
         <div class="setting-row">
-          <label>TTS API 端点</label>
+          <label id="lblOpenAiEndpoint">TTS API 端点</label>
           <input type="text" id="openaiTtsEndpoint" placeholder="https://api.openai.com/v1">
         </div>
         <div class="setting-row">
-          <label>TTS API Key</label>
+          <label id="lblOpenAiKey">TTS API Key</label>
           <input type="password" id="openaiTtsApiKey" placeholder="sk-...">
         </div>
         <div class="setting-row">
-          <label>TTS 模型</label>
+          <label id="lblOpenAiModel">TTS 模型</label>
           <input type="text" id="openaiTtsModel" placeholder="tts-1">
         </div>
         <div class="setting-row">
-          <label>TTS 音色 (Voice)</label>
+          <label id="lblOpenAiVoice">TTS 音色 (Voice)</label>
           <input type="text" id="openaiTtsVoice" placeholder="alloy / echo / fable / onyx / nova / shimmer">
         </div>
         <div class="test-row">
@@ -152,19 +152,19 @@
     <div class="section">
       <div class="section-title-wrap" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
         <div class="section-title" id="lblAiSection" style="margin:0;">AI 服务商与摘要</div>
-        <button class="btn-help-link" id="btnHelpAi" type="button" style="background:none;border:none;color:#38bdf8;cursor:pointer;font-size:12.5px;text-decoration:underline;">❓ 大模型接口配置指南与免费 Key 申请</button>
+        <button class="btn-help-link" id="btnHelpAi" type="button" style="background:none;border:none;color:#38bdf8;cursor:pointer;font-size:12.5px;text-decoration:underline;"></button>
       </div>
 
       <div class="setting-row">
         <label id="lblProvider">服务商预设</label>
         <select id="aiProviderSelect">
-          <option value="openai">OpenAI (ChatGPT 官方)</option>
-          <option value="deepseek">DeepSeek (深度求索 / 推荐高性价比)</option>
-          <option value="siliconflow">SiliconFlow (硅基流动 / 注册送额度)</option>
-          <option value="gemini">Google Gemini</option>
-          <option value="moonshot">Moonshot (Kimi)</option>
-          <option value="qwen">阿里通义千问 (DashScope)</option>
-          <option value="custom">自定义 (兼容 OpenAI 格式)</option>
+          <option value="openai" id="optProviderOpenAI">OpenAI (ChatGPT)</option>
+          <option value="deepseek" id="optProviderDeepSeek">DeepSeek</option>
+          <option value="siliconflow" id="optProviderSiliconFlow">SiliconFlow</option>
+          <option value="gemini" id="optProviderGemini">Google Gemini</option>
+          <option value="moonshot" id="optProviderMoonshot">Moonshot (Kimi)</option>
+          <option value="qwen" id="optProviderQwen">Aliyun Qwen</option>
+          <option value="custom" id="optProviderCustom">Custom</option>
         </select>
       </div>
 
@@ -180,11 +180,11 @@
         <label id="lblModel">模型</label>
         <input type="text" id="aiModel" list="aiModelList" placeholder="gpt-4o-mini">
         <datalist id="aiModelList">
-          <option value="gpt-4o-mini">gpt-4o-mini (官方推荐/极速轻量)</option>
+          <option value="gpt-4o-mini" id="optModelGpt4oMini">gpt-4o-mini</option>
           <option value="gpt-4o">gpt-4o</option>
           <option value="deepseek-chat">deepseek-chat (DeepSeek V3)</option>
           <option value="deepseek-reasoner">deepseek-reasoner (DeepSeek R1)</option>
-          <option value="Qwen/Qwen2.5-7B-Instruct">Qwen/Qwen2.5-7B-Instruct (硅基流动免费)</option>
+          <option value="Qwen/Qwen2.5-7B-Instruct" id="optModelSiliconFree">Qwen/Qwen2.5-7B-Instruct</option>
           <option value="gemini-2.0-flash">gemini-2.0-flash</option>
         </datalist>
       </div>
@@ -204,9 +204,9 @@
       <div class="setting-row">
         <label id="lblSummaryViewMode">默认摘要呈现</label>
         <select id="defaultSummaryView">
-          <option value="bilingual">🔄 双语对照 (原文 + 译文)</option>
-          <option value="original">📄 仅原文 (沉浸阅读/不看译文)</option>
-          <option value="translated">🌐 仅译文 (母语快速浏览)</option>
+          <option value="bilingual" id="optSummaryBilingual">🔄 双语对照 (原文 + 译文)</option>
+          <option value="original" id="optSummaryOriginal">📄 仅原文 (沉浸阅读/不看译文)</option>
+          <option value="translated" id="optSummaryTranslated">🌐 仅译文 (母语快速浏览)</option>
         </select>
       </div>
       <div class="setting-row">
@@ -235,7 +235,6 @@
         <span id="saveStatus" class="save-status"></span>
       </div>
       <button id="btnOptionsDonate" type="button" style="background:rgba(250,204,21,0.12);border:1px solid rgba(250,204,21,0.35);color:#facc15;padding:6px 14px;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;">
-        ☕ 请喝咖啡 / 支持作者 (Ko-fi · PayPal · 微信支付宝)
       </button>
     </div>
 

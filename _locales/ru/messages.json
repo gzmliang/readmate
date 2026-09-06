@@ -524,5 +524,97 @@
   "donateCNDesc": {
     "message": "Thank you for your warm support and recognition of ReadMate! Every contribution fuels ongoing improvements and independent maintenance.",
     "description": "China donation description"
+  },
+  "optProviderOpenAI": {
+    "message": "OpenAI (Official ChatGPT)",
+    "description": "OpenAI provider"
+  },
+  "optProviderDeepSeek": {
+    "message": "DeepSeek (High Quality & Value)",
+    "description": "DeepSeek provider"
+  },
+  "optProviderSiliconFlow": {
+    "message": "SiliconFlow (Free Quota Included)",
+    "description": "SiliconFlow provider"
+  },
+  "optProviderGemini": {
+    "message": "Google Gemini",
+    "description": "Gemini provider"
+  },
+  "optProviderMoonshot": {
+    "message": "Moonshot (Kimi)",
+    "description": "Moonshot provider"
+  },
+  "optProviderQwen": {
+    "message": "Aliyun Qwen (DashScope)",
+    "description": "Qwen provider"
+  },
+  "optProviderCustom": {
+    "message": "Custom (OpenAI Compatible)",
+    "description": "Custom provider"
+  },
+  "lblTransVoice": {
+    "message": "Translation Voice",
+    "description": "Translation voice label"
+  },
+  "optTransVoiceAuto": {
+    "message": "Auto match best target voice (e.g. Xiaoxiao for Chinese)",
+    "description": "Auto match voice"
+  },
+  "lblOpenAiEndpoint": {
+    "message": "TTS API Endpoint",
+    "description": "TTS API Endpoint label"
+  },
+  "lblOpenAiKey": {
+    "message": "TTS API Key",
+    "description": "TTS API Key label"
+  },
+  "lblOpenAiModel": {
+    "message": "TTS Model",
+    "description": "TTS Model label"
+  },
+  "lblOpenAiVoice": {
+    "message": "TTS Voice",
+    "description": "TTS Voice label"
+  },
+  "btnTestOpenAiTts": {
+    "message": "🎙️ Test AI Voice",
+    "description": "Test AI voice button"
+  },
+  "btnHelpTtsLink": {
+    "message": "❓ Voice Engines & Self-Hosting Edge-TTS Guide",
+    "description": "TTS help button"
+  },
+  "btnHelpAiLink": {
+    "message": "❓ LLM Setup Guide & Free API Keys",
+    "description": "AI help button"
+  },
+  "btnDonateCapsule": {
+    "message": "☕ Support Author (Ko-fi · PayPal · WeChat · Alipay)",
+    "description": "Donate capsule button in options"
+  },
+  "btnDonatePopup": {
+    "message": "☕ Donate",
+    "description": "Donate button in popup"
+  },
+  "optSummaryBilingual": {
+    "message": "🔄 Bilingual (Original + Translation)",
+    "description": "Bilingual summary mode"
+  },
+  "optSummaryOriginal": {
+    "message": "📄 Original Only (Immersive)",
+    "description": "Original summary mode"
+  },
+  "optSummaryTranslated": {
+    "message": "🌐 Translation Only (Fast Scan)",
+    "description": "Translated summary mode"
+  },
+  "optModelGpt4oMini": {
+    "message": "gpt-4o-mini (Official / Fast & Light)",
+    "description": "Model gpt-4o-mini"
+  },
+  "optModelSiliconFree": {
+    "message": "Qwen/Qwen2.5-7B-Instruct (SiliconFlow Free)",
+    "description": "Model Qwen free"
   }
 }

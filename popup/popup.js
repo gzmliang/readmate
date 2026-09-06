@@ -105,14 +105,25 @@ function localize() {
 
   setText('lblAiSection', _('aiSectionTitle'));
   setText('lblProvider', _('lblProvider'));
+  setText('optProviderOpenAI', _('optProviderOpenAI'));
+  setText('optProviderDeepSeek', _('optProviderDeepSeek'));
+  setText('optProviderSiliconFlow', _('optProviderSiliconFlow'));
+  setText('optProviderGemini', _('optProviderGemini'));
+  setText('optProviderMoonshot', _('optProviderMoonshot'));
+  setText('optProviderQwen', _('optProviderQwen'));
+  setText('optProviderCustom', _('optProviderCustom'));
+
   setText('lblEndpoint', _('lblEndpoint'));
   setText('lblApiKey', _('lblApiKey'));
   setText('lblModel', _('lblModel'));
+  setText('optModelGpt4oMini', _('optModelGpt4oMini'));
+  setText('optModelSiliconFree', _('optModelSiliconFree'));
   setText('lblTargetLanguage', _('lblTargetLanguage'));
   setText('lblHighlight', _('lblHighlight'));
   setText('testBtn', _('btnTestAi'));
 
   setText('saveBtn', _('btnSave'));
+  setText('btnPopupDonate', _('btnDonatePopup'));
   setText('openOptionsBtn', _('btnFullOptions'));
 
   // 同步下拉框状态

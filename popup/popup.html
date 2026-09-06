@@ -123,13 +123,13 @@
       <div class="setting-row">
         <label id="lblProvider">服务商预设</label>
         <select id="aiProviderSelect">
-          <option value="openai">OpenAI (ChatGPT 官方)</option>
-          <option value="deepseek">DeepSeek (深度求索 / 推荐高性价比)</option>
-          <option value="siliconflow">SiliconFlow (硅基流动 / 注册送额度)</option>
-          <option value="gemini">Google Gemini</option>
-          <option value="moonshot">Moonshot (Kimi)</option>
-          <option value="qwen">阿里通义千问 (DashScope)</option>
-          <option value="custom">自定义 (兼容 OpenAI 格式)</option>
+          <option value="openai" id="optProviderOpenAI">OpenAI (ChatGPT)</option>
+          <option value="deepseek" id="optProviderDeepSeek">DeepSeek</option>
+          <option value="siliconflow" id="optProviderSiliconFlow">SiliconFlow</option>
+          <option value="gemini" id="optProviderGemini">Google Gemini</option>
+          <option value="moonshot" id="optProviderMoonshot">Moonshot (Kimi)</option>
+          <option value="qwen" id="optProviderQwen">Aliyun Qwen</option>
+          <option value="custom" id="optProviderCustom">Custom</option>
         </select>
       </div>
 
@@ -145,11 +145,11 @@
         <label id="lblModel">模型</label>
         <input type="text" id="aiModel" list="aiModelList" placeholder="gpt-4o-mini">
         <datalist id="aiModelList">
-          <option value="gpt-4o-mini">gpt-4o-mini (官方推荐/极速轻量)</option>
+          <option value="gpt-4o-mini" id="optModelGpt4oMini">gpt-4o-mini</option>
           <option value="gpt-4o">gpt-4o</option>
           <option value="deepseek-chat">deepseek-chat (DeepSeek V3)</option>
           <option value="deepseek-reasoner">deepseek-reasoner (DeepSeek R1)</option>
-          <option value="Qwen/Qwen2.5-7B-Instruct">Qwen/Qwen2.5-7B-Instruct (硅基流动免费)</option>
+          <option value="Qwen/Qwen2.5-7B-Instruct" id="optModelSiliconFree">Qwen/Qwen2.5-7B-Instruct</option>
           <option value="gemini-2.0-flash">gemini-2.0-flash</option>
         </datalist>
       </div>
@@ -185,7 +185,7 @@
         <span id="saveStatus" class="save-status"></span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
-        <button id="btnPopupDonate" class="btn-settings" style="color:#facc15;border-color:rgba(250,204,21,0.3);background:rgba(250,204,21,0.1);cursor:pointer;" title="请梁老师喝杯咖啡 ☕">☕ 赞赏</button>
+        <button id="btnPopupDonate" class="btn-settings" style="color:#facc15;border-color:rgba(250,204,21,0.3);background:rgba(250,204,21,0.1);cursor:pointer;"></button>
         <button id="openOptionsBtn" class="btn-settings">⚙ 完整设置</button>
       </div>
     </div>

@@ -574,5 +574,97 @@
   "donateCNDesc": {
     "message": "感谢您对读伴（ReadMate）的喜爱与认可！您的每一份赞赏与肯定，都是支持梁老师持续打磨优化工具的动力。",
     "description": "China donation description"
+  },
+  "optProviderOpenAI": {
+    "message": "OpenAI (ChatGPT 官方)",
+    "description": "OpenAI provider"
+  },
+  "optProviderDeepSeek": {
+    "message": "DeepSeek (深度求索 / 推荐高性价比)",
+    "description": "DeepSeek provider"
+  },
+  "optProviderSiliconFlow": {
+    "message": "SiliconFlow (硅基流动 / 注册送额度)",
+    "description": "SiliconFlow provider"
+  },
+  "optProviderGemini": {
+    "message": "Google Gemini",
+    "description": "Gemini provider"
+  },
+  "optProviderMoonshot": {
+    "message": "Moonshot (Kimi)",
+    "description": "Moonshot provider"
+  },
+  "optProviderQwen": {
+    "message": "阿里通义千问 (DashScope)",
+    "description": "Qwen provider"
+  },
+  "optProviderCustom": {
+    "message": "自定义 (兼容 OpenAI 格式)",
+    "description": "Custom provider"
+  },
+  "lblTransVoice": {
+    "message": "译文专用音色",
+    "description": "Translation voice label"
+  },
+  "optTransVoiceAuto": {
+    "message": "跟随母语最佳音色 (中文自动用晓晓)",
+    "description": "Auto match voice"
+  },
+  "lblOpenAiEndpoint": {
+    "message": "TTS API 端点",
+    "description": "TTS API Endpoint label"
+  },
+  "lblOpenAiKey": {
+    "message": "TTS API Key",
+    "description": "TTS API Key label"
+  },
+  "lblOpenAiModel": {
+    "message": "TTS 模型",
+    "description": "TTS Model label"
+  },
+  "lblOpenAiVoice": {
+    "message": "TTS 音色 (Voice)",
+    "description": "TTS Voice label"
+  },
+  "btnTestOpenAiTts": {
+    "message": "🎙️ 测试 AI 语音",
+    "description": "Test AI voice button"
+  },
+  "btnHelpTtsLink": {
+    "message": "❓ 语音引擎说明与自建 Edge-TTS 服务指南",
+    "description": "TTS help button"
+  },
+  "btnHelpAiLink": {
+    "message": "❓ 大模型接口配置指南与免费 Key 申请",
+    "description": "AI help button"
+  },
+  "btnDonateCapsule": {
+    "message": "☕ 请喝咖啡 / 支持作者 (Ko-fi · PayPal · 微信支付宝)",
+    "description": "Donate capsule button in options"
+  },
+  "btnDonatePopup": {
+    "message": "☕ 赞赏",
+    "description": "Donate button in popup"
+  },
+  "optSummaryBilingual": {
+    "message": "🔄 双语对照 (原文 + 译文)",
+    "description": "Bilingual summary mode"
+  },
+  "optSummaryOriginal": {
+    "message": "📄 仅原文 (沉浸阅读/不看译文)",
+    "description": "Original summary mode"
+  },
+  "optSummaryTranslated": {
+    "message": "🌐 仅译文 (母语快速浏览)",
+    "description": "Translated summary mode"
+  },
+  "optModelGpt4oMini": {
+    "message": "gpt-4o-mini (官方推荐/极速轻量)",
+    "description": "Model gpt-4o-mini"
+  },
+  "optModelSiliconFree": {
+    "message": "Qwen/Qwen2.5-7B-Instruct (硅基流动免费)",
+    "description": "Model Qwen free"
   }
 }
