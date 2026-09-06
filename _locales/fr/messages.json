@@ -260,5 +260,269 @@
   "lblEnableBilingual": {
     "message": "Traduction bilingue (économise des tokens si désactivé)",
     "description": "Tooltip bilingue"
+  },
+  "lblHighlightParagraph": {
+    "message": "Paragraph Context Highlight",
+    "description": "Paragraph highlight toggle label"
+  },
+  "lblShowFab": {
+    "message": "Show Floating Action Button",
+    "description": "Show FAB toggle label"
+  },
+  "toastAudioDownloading": {
+    "message": "⏳ Synthesizing audio, please wait...",
+    "description": "Audio is downloading"
+  },
+  "toastNoContentToDownload": {
+    "message": "⚠️ No article content available to download",
+    "description": "No content to download"
+  },
+  "btnReaderMode": {
+    "message": "Immersive Reader Mode",
+    "description": "Reader mode button label"
+  },
+  "btnExitReader": {
+    "message": "Back to Webpage",
+    "description": "Exit reader mode label"
+  },
+  "btnExportPdf": {
+    "message": "Export PDF",
+    "description": "Export PDF label"
+  },
+  "tipThemePicker": {
+    "message": "Switch reader background theme",
+    "description": "Theme picker tip"
+  },
+  "tipFontSize": {
+    "message": "Adjust reading font size",
+    "description": "Font size tip"
+  },
+  "statChars": {
+    "message": "chars",
+    "description": "Characters unit"
+  },
+  "statEst": {
+    "message": "approx.",
+    "description": "Approximately"
+  },
+  "statMins": {
+    "message": "min read",
+    "description": "Minutes of reading"
+  },
+  "statParas": {
+    "message": "paragraphs",
+    "description": "Paragraphs count"
+  },
+  "toastPreparingPdf": {
+    "message": "📄 Opening print preview for PDF export...",
+    "description": "Preparing PDF toast"
+  },
+  "btnPlayArticle": {
+    "message": "Start Reading Article",
+    "description": "Start reading entire article button"
+  },
+  "btnPause": {
+    "message": "Pause Reading",
+    "description": "Pause reading button"
+  },
+  "btnResume": {
+    "message": "Resume",
+    "description": "Resume reading button"
+  },
+  "statSentences": {
+    "message": "sentences",
+    "description": "Sentences count unit"
+  },
+  "btnDownloadAudio": {
+    "message": "Download Audio (MP3)",
+    "description": "Download audio button"
+  },
+  "btnAudio": {
+    "message": "Audio",
+    "description": "Download audio button label"
+  },
+  "btnVocabNotebook": {
+    "message": "Vocab Notebook",
+    "description": "Vocab notebook button"
+  },
+  "btnVocab": {
+    "message": "Vocab",
+    "description": "Vocab button label"
+  },
+  "themeSepia": {
+    "message": "Vintage Sepia",
+    "description": "Sepia theme"
+  },
+  "themeLight": {
+    "message": "Pure Light",
+    "description": "Light theme"
+  },
+  "themeGreen": {
+    "message": "Gentle Green",
+    "description": "Green theme"
+  },
+  "themeEink": {
+    "message": "E-Ink Gray",
+    "description": "E-ink gray theme"
+  },
+  "themeMidnight": {
+    "message": "Midnight Blue",
+    "description": "Midnight blue theme"
+  },
+  "themeDark": {
+    "message": "Night Dark",
+    "description": "Dark theme"
+  },
+  "toastTranslatingSelection": {
+    "message": "🌐 Translating selection with AI...",
+    "description": "Translating selection"
+  },
+  "toastTranslateFailed": {
+    "message": "❌ Translation failed, please check AI config",
+    "description": "Translate failed"
+  },
+  "toastBilingualEnabled": {
+    "message": "🌐 Bilingual translation enabled",
+    "description": "Bilingual enabled"
+  },
+  "toastBilingualDisabled": {
+    "message": "📄 Translation disabled (Token saver mode)",
+    "description": "Bilingual disabled"
+  },
+  "toastDebugCopied": {
+    "message": "✓ Debug log copied to clipboard",
+    "description": "Debug log copied"
+  },
+  "toastAudioStart": {
+    "message": "📥 Synthesizing audiobook ({count} sentences)...",
+    "description": "Start synthesizing full audio"
+  },
+  "toastAudioProgress": {
+    "message": "📥 Synthesizing audio ({current}/{total} sentences)...",
+    "description": "Synthesizing progress"
+  },
+  "toastAudioSuccess": {
+    "message": "🎉 Audiobook synthesis complete! Download started.",
+    "description": "Audio download success"
+  },
+  "toastAudioFailed": {
+    "message": "❌ Audiobook synthesis failed: ",
+    "description": "Audio download failed prefix"
+  },
+  "toastVocabRemoved": {
+    "message": "Removed from Vocab Notebook",
+    "description": "Removed from vocab"
+  },
+  "toastVocabAdded": {
+    "message": "⭐ Added to Vocab Notebook!",
+    "description": "Added to vocab"
+  },
+  "toastVocabEmpty": {
+    "message": "Vocab notebook is empty",
+    "description": "Vocab is empty"
+  },
+  "toastVocabExported": {
+    "message": "✓ Exported as Markdown to clipboard!",
+    "description": "Vocab exported"
+  },
+  "toastVocabCleared": {
+    "message": "Vocab notebook cleared",
+    "description": "Vocab cleared"
+  },
+  "confirmClearVocab": {
+    "message": "Are you sure you want to clear all words in your vocab notebook?",
+    "description": "Confirm clear vocab"
+  },
+  "dictSearching": {
+    "message": "🔍 Looking up definition...",
+    "description": "Searching definition"
+  },
+  "dictNoResult": {
+    "message": "No definition found",
+    "description": "No definition found"
+  },
+  "vocabEmptyPlaceholder": {
+    "message": "📭 No words in your notebook yet<br>Double-click words in Reader Mode to lookup and star",
+    "description": "Vocab empty placeholder"
+  },
+  "vocabExportMd": {
+    "message": "📋 Export Markdown",
+    "description": "Export markdown button"
+  },
+  "vocabClearAll": {
+    "message": "🗑️ Clear All",
+    "description": "Clear all vocab button"
+  },
+  "readerProgressTip": {
+    "message": "{count} sentences · approx. {time} min read · Click any sentence to play",
+    "description": "Reader mode progress banner tip"
+  },
+  "tipFontDec": {
+    "message": "Decrease font size",
+    "description": "Decrease font size"
+  },
+  "tipFontInc": {
+    "message": "Increase font size",
+    "description": "Increase font size"
+  },
+  "tipPronounce": {
+    "message": "Pronounce",
+    "description": "Pronounce word"
+  },
+  "tipAddToVocab": {
+    "message": "Save to Vocab Notebook",
+    "description": "Add to vocab notebook"
+  },
+  "tipClose": {
+    "message": "Close",
+    "description": "Close button tip"
+  },
+  "tipDelete": {
+    "message": "Delete",
+    "description": "Delete button tip"
+  },
+  "translatingText": {
+    "message": "Translating...",
+    "description": "Translating text fallback"
+  },
+  "debugLogCount": {
+    "message": "{count} entries (click to copy)",
+    "description": "Debug log count"
+  },
+  "audioFilenameSuffix": {
+    "message": "_Audiobook",
+    "description": "Audio filename suffix"
+  },
+  "btnDonate": {
+    "message": "Donate",
+    "description": "Donate button label"
+  },
+  "btnDonateTitle": {
+    "message": "Buy teacher Liang a coffee ☕",
+    "description": "Donate button title"
+  },
+  "donateToastMessage": {
+    "message": "Thank you for using ReadMate! If you enjoy this ad-free tool, consider buying Liang a coffee ☕",
+    "description": "Donate toast message"
+  },
+  "donateModalTitle": {
+    "message": "Support Independent Developer Liang",
+    "description": "Donate modal title"
+  },
+  "donateTabIntl": {
+    "message": "International / Ko-fi & PayPal",
+    "description": "International donation tab"
+  },
+  "donateTabCN": {
+    "message": "China / WeChat & Alipay",
+    "description": "China donation tab"
+  },
+  "donateIntlDesc": {
+    "message": "If ReadMate makes your daily reading and language learning better, consider buying me a coffee! Your generosity keeps this tool ad-free and actively maintained.",
+    "description": "Intl donation description"
+  },
+  "donateCNDesc": {
+    "message": "Thank you for your warm support and recognition of ReadMate! Every contribution fuels ongoing improvements and independent maintenance.",
+    "description": "China donation description"
   }
 }

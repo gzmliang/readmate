@@ -318,6 +318,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     chrome.tabs.create({ url: chrome.runtime.getURL('options/options.html') });
   });
 
+  document.getElementById('btnPopupDonate')?.addEventListener('click', () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('options/options.html#donate') });
+  });
+
   document.querySelectorAll('input, select').forEach(el => {
     el.addEventListener('change', () => autoSave());
     if (el.tagName === 'INPUT' && el.type !== 'checkbox' && el.type !== 'password') {

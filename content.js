@@ -2080,7 +2080,7 @@ function ensureReaderOverlay() {
   readerOverlay.innerHTML = `
     <header class="readmate-reader-header">
       <div class="readmate-reader-header-left">
-        <button id="readmate-reader-close" class="readmate-reader-btn" title="${_t('btnExitReader', '返回网页 (ESC)')}">
+        <button id="readmate-reader-close" class="readmate-reader-btn" style="background:rgba(59,130,246,0.12)!important;border-color:rgba(59,130,246,0.3)!important;color:#2563eb!important;" title="${_t('btnExitReader', '返回网页 (ESC)')}">
           ✕ ${_t('btnExitReader', '返回网页')}
         </button>
       </div>

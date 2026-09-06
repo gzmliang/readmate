@@ -570,4 +570,40 @@ if __name__ == '__main__':
       `);
     }
   });
+
+  // 赞助弹窗
+  const triggerDonate = () => {
+    const isZh = activeUiLang && activeUiLang.startsWith('zh');
+    const qrImgUrl = chrome.runtime.getURL('icons/receivecode.jpg');
+    open(isZh ? '☕ 支持独立开发者梁老师' : '☕ Support Independent Developer Liang', `
+      <div style="font-size:13.5px;color:#cbd5e1;line-height:1.6;">
+        <p>${isZh ? '感谢您对读伴（ReadMate）的喜爱与认可！无论您身在海内外，您的每一份支持都是工具持续更新与维护的最佳动力。' : 'Thank you for supporting ReadMate! Your generosity keeps this tool ad-free, high quality, and actively maintained worldwide.'}</p>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;">
+          <!-- 海外支持 -->
+          <div style="background:rgba(255,255,255,0.05);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);">
+            <h4 style="color:#facc15;margin:0 0 10px;">🌍 International / 海外</h4>
+            <a href="https://ko-fi.com/jimmyliang10894" target="_blank" style="display:block;text-align:center;background:#ff5e5b;color:#fff;text-decoration:none;font-weight:700;padding:10px;border-radius:8px;margin-bottom:10px;">
+              ☕ Ko-fi 支持页面
+            </a>
+            <div style="font-size:12.5px;color:#94a3b8;word-break:break-all;">
+              PayPal 收款邮箱：<br><strong style="color:#38bdf8;">gzjliang@gmail.com</strong>
+            </div>
+          </div>
+
+          <!-- 国内支持 -->
+          <div style="background:rgba(255,255,255,0.05);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);text-align:center;">
+            <h4 style="color:#facc15;margin:0 0 10px;">🇨🇳 中国大陆 / 微信与支付宝</h4>
+            <img src="${qrImgUrl}" alt="收款码" style="width:140px;height:auto;border-radius:8px;border:2px solid #fff;display:inline-block;margin-bottom:6px;">
+            <div style="font-size:12px;color:#94a3b8;">微信 / 支付宝 扫码赞赏</div>
+          </div>
+        </div>
+      </div>
+    `);
+  };
+
+  document.getElementById('btnOptionsDonate')?.addEventListener('click', triggerDonate);
+  if (window.location.hash === '#donate') {
+    setTimeout(triggerDonate, 200);
+  }
 }
