@@ -42,15 +42,6 @@ const AI_PRESETS = {
     apiKey: '',
   }
 };
-    model: 'qwen-turbo',
-    apiKey: '',
-  },
-  custom: {
-    endpoint: '',
-    model: '',
-    apiKey: '',
-  }
-};
 
 function getBrowserLang() {
   const lang = (navigator.language || 'en').replace('-', '_');
@@ -282,8 +273,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // AI
     document.getElementById('aiEndpoint').value = settings.aiEndpoint || 'https://api.openai.com/v1';
-    document.getElementById('aiApiKey').value = settings.aiApiKey || 'liang-gemini-proxy-2026';
-    document.getElementById('aiModel').value = settings.aiModel || 'gemini-3.1-flash-lite';
+    document.getElementById('aiApiKey').value = settings.aiApiKey || '';
+    document.getElementById('aiModel').value = settings.aiModel || 'gpt-4o-mini';
     document.getElementById('translateTarget').value = settings.translateTarget || 'Simplified Chinese';
     document.getElementById('highlightEnabled').checked = settings.highlightEnabled !== false;
 

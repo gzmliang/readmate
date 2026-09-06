@@ -257,10 +257,10 @@ ${(text || '').substring(0, 5000)}`;
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey || 'liang-gemini-proxy-2026'}`,
+          'Authorization': `Bearer ${apiKey || ''}`,
         },
         body: JSON.stringify({
-          model: model || 'gemini-3.7-flash-high',
+          model: model || 'gpt-4o-mini',
           messages: [
             { role: 'system', content: 'You are a precise JSON-only summary assistant.' },
             { role: 'user', content: prompt }
@@ -365,10 +365,10 @@ ${(text || '').substring(0, 5000)}`;
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey || 'liang-gemini-proxy-2026'}`,
+          'Authorization': `Bearer ${apiKey || ''}`,
         },
         body: JSON.stringify({
-          model: model || 'gemini-3.7-flash-high',
+          model: model || 'gpt-4o-mini',
           messages: [
             { role: 'system', content: `You are a translator. Translate the following text to ${targetLang || 'Simplified Chinese'}. Return ONLY the translation, no explanation.` },
             { role: 'user', content: text },

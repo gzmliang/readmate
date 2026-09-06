@@ -123,10 +123,10 @@
       <div class="setting-row">
         <label id="lblProvider">服务商预设</label>
         <select id="aiProviderSelect">
+          <option value="openai">OpenAI (ChatGPT 官方)</option>
+          <option value="deepseek">DeepSeek (深度求索 / 推荐高性价比)</option>
+          <option value="siliconflow">SiliconFlow (硅基流动 / 注册送额度)</option>
           <option value="gemini">Google Gemini</option>
-          <option value="deepseek">DeepSeek (推荐/高性价比)</option>
-          <option value="openai">OpenAI (ChatGPT)</option>
-          <option value="siliconflow">SiliconFlow (硅基流动)</option>
           <option value="moonshot">Moonshot (Kimi)</option>
           <option value="qwen">阿里通义千问 (DashScope)</option>
           <option value="custom">自定义 (兼容 OpenAI 格式)</option>
@@ -135,7 +135,7 @@
 
       <div class="setting-row">
         <label id="lblEndpoint">API 端点</label>
-        <input type="text" id="aiEndpoint" placeholder="https://api.deepseek.com/v1">
+        <input type="text" id="aiEndpoint" placeholder="https://api.openai.com/v1">
       </div>
       <div class="setting-row">
         <label id="lblApiKey">API Key</label>
@@ -143,16 +143,14 @@
       </div>
       <div class="setting-row">
         <label id="lblModel">模型</label>
-        <input type="text" id="aiModel" list="aiModelList" placeholder="gemini-3.7-flash-high">
+        <input type="text" id="aiModel" list="aiModelList" placeholder="gpt-4o-mini">
         <datalist id="aiModelList">
-          <option value="gemini-3.7-flash-high">Gemini 3.7 Flash (推荐/快速极高画质)</option>
-          <option value="gemini-3.6-flash-high">Gemini 3.6 Flash</option>
-          <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite (极速轻量)</option>
-          <option value="gemini-3-flash">Gemini 3 Flash</option>
-          <option value="gemini-3.1-pro-low">Gemini 3.1 Pro</option>
-          <option value="claude-sonnet-4-6">Claude 3.5 Sonnet</option>
-          <option value="deepseek-chat">DeepSeek Chat (官方)</option>
-          <option value="gpt-4o-mini">GPT-4o mini (OpenAI)</option>
+          <option value="gpt-4o-mini">gpt-4o-mini (官方推荐/极速轻量)</option>
+          <option value="gpt-4o">gpt-4o</option>
+          <option value="deepseek-chat">deepseek-chat (DeepSeek V3)</option>
+          <option value="deepseek-reasoner">deepseek-reasoner (DeepSeek R1)</option>
+          <option value="Qwen/Qwen2.5-7B-Instruct">Qwen/Qwen2.5-7B-Instruct (硅基流动免费)</option>
+          <option value="gemini-2.0-flash">gemini-2.0-flash</option>
         </datalist>
       </div>
       <div class="setting-row">
