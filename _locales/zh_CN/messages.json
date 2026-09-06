@@ -666,5 +666,9 @@
   "optModelSiliconFree": {
     "message": "Qwen/Qwen2.5-7B-Instruct (硅基流动免费)",
     "description": "Model Qwen free"
+  },
+  "btnDonateThumbTip": {
+    "message": "支持作者 / 请喝咖啡 ☕",
+    "description": "Thumb donate button tooltip"
   }
 }

@@ -369,6 +369,8 @@ function updateFloatingBarI18n() {
   if (summaryBtn) summaryBtn.title = _t('fabSummaryTip', 'AI 双语摘要');
   const readerBtn = floatingBar.querySelector('#readmate-bar-reader-btn');
   if (readerBtn) readerBtn.title = _t('btnReaderMode', '📖 沉浸净读模式 (Alt+R / F9)');
+  const donateBtn = floatingBar.querySelector('#readmate-bar-donate-btn');
+  if (donateBtn) donateBtn.title = _t('btnDonateThumbTip', '支持作者 / 请喝咖啡 ☕');
 }
 
 /** 智能文本语言检测辅助函数 */
@@ -575,6 +577,11 @@ function createFloatingBar() {
           <span id="readmate-bilingual-text">${_t('lblBilingual', '双语')}</span>
         </label>
         <button class="readmate-btn readmate-btn-reader" id="readmate-bar-reader-btn" title="${_t('btnReaderMode', '📖 沉浸净读模式 (Alt+R / F9)')}">📖</button>
+        <button class="readmate-btn readmate-btn-donate-thumb" id="readmate-bar-donate-btn" title="${_t('btnDonateThumbTip', '支持作者 / 请喝咖啡 ☕')}">
+          <svg class="readmate-thumb-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+          </svg>
+        </button>
         <button class="readmate-btn readmate-btn-summary" id="readmate-summary-btn" title="${_t('fabSummaryTip', 'AI 双语摘要')}">⚡</button>
         <button class="readmate-btn" id="readmate-debug-btn" title="Debug" style="display:none">🐛</button>
         <button class="readmate-btn readmate-btn-close" id="readmate-close-btn" title="Close">✕</button>
@@ -607,6 +614,7 @@ function createFloatingBar() {
     floatingBar.querySelector('#readmate-prev-sentence').onclick = prevSentence;
     floatingBar.querySelector('#readmate-next-sentence').onclick = nextSentence;
     floatingBar.querySelector('#readmate-bar-reader-btn').onclick = toggleReaderMode;
+    floatingBar.querySelector('#readmate-bar-donate-btn').onclick = openDonateModal;
     floatingBar.querySelector('#readmate-summary-btn').onclick = generateAISummary;
 
     // 语音流模式切换（立即清空旧缓存，秒级生效）

@@ -144,21 +144,21 @@
   100% { transform: translate(-50%, 0); opacity: 1; }
 }
 
-/* 上层主控制栏 */
+/* 上层主控制栏（紧凑精致胶囊排版） */
 .readmate-bar-main {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 18px;
+  padding: 8px 14px;
   cursor: default;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  gap: 8px;
+  gap: 6px;
 }
 
 .readmate-bar-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
   cursor: move;
 }
@@ -167,7 +167,7 @@
   font-size: 11px;
   color: #94a3b8;
   font-weight: 600;
-  min-width: 34px;
+  min-width: 32px;
 }
 
 /* 语音流模式下拉 */
@@ -178,11 +178,11 @@
   font-size: 11px;
   font-weight: 500;
   border-radius: 12px;
-  padding: 3px 8px;
+  padding: 3px 6px;
   outline: none;
   cursor: pointer;
   transition: all 0.15s;
-  max-width: 140px;
+  max-width: 135px;
 }
 
 .readmate-mode-select:hover {
@@ -198,7 +198,7 @@
 .readmate-bar-center {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
@@ -206,9 +206,9 @@
   background: transparent;
   border: none;
   color: #cbd5e1;
-  font-size: 14px;
-  width: 32px;
-  height: 32px;
+  font-size: 13.5px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
@@ -226,7 +226,9 @@
 .readmate-btn-main {
   background: #3b82f6 !important;
   color: #ffffff !important;
-  font-size: 16px;
+  font-size: 15px;
+  width: 32px;
+  height: 32px;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
 }
 
@@ -236,7 +238,7 @@
 
 .readmate-btn-stop {
   color: #f87171 !important;
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .readmate-btn-stop:hover {
@@ -247,8 +249,30 @@
 .readmate-bar-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
+}
+
+/* 大拇指赞赏按钮与精致 SVG */
+.readmate-btn-donate-thumb {
+  color: #facc15 !important;
+  border: 1px solid rgba(250, 204, 21, 0.25) !important;
+  background: rgba(250, 204, 21, 0.08) !important;
+  transition: all 0.2s ease !important;
+}
+
+.readmate-btn-donate-thumb:hover {
+  background: rgba(250, 204, 21, 0.22) !important;
+  border-color: rgba(250, 204, 21, 0.6) !important;
+  color: #fef08a !important;
+  transform: scale(1.12) rotate(-5deg) !important;
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.3) !important;
+}
+
+.readmate-thumb-icon {
+  display: block;
+  stroke: currentColor;
+  transition: transform 0.15s ease;
 }
 
 .readmate-btn-feature {
