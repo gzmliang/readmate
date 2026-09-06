@@ -374,7 +374,7 @@
     "description": "Dark theme"
   },
   "toastTranslatingSelection": {
-    "message": "🌐 Translating selection with AI...",
+    "message": "🌐 AI 번역 중...",
     "description": "Translating selection"
   },
   "toastTranslateFailed": {
@@ -482,7 +482,7 @@
     "description": "Delete button tip"
   },
   "translatingText": {
-    "message": "Translating...",
+    "message": "번역 중...",
     "description": "Translating text fallback"
   },
   "debugLogCount": {
