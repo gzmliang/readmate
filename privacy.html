@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadMate / 读伴 — 隐私政策 (Privacy Policy)</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #334155;
+      --heading: #0f172a;
+      --border: #e2e8f0;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --primary: #38bdf8;
+        --bg: #0f172a;
+        --card-bg: #1e293b;
+        --text: #cbd5e1;
+        --heading: #f8fafc;
+        --border: rgba(255, 255, 255, 0.1);
+      }
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.75;
+      color: var(--text);
+      background-color: var(--bg);
+      padding: 40px 20px;
+      margin: 0;
+    }
+    .container {
+      max-width: 820px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 40px 48px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--border);
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: var(--heading);
+      font-size: 28px;
+      margin: 0 0 12px 0;
+      letter-spacing: -0.01em;
+    }
+    .meta {
+      font-size: 13px;
+      opacity: 0.7;
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+    h2 {
+      color: var(--heading);
+      font-size: 18px;
+      margin-top: 32px;
+      margin-bottom: 12px;
+    }
+    p, li {
+      font-size: 14.5px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+    code {
+      background: rgba(125, 125, 125, 0.15);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 13px;
+    }
+    .highlight-box {
+      background: rgba(37, 99, 235, 0.06);
+      border-left: 4px solid var(--primary);
+      padding: 14px 18px;
+      border-radius: 6px;
+      margin: 20px 0;
+    }
+    .footer {
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      opacity: 0.7;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="badge">Chrome Web Store 官方合规公开文档 · Privacy Practices</div>
+    <h1>ReadMate / 读伴 — 隐私政策 (Privacy Policy)</h1>
+    <div class="meta">
+      <strong>生效日期：</strong>2026年9月6日 &nbsp;|&nbsp; 
+      <strong>适用版本：</strong>ReadMate 1.0.0+
+    </div>
+
+    <div class="highlight-box">
+      <strong>核心承诺 (Core Commitment)：</strong><br>
+      读伴（ReadMate）严格秉持<strong>“本地优先、零数据收集”</strong>原则。作为一款纯净的网页朗读、生词辅助与专注阅读工具，我们<strong>绝不收集、绝不存储、绝不上报、绝不转售</strong>用户的任何个人身份信息（PII）、浏览历史或网页阅读记录。
+    </div>
+
+    <h2>1. 数据处理与权限使用说明 (Data Usage & Permissions)</h2>
+    <ul>
+      <li><strong>本地配置持久化 (<code>storage</code>)：</strong>您的个性化设置（如朗读语速、音色偏好、双语对照开关、以及您自行填写的 AI API Key）仅安全存储在您浏览器本地的 <code>chrome.storage.sync</code> 中，仅用于扩展功能的正常运行与跨设备同步，绝不会上传至任何第三方服务器或数据分析平台。</li>
+      <li><strong>页面阅读与高亮 (<code>activeTab</code> & <code>scripting</code>)：</strong>仅当您主动点击朗读、双击单词查词或开启沉浸净读模式时，扩展才对当前活跃标签页的正文进行段落与分句解析，以便实现声画同步跟随高亮。所有文本解析均在您的浏览器本地内存中执行，页面关闭即销毁。</li>
+      <li><strong>快捷右键菜单 (<code>contextMenus</code>)：</strong>仅用于在鼠标选中文本时提供“朗读选中文字”的系统级便捷入口。</li>
+      <li><strong>大模型翻译与核心摘要 (AI Services)：</strong>当您主动发起 AI 摘要或深度翻译时，相关句子或段落仅在您点击时实时发送至您在设置中指定的标准化 API 接口（如 OpenAI 官方或 DeepSeek 官方），读伴本身不设立任何中间数据中转站，不留存任何明文数据。</li>
+    </ul>
+
+    <h2>2. 权限最小必要化 (Minimum Permission Principles)</h2>
+    <p>读伴严格遵守 Google Chrome Web Store 的最小必要权限要求，已全面剔除诸如 <code>downloads</code> 等冗余权限，所有导出的 PDF 与音频文件均通过前端本地 Blob 协议直接保存至您的设备。</p>
+
+    <h2>3. 无广告与零商业追踪承诺 (No Ads & Tracking Free)</h2>
+    <p>读伴承诺：</p>
+    <ul>
+      <li>绝不植入任何第三方广告联盟 SDK；</li>
+      <li>绝不加载 Google Analytics 等行为追踪脚本；</li>
+      <li>绝不建立用户画像，绝不将任何数据转售给数据经纪人或营销机构。</li>
+    </ul>
+
+    <h2>4. 政策更新与联系方式 (Contact Us)</h2>
+    <p>本隐私政策若有任何调整，将在此页面同步发布最新版本。</p>
+    <p>如果您对本隐私政策或扩展功能有任何疑问，欢迎联系开发者：<br>
+      • <strong>邮箱：</strong> gzjliang@gmail.com<br>
+      • <strong>开发者：</strong> 梁老师 (Independent Developer)
+    </p>
+
+    <div class="footer">
+      <span>© 2026 ReadMate / 读伴. All rights reserved.</span>
+      <span>Published via GitHub Pages</span>
+    </div>
+  </div>
+</body>
+</html>
