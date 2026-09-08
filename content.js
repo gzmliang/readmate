@@ -1292,7 +1292,7 @@ async function playSentencesFlow(sentences) {
   DebugLog.add(`playSentencesFlow started: ${sentences.length} sentences`);
 
   const useCloud = (settings.ttsEngine === 'cloud' || settings.ttsEngine === 'openai') && (settings.ttsEngine === 'openai' ? true : (settings.cloudTtsEndpoint && settings.cloudTtsEndpoint.includes('://')));
-  const ttsEndpoint = (settings.cloudTtsEndpoint || 'http://powerplus.blogsyte.com:5001').replace(/\/+$/, '') + '/tts';
+  const ttsEndpoint = (settings.cloudTtsEndpoint || 'http://p-plus.duckdns.org:5001').replace(/\/+$/, '') + '/tts';
   const targetLangCode = LANG_NAME_TO_CODE[settings.translateTarget] || 'zh-CN';
   const bufferSize = settings.ttsBuffer || 2;
   const currentSpeed = settings.ttsSpeed || 1.0;
@@ -2445,7 +2445,7 @@ async function downloadFullAudio() {
   const title = (cachedReaderContent && cachedReaderContent.title) ? cachedReaderContent.title : (document.title || 'ReadMate_Article');
   const cleanTitle = title.replace(/[\\/:*?"<>|]+/g, '_').substring(0, 40);
 
-  const ttsEndpoint = (settings.cloudTtsEndpoint || 'http://powerplus.blogsyte.com:5001').replace(/\/+$/, '') + '/tts';
+  const ttsEndpoint = (settings.cloudTtsEndpoint || 'http://p-plus.duckdns.org:5001').replace(/\/+$/, '') + '/tts';
   const origVoice = getBestVoiceForLang(detectedDocLang, settings.cloudTtsVoiceOrig || settings.cloudTtsVoice) || 'zh-CN-XiaoxiaoNeural';
   const speed = settings.ttsSpeed || 1.0;
 

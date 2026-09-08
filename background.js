@@ -166,8 +166,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         ttsBuffer: 2,
         readVoiceMode: 'original', // 'original', 'translated', 'bilingual'
         showBilingualSubtitles: true,
-        // 云端 Edge TTS 服务端（默认指向梁老师长期公开服务）
-        cloudTtsEndpoint: 'http://powerplus.blogsyte.com:5001',
+        // 云端 Edge TTS 服务端（默认指向主节点，支持自动容灾）
+        cloudTtsEndpoint: 'http://p-plus.duckdns.org:5001',
         cloudTtsVoice: '', // 保持空 = 智能双轨自动匹配
         cloudTtsVoiceOrig: '', // 留空 = 原文语种智能匹配 (如 Jenny/美式)
         cloudTtsVoiceTrans: '', // 留空 = 译文语种智能匹配 (如 Xiaoxiao/晓晓)
@@ -294,26 +294,46 @@ ${(text || '').substring(0, 5000)}`;
     case 'proxyFetch': {
       const { url, options } = msg;
       (async () => {
-        try {
-          const resp = await fetch(url, options || {});
-          if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-          const buffer = await resp.arrayBuffer();
-          // 用分块字符串拼接 base64
-          const bytes = new Uint8Array(buffer);
-          let binary = '';
-          const chunkSize = 1024;
-          for (let i = 0; i < bytes.byteLength; i += chunkSize) {
-            const chunk = bytes.subarray(i, i + chunkSize);
-            for (let j = 0; j < chunk.length; j++) {
-              binary += String.fromCharCode(chunk[j]);
-            }
+        // 主备双节点自动容灾重试
+        const DEFAULT_SERVERS = [
+          'http://p-plus.duckdns.org:5001',
+          'http://powerplus.blogsyte.com:5001'
+        ];
+        let urlsToTry = [url];
+        for (const s of DEFAULT_SERVERS) {
+          if (url && url.startsWith(s)) {
+            const pathAndQuery = url.slice(s.length);
+            urlsToTry = DEFAULT_SERVERS.map(srv => srv + pathAndQuery);
+            urlsToTry = [url, ...urlsToTry.filter(u => u !== url)];
+            break;
           }
-          const base64 = btoa(binary);
-          const dataUrl = 'data:audio/mpeg;base64,' + base64;
-          sendResponse({ ok: true, dataUrl });
-        } catch(err) {
-          sendResponse({ ok: false, error: err.message });
         }
+
+        let lastErr = null;
+        for (let i = 0; i < urlsToTry.length; i++) {
+          const targetUrl = urlsToTry[i];
+          try {
+            const resp = await fetch(targetUrl, options || {});
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const buffer = await resp.arrayBuffer();
+            // 用分块字符串拼接 base64
+            const bytes = new Uint8Array(buffer);
+            let binary = '';
+            const chunkSize = 1024;
+            for (let j = 0; j < bytes.byteLength; j += chunkSize) {
+              const chunk = bytes.subarray(j, j + chunkSize);
+              for (let k = 0; k < chunk.length; k++) {
+                binary += String.fromCharCode(chunk[k]);
+              }
+            }
+            const base64 = btoa(binary);
+            const dataUrl = 'data:audio/mpeg;base64,' + base64;
+            return sendResponse({ ok: true, dataUrl });
+          } catch(err) {
+            lastErr = err;
+          }
+        }
+        sendResponse({ ok: false, error: lastErr ? lastErr.message : 'All endpoints failed' });
       })();
       return true;
     }

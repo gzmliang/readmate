@@ -88,9 +88,10 @@ Hover or select words to view instant definitions, phonetic transcriptions, and 
 ### 3. 用户数据使用声明 (User Data FAQ)
 - **是否出售用户数据？** ➔ 选择 **否 (No)**
 - **是否用于与功能无关的广告/信贷？** ➔ 选择 **否 (No)**
-- **公开隐私政策链接 (Privacy Policy URL)** ➔ 推荐使用 GitHub Pages 托管，或直接填写 GitHub 仓库公开 Raw 链接：  
-  `https://raw.githubusercontent.com/gzmliang/readmate/main/PRIVACY-POLICY.md`  
-  （或者您在 GitHub 上建立 `gh-pages` 后的地址：`https://gzmliang.github.io/readmate/privacy.html`）
+- **公开隐私政策链接 (Privacy Policy URL)** ➔ 填入官方 GitHub 页面：  
+  `https://gzmliang.github.io/readmate/` （开启 Pages 后）  
+  或直接使用 Raw 链接（现已 100% 连通生效）：  
+  `https://raw.githubusercontent.com/gzmliang/readmate/gh-pages/privacy.html`
 
 ---
 
@@ -111,5 +112,5 @@ Hover or select words to view instant definitions, phonetic transcriptions, and 
 - **AList 交付目录**：  
   `/root/files/from-you/readmate-v1.0.0-store.zip` (214KB)
 - **下载站直链目录**：  
-  `http://powerplus.blogsyte.com/readmate.zip` 或 `/usr/share/nginx/html/readmate.zip`
+  `http://p-plus.duckdns.org/readmate.zip` 或 `/usr/share/nginx/html/readmate.zip`
 - **代码状态**：内部版本保持 `2.14.6`，外部呈现 `1.0.0`，完全满足安全与审核需求。

@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('openaiTtsVoice').value = settings.openaiTtsVoice || 'alloy';
 
     // Edge TTS
-    const defaultEdgeEndpoint = 'http://powerplus.blogsyte.com:5001';
+    const defaultEdgeEndpoint = 'http://p-plus.duckdns.org:5001';
     document.getElementById('cloudTtsEndpoint').value = settings.cloudTtsEndpoint || defaultEdgeEndpoint;
     loadCloudVoices(settings.cloudTtsEndpoint || defaultEdgeEndpoint, settings.cloudTtsVoice || '', settings.cloudTtsVoiceTrans || '');
 
@@ -344,32 +344,52 @@ function loadCloudVoices(endpoint, savedVoice, savedTransVoice) {
   const voiceSelect = document.getElementById('cloudTtsVoice');
   const transSelect = document.getElementById('cloudTtsVoiceTrans');
   if (!endpoint) return;
-  fetch(endpoint.replace(/\/+$/, '') + '/voices')
-    .then(r => r.ok ? r.json() : Promise.reject())
-    .then(data => {
-      const voices = data.voices || data;
-      if (!Array.isArray(voices)) return;
-      if (voiceSelect) {
-        voiceSelect.innerHTML = `<option value="">${_('optCloudAuto')}</option>`;
-        for (const v of voices) {
-          const opt = document.createElement('option');
-          opt.value = v.ShortName || v.name;
-          opt.textContent = `${v.FriendlyName || v.name} (${v.Locale || ''})`;
-          voiceSelect.appendChild(opt);
+
+  const DEFAULT_SERVERS = [
+    'http://p-plus.duckdns.org:5001',
+    'http://powerplus.blogsyte.com:5001'
+  ];
+  let endpointsToTry = [endpoint];
+  for (const s of DEFAULT_SERVERS) {
+    if (endpoint.startsWith(s)) {
+      endpointsToTry = [endpoint, ...DEFAULT_SERVERS.filter(srv => srv !== endpoint)];
+      break;
+    }
+  }
+
+  const tryFetch = (idx) => {
+    if (idx >= endpointsToTry.length) return;
+    const currentEp = endpointsToTry[idx];
+    fetch(currentEp.replace(/\/+$/, '') + '/voices')
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(data => {
+        const voices = data.voices || data;
+        if (!Array.isArray(voices)) return;
+        if (voiceSelect) {
+          voiceSelect.innerHTML = `<option value="">${_('optCloudAuto')}</option>`;
+          for (const v of voices) {
+            const opt = document.createElement('option');
+            opt.value = v.ShortName || v.name;
+            opt.textContent = `${v.FriendlyName || v.name} (${v.Locale || ''})`;
+            voiceSelect.appendChild(opt);
+          }
+          if (savedVoice) voiceSelect.value = savedVoice;
         }
-        if (savedVoice) voiceSelect.value = savedVoice;
-      }
-      if (transSelect) {
-        transSelect.innerHTML = `<option value="">跟随母语最佳音色 (中文自动用晓晓)</option>`;
-        for (const v of voices) {
-          const opt = document.createElement('option');
-          opt.value = v.ShortName || v.name;
-          opt.textContent = `${v.FriendlyName || v.name} (${v.Locale || ''})`;
-          transSelect.appendChild(opt);
+        if (transSelect) {
+          transSelect.innerHTML = `<option value="">跟随母语最佳音色 (中文自动用晓晓)</option>`;
+          for (const v of voices) {
+            const opt = document.createElement('option');
+            opt.value = v.ShortName || v.name;
+            opt.textContent = `${v.FriendlyName || v.name} (${v.Locale || ''})`;
+            transSelect.appendChild(opt);
+          }
+          if (savedTransVoice) transSelect.value = savedTransVoice;
         }
-        if (savedTransVoice) transSelect.value = savedTransVoice;
-      }
-    }).catch(() => {});
+      }).catch(() => {
+        tryFetch(idx + 1);
+      });
+  };
+  tryFetch(0);
 }
 
 function saveSettings(silent) {
@@ -442,7 +462,7 @@ function setupHelpModal() {
         </div>
 
         <h4 style="color:#facc15;margin:16px 0 8px;">1. 默认公共服务</h4>
-        <p>插件默认内置了梁老师为大家长期维护的免费高音质服务：<code>http://powerplus.blogsyte.com:5001</code>，全球开箱即用，无需配置。</p>
+        <p>插件默认内置了梁老师为大家长期维护的免费高音质服务：<code>http://p-plus.duckdns.org:5001</code>（内置主备自动容灾），全球开箱即用，无需配置。</p>
 
         <h4 style="color:#facc15;margin:16px 0 8px;">2. 5分钟在自己的 VPS/服务器 上搭建专属 Edge-TTS（附完整代码）</h4>
         <p>如果您有自己的云服务器（Ubuntu/Debian/CentOS），可以自建专属节点，完全独享带宽：</p>
@@ -495,7 +515,7 @@ if __name__ == '__main__':
         </div>
 
         <h4 style="color:#facc15;margin:16px 0 8px;">1. Default Public Service</h4>
-        <p>ReadMate comes with teacher Liang's permanently maintained free public node: <code>http://powerplus.blogsyte.com:5001</code>. Works out of the box worldwide.</p>
+        <p>ReadMate comes with teacher Liang's permanently maintained free public node: <code>http://p-plus.duckdns.org:5001</code> (with auto-failover redundancy). Works out of the box worldwide.</p>
 
         <h4 style="color:#facc15;margin:16px 0 8px;">2. Self-Host Edge-TTS on Your Own VPS (in 5 minutes)</h4>
         <p>If you have a Linux VPS (Ubuntu/Debian), deploy your own dedicated node for unlimited bandwidth:</p>
