@@ -1312,10 +1312,8 @@ async function playSentencesFlow(sentences) {
   let origVoice = useCloud ? getBestVoiceForLang(detectedDocLang, settings.cloudTtsVoiceOrig || settings.cloudTtsVoice) : '';
   let transVoice = useCloud ? getBestVoiceForLang(targetLangCode, settings.cloudTtsVoiceTrans) : '';
   if (!origVoice) {
-    if (detectedDocLang && detectedDocLang.startsWith('zh')) origVoice = 'zh-CN-XiaoxiaoNeural';
-    else if (detectedDocLang && detectedDocLang.startsWith('ja')) origVoice = 'ja-JP-NanamiNeural';
-    else if (detectedDocLang && detectedDocLang.startsWith('ko')) origVoice = 'ko-KR-SunHiNeural';
-    else origVoice = 'en-US-JennyNeural';
+    const sCode = (detectedDocLang || 'en').split('-')[0].toLowerCase();
+    origVoice = VOICE_MAP[detectedDocLang] || VOICE_MAP[sCode] || 'en-US-JennyNeural';
   }
   if (!transVoice) transVoice = (targetLangCode && targetLangCode.startsWith('en')) ? 'en-US-JennyNeural' : 'zh-CN-XiaoxiaoNeural';
 

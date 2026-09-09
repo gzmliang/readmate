@@ -564,6 +564,36 @@ const ContentExtractor = (() => {
   }
 
   /** 智能语言检测：以实际正文文本特征为主准绳，结合 HTML 声明判断语种代码 */
+  // 欧洲主流语言核心高频词与变音符特征库（防拉丁语系误读为英语）
+  const EU_LANG_PATTERNS = {
+    de: {
+      words: /\b(der|die|das|den|dem|des|und|in|zu|nicht|von|sie|ist|es|sich|mit|als|für|auf|ein|eine|einer|einem|einen|eines|nach|wie|im|auch|wir|aus|hat|dass|bei|ihr|nur|noch|über|so|haben|aber|sehr|guten|tag|morgen|jahr|deutsch|zeit)\b/i,
+      chars: /[äöüßÄÖÜ]/,
+      code: 'de-DE'
+    },
+    fr: {
+      words: /\b(le|la|les|un|une|des|et|en|du|de|dans|pour|avec|sur|est|qui|que|ce|cette|ces|il|elle|ils|elles|nous|vous|sont|plus|pas|par|faire|tout|merci|bonjour|bien|oui|non)\b|\b(c'|d'|l'|j'|m'|t'|s'|n'|qu')/i,
+      chars: /[éèêëàâùûôîïçœæÉÈÊËÀÂÙÛÔÎÏÇŒÆ]/,
+      code: 'fr-FR'
+    },
+    es: {
+      words: /\b(el|la|los|las|un|una|unos|unas|y|en|de|del|por|para|con|que|es|son|se|su|sus|como|más|pero|este|esta|estos|estas|muy|gracias|buenos|días|hola|bien|todo|todos)\b/i,
+      chars: /[áéíóúüñ¿¡ÁÉÍÓÚÜÑ]/,
+      code: 'es-ES'
+    },
+    it: {
+      words: /\b(il|lo|la|i|gli|le|un|uno|una|e|di|da|in|con|su|per|tra|fra|del|della|dei|degli|delle|è|sono|che|non|si|ci|ha|hanno|questo|questa|grazie|ciao|molto)\b|\b(l'|d'|c'|dell'|all'|nell'|sull')/i,
+      chars: /[àèéìíîòóùúÀÈÉÌÍÎÒÓÙÚ]/,
+      code: 'it-IT'
+    },
+    pt: {
+      words: /\b(o|a|os|as|um|uma|uns|umas|e|de|do|da|dos|das|em|no|na|nos|nas|para|por|com|que|não|é|são|se|mais|como|muito|obrigado|olá|este|esta)\b/i,
+      chars: /[ãõáéíóúâêôçÃÕÁÉÍÓÚÂÊÔÇ]/,
+      code: 'pt-PT'
+    }
+  };
+
+  /** 智能语言检测：以实际正文文本特征为主准绳，结合 HTML 声明判断语种代码 */
   function detectLanguage(sampleText) {
     // 1. 优先提取实际文本样本（优先使用传入文本，否则提取页面正文文本）
     let text = (sampleText || '').trim();
@@ -591,15 +621,38 @@ const ContentExtractor = (() => {
       // 此时既无假名也无韩文，汉字即为中文
       if (cjk >= 1) return 'zh-CN';
       // 俄语西里尔字母
-      if (cyrillic >= 2) return 'ru-RU';
+      if (cyrillic >= 1) return 'ru-RU';
 
-      // 拉丁语系（英语/德语/法语/西语等）
+      // 欧洲拉丁语系多维综合打分（特征词 + 变音符 + 页面元数据加权）
       if (latin >= 1) {
-        if (/[äöüßÄÖÜ]/.test(text) || /\b(der|die|das|und|ist|nicht|für|mit|ein|eine)\b/i.test(text)) return 'de-DE';
-        if (/[éèêëàâùûôîïçÉÈÊËÀÂÙÛÔÎÏÇ]/.test(text) || /\b(le|la|les|des|est|une|dans|pour|avec|que)\b/i.test(text)) return 'fr-FR';
-        if (/[áéíóúñ¿¡ÁÉÍÓÚÑ]/.test(text) || /\b(el|la|los|las|por|para|con|una|del|que)\b/i.test(text)) return 'es-ES';
-        if (/\b(il|la|lo|gli|che|sono|per|con|del|della)\b/i.test(text)) return 'it-IT';
-        if (/[ãõáéíóúçÃÕÁÉÍÓÚÇ]/.test(text) || /\b(não|com|para|uma|dos|das|que)\b/i.test(text)) return 'pt-PT';
+        const scores = { de: 0, fr: 0, es: 0, it: 0, pt: 0 };
+        for (const [k, pat] of Object.entries(EU_LANG_PATTERNS)) {
+          if (pat.chars.test(text)) scores[k] += 4;
+          const wordMatches = text.match(new RegExp(pat.words.source, 'gi'));
+          if (wordMatches) scores[k] += wordMatches.length * 2;
+          // 页面 HTML 明确声明加权
+          if (htmlLang.startsWith(k)) scores[k] += 3;
+        }
+
+        let bestKey = 'en';
+        let maxScore = 0;
+        for (const [k, score] of Object.entries(scores)) {
+          if (score > maxScore) {
+            maxScore = score;
+            bestKey = k;
+          }
+        }
+
+        if (maxScore >= 2 && EU_LANG_PATTERNS[bestKey]) {
+          return EU_LANG_PATTERNS[bestKey].code;
+        }
+
+        // 纯短句但页面有明确欧洲语言声明时直接信赖页面
+        if (htmlLang.startsWith('de')) return 'de-DE';
+        if (htmlLang.startsWith('fr')) return 'fr-FR';
+        if (htmlLang.startsWith('es')) return 'es-ES';
+        if (htmlLang.startsWith('it')) return 'it-IT';
+        if (htmlLang.startsWith('pt')) return 'pt-PT';
         return 'en-US';
       }
     }

@@ -14,37 +14,8 @@ const TextUtils = (() => {
 
   /** 检测文本主要语言类型 */
   function detectScript(text) {
-    if (!text || text.trim().length === 0) return 'unknown';
-    const cleaned = text.replace(/\s+/g, '');
-    if (cleaned.length === 0) return 'unknown';
-
-    let cjk = 0, jp = 0, ko = 0, latin = 0, other = 0;
-    for (const ch of cleaned) {
-      if (JP_RE.test(ch)) jp++;
-      else if (KO_RE.test(ch)) ko++;
-      else if (CJK_RE.test(ch)) cjk++;
-      else if (LATIN_RE.test(ch)) latin++;
-      else other++;
-    }
-
-    // 1. 日文假名具有最高排他性：只要出现假名，绝不可能是中文
-    if (jp >= 1) return 'ja';
-    // 2. 韩文字母具有最高排他性
-    if (ko >= 1) return 'ko';
-
-    // 3. 参考页面 HTML 声明（处理纯汉字日文标题等无假名场景）
-    if (typeof document !== 'undefined') {
-      const docLang = (document.documentElement.lang || document.body?.getAttribute('lang') || '').toLowerCase();
-      if (docLang.startsWith('ja') && cjk >= 1) return 'ja';
-    }
-
-    // 4. 此时既无假名也无韩文，汉字即为中文
-    if (cjk >= 1) return 'zh';
-
-    const total = cjk + jp + ko + latin + other;
-    const ratio = (count) => (count / total);
-    if (ratio(latin) > 0.4) return 'latin';
-    return 'latin';
+    const langCode = detectLanguage(text);
+    return langCode.split('-')[0].toLowerCase();
   }
 
   /** 检测文本是否是中文 */
@@ -52,11 +23,95 @@ const TextUtils = (() => {
     return detectScript(text) === 'zh';
   }
 
-  /** 检测文本是否需要中文语音 */
+  // 欧洲语言核心特征库
+  const EU_PATTERNS = {
+    de: {
+      words: /\b(der|die|das|den|dem|des|und|in|zu|nicht|von|sie|ist|es|sich|mit|als|für|auf|ein|eine|einer|einem|einen|eines|nach|wie|im|auch|wir|aus|hat|dass|bei|ihr|nur|noch|über|so|haben|aber|sehr|guten|tag|morgen|jahr|deutsch|zeit)\b/i,
+      chars: /[äöüßÄÖÜ]/,
+      code: 'de-DE'
+    },
+    fr: {
+      words: /\b(le|la|les|un|une|des|et|en|du|de|dans|pour|avec|sur|est|qui|que|ce|cette|ces|il|elle|ils|elles|nous|vous|sont|plus|pas|par|faire|tout|merci|bonjour|bien|oui|non)\b|\b(c'|d'|l'|j'|m'|t'|s'|n'|qu')/i,
+      chars: /[éèêëàâùûôîïçœæÉÈÊËÀÂÙÛÔÎÏÇŒÆ]/,
+      code: 'fr-FR'
+    },
+    es: {
+      words: /\b(el|la|los|las|un|una|unos|unas|y|en|de|del|por|para|con|que|es|son|se|su|sus|como|más|pero|este|esta|estos|estas|muy|gracias|buenos|días|hola|bien|todo|todos)\b/i,
+      chars: /[áéíóúüñ¿¡ÁÉÍÓÚÜÑ]/,
+      code: 'es-ES'
+    },
+    it: {
+      words: /\b(il|lo|la|i|gli|le|un|uno|una|e|di|da|in|con|su|per|tra|fra|del|della|dei|degli|delle|è|sono|che|non|si|ci|ha|hanno|questo|questa|grazie|ciao|molto)\b|\b(l'|d'|c'|dell'|all'|nell'|sull')/i,
+      chars: /[àèéìíîòóùúÀÈÉÌÍÎÒÓÙÚ]/,
+      code: 'it-IT'
+    },
+    pt: {
+      words: /\b(o|a|os|as|um|uma|uns|umas|e|de|do|da|dos|das|em|no|na|nos|nas|para|por|com|que|não|é|são|se|mais|como|muito|obrigado|olá|este|esta)\b/i,
+      chars: /[ãõáéíóúâêôçÃÕÁÉÍÓÚÂÊÔÇ]/,
+      code: 'pt-PT'
+    }
+  };
+
+  /** 全面智能语言检测：精准识别日韩中及欧洲主要语种，防止误读为英语 */
   function detectLanguage(text) {
-    const script = detectScript(text);
-    const langMap = { zh: 'zh-CN', ja: 'ja-JP', ko: 'ko-KR', latin: 'en-US', mixed: 'en-US', unknown: 'en-US' };
-    return langMap[script] || 'en-US';
+    if (!text || !text.trim()) return 'en-US';
+    const cleaned = text.replace(/\s+/g, '');
+    if (!cleaned) return 'en-US';
+
+    let cjk = 0, jp = 0, ko = 0, cyrillic = 0, latin = 0;
+    for (const ch of cleaned) {
+      if (JP_RE.test(ch)) jp++;
+      else if (KO_RE.test(ch)) ko++;
+      else if (CJK_RE.test(ch)) cjk++;
+      else if (/[\u0400-\u04ff]/.test(ch)) cyrillic++;
+      else if (LATIN_RE.test(ch)) latin++;
+    }
+
+    // 1. 排他性日韩俄语特征
+    if (jp >= 1) return 'ja-JP';
+    if (ko >= 1) return 'ko-KR';
+    if (cyrillic >= 1) return 'ru-RU';
+
+    // 2. 参考页面 HTML 声明（处理纯汉字日文标题等无假名场景）
+    const docLang = (typeof document !== 'undefined')
+      ? (document.documentElement.lang || document.body?.getAttribute('lang') || '').toLowerCase()
+      : '';
+    if (docLang.startsWith('ja') && cjk >= 1) return 'ja-JP';
+    if (cjk >= 1) return 'zh-CN';
+
+    // 3. 欧洲拉丁语系特征打分
+    if (latin >= 1) {
+      const scores = { de: 0, fr: 0, es: 0, it: 0, pt: 0 };
+      for (const [k, pat] of Object.entries(EU_PATTERNS)) {
+        if (pat.chars.test(text)) scores[k] += 4;
+        const matches = text.match(new RegExp(pat.words.source, 'gi'));
+        if (matches) scores[k] += matches.length * 2;
+        if (docLang.startsWith(k)) scores[k] += 3;
+      }
+
+      let bestKey = 'en';
+      let maxScore = 0;
+      for (const [k, score] of Object.entries(scores)) {
+        if (score > maxScore) {
+          maxScore = score;
+          bestKey = k;
+        }
+      }
+
+      if (maxScore >= 2 && EU_PATTERNS[bestKey]) {
+        return EU_PATTERNS[bestKey].code;
+      }
+
+      if (docLang.startsWith('de')) return 'de-DE';
+      if (docLang.startsWith('fr')) return 'fr-FR';
+      if (docLang.startsWith('es')) return 'es-ES';
+      if (docLang.startsWith('it')) return 'it-IT';
+      if (docLang.startsWith('pt')) return 'pt-PT';
+      if (docLang.startsWith('ru')) return 'ru-RU';
+      return 'en-US';
+    }
+
+    return 'en-US';
   }
 
   // ====== 句子分割 ======
