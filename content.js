@@ -136,8 +136,19 @@ const LANG_NAME_TO_CODE = {
 // ====== 多语言国际化（i18n）系统 ======
 let i18nMessages = {};
 async function loadContentI18n(lang) {
-  const targetLang = lang || settings.uiLanguage || 'zh_CN';
-  const effectiveLang = (targetLang === 'auto') ? (navigator.language.startsWith('zh') ? 'zh_CN' : navigator.language.startsWith('ja') ? 'ja' : 'en') : targetLang;
+  const targetLang = lang || settings.uiLanguage || 'auto';
+  let effectiveLang = targetLang;
+  if (targetLang === 'auto') {
+    const l = (navigator.language || 'en').replace('-', '_');
+    if (l.startsWith('zh')) effectiveLang = 'zh_CN';
+    else if (l.startsWith('ja')) effectiveLang = 'ja';
+    else if (l.startsWith('ko')) effectiveLang = 'ko';
+    else if (l.startsWith('de')) effectiveLang = 'de';
+    else if (l.startsWith('fr')) effectiveLang = 'fr';
+    else if (l.startsWith('es')) effectiveLang = 'es';
+    else if (l.startsWith('ru')) effectiveLang = 'ru';
+    else effectiveLang = 'en';
+  }
 
   // 1. 优先向 background 请求加载语言字典（完全避开 Content Script 沙箱限制）
   try {
@@ -2816,8 +2827,8 @@ function showDonateToast() {
   const toast = document.createElement('div');
   toast.className = 'readmate-donate-toast';
   toast.innerHTML = `
-    <span>☕ ${_t('donateToastMessage', '感谢您使用读伴深度阅读！如果喜欢这款无广告工具，欢迎请梁老师喝杯咖啡')}</span>
-    <button class="readmate-donate-toast-btn" id="readmate-open-donate-from-toast">${_t('btnDonate', '赞赏')}</button>
+    <span>☕ ${_t('donateToastMessage', 'Thanks for reading with ReadMate! If you enjoy this tool, consider buying a coffee ☕')}</span>
+    <button class="readmate-donate-toast-btn" id="readmate-open-donate-from-toast">${_t('btnDonate', 'Support')}</button>
     <button class="readmate-donate-toast-close" id="readmate-close-donate-toast">✕</button>
   `;
   document.body.appendChild(toast);
@@ -2872,7 +2883,7 @@ function openDonateModal() {
 
         <!-- 国内通道 -->
         <div class="readmate-donate-panel" id="donate-panel-cn" style="display:none;">
-          <p class="readmate-donate-desc">${_t('donateCNDesc', '感谢您对读伴（ReadMate）的喜爱与认可！您的每一份赞赏与肯定，都是支持梁老师持续打磨优化工具的动力。')}</p>
+          <p class="readmate-donate-desc">${_t('donateCNDesc', '感谢您对 ReadMate 的喜爱与认可！您的每一份赞赏与肯定，都是支持持续打磨优化工具的动力。')}</p>
           <div class="readmate-qr-wrap">
             <img src="${qrImgUrl}" alt="WeChat/Alipay QR" class="readmate-qr-img">
             <span class="readmate-qr-tip">微信 / 支付宝扫码赞赏</span>

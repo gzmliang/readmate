@@ -620,5 +620,17 @@
   "btnDonateThumbTip": {
     "message": "Support Author / Buy a coffee ☕",
     "description": "Thumb donate button tooltip"
+  },
+  "cmdReadSelection": {
+    "message": "선택한 텍스트 읽기"
+  },
+  "cmdReadPage": {
+    "message": "전체 페이지 읽기"
+  },
+  "cmdToggleRead": {
+    "message": "읽기 일시 중지/다시 시작"
+  },
+  "cmdStopRead": {
+    "message": "읽기 중지"
   }
 }

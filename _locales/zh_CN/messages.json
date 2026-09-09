@@ -1,6 +1,6 @@
 {
   "appName": {
-    "message": "ReadMate 读伴 - 网页朗读与高亮跟读 (TTS)",
+    "message": "ReadMate - 网页朗读与跟读助手 (TTS)",
     "description": "应用名称"
   },
   "appDesc": {
@@ -552,7 +552,7 @@
     "description": "Donate button title"
   },
   "donateToastMessage": {
-    "message": "感谢您使用读伴深度阅读！如果喜欢这款无广告工具，欢迎请梁老师喝杯咖啡",
+    "message": "感谢您使用 ReadMate 深度阅读！如果喜欢这款无广告工具，欢迎请开发者喝杯咖啡 ☕",
     "description": "Donate toast message"
   },
   "donateModalTitle": {
@@ -572,7 +572,7 @@
     "description": "Intl donation description"
   },
   "donateCNDesc": {
-    "message": "感谢您对读伴（ReadMate）的喜爱与认可！您的每一份赞赏与肯定，都是支持梁老师持续打磨优化工具的动力。",
+    "message": "感谢您对 ReadMate 的喜爱与认可！您的每一份赞赏与肯定，都是支持持续打磨优化工具的动力。",
     "description": "China donation description"
   },
   "optProviderOpenAI": {
@@ -670,5 +670,21 @@
   "btnDonateThumbTip": {
     "message": "支持作者 / 请喝咖啡 ☕",
     "description": "Thumb donate button tooltip"
+  },
+  "cmdReadSelection": {
+    "message": "朗读选中文本",
+    "description": "快捷键：朗读选中文本"
+  },
+  "cmdReadPage": {
+    "message": "朗读整页",
+    "description": "快捷键：朗读整页"
+  },
+  "cmdToggleRead": {
+    "message": "暂停/继续朗读",
+    "description": "快捷键：暂停或继续朗读"
+  },
+  "cmdStopRead": {
+    "message": "停止朗读",
+    "description": "快捷键：停止朗读"
   }
 }

@@ -1,7 +1,7 @@
 // ReadMate - Options Script (全国际化 + 防迷路视觉切换器)
 
 let messages = {};
-let activeUiLang = 'zh_CN';
+let activeUiLang = 'en';
 
 const AI_PRESETS = {
   openai: {
@@ -42,7 +42,7 @@ const AI_PRESETS = {
 };
 
 async function loadMessages(lang) {
-  activeUiLang = lang || 'zh_CN';
+  activeUiLang = lang || 'en';
   try {
     const url = chrome.runtime.getURL(`_locales/${activeUiLang}/messages.json`);
     const resp = await fetch(url);
@@ -163,8 +163,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   chrome.runtime.sendMessage({ action: 'getSettings' }, async (settings) => {
-    let uiLang = settings.uiLanguage || 'zh_CN';
-    if (uiLang === 'auto') uiLang = (navigator.language.startsWith('zh') ? 'zh_CN' : 'en');
+    let uiLang = settings.uiLanguage || 'auto';
+    if (uiLang === 'auto') {
+      const l = (navigator.language || 'en').replace('-', '_');
+      if (l.startsWith('zh')) uiLang = 'zh_CN';
+      else if (l.startsWith('ja')) uiLang = 'ja';
+      else if (l.startsWith('ko')) uiLang = 'ko';
+      else if (l.startsWith('de')) uiLang = 'de';
+      else if (l.startsWith('fr')) uiLang = 'fr';
+      else if (l.startsWith('es')) uiLang = 'es';
+      else if (l.startsWith('ru')) uiLang = 'ru';
+      else uiLang = 'en';
+    }
     await loadMessages(uiLang);
     localize();
 
@@ -247,7 +257,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       apiKey,
       model,
       voice,
-      text: 'ReadMate AI voice test. 读伴通用AI语音测试。',
+      text: 'ReadMate AI voice test. Text-to-speech audio is working properly.',
       speed: 1.0,
     }, (resp) => {
       btn.disabled = false;
@@ -307,7 +317,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     fetch(endpoint.replace(/\/+$/, '') + '/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: 'ReadMate voice test. 读伴语音测试。', voice, rate: '+0%' })
+      body: JSON.stringify({ text: 'ReadMate voice test. High quality audio stream.', voice, rate: '+0%' })
     }).then(r => r.blob()).then(blob => {
       const a = new Audio(URL.createObjectURL(blob));
       a.play();
@@ -625,7 +635,7 @@ if __name__ == '__main__':
     const qrImgUrl = chrome.runtime.getURL('icons/receivecode.jpg');
     open(isZh ? '☕ 支持独立开发者梁老师' : '☕ Support Independent Developer Liang', `
       <div style="font-size:13.5px;color:#cbd5e1;line-height:1.6;">
-        <p>${isZh ? '感谢您对读伴（ReadMate）的喜爱与认可！无论您身在海内外，您的每一份支持都是工具持续更新与维护的最佳动力。' : 'Thank you for supporting ReadMate! Your generosity keeps this tool ad-free, high quality, and actively maintained worldwide.'}</p>
+        <p>${isZh ? '感谢您对 ReadMate 的喜爱与认可！无论您身在海内外，您的每一份支持都是工具持续更新与维护的最佳动力。' : 'Thank you for supporting ReadMate! Your generosity keeps this tool ad-free, high quality, and actively maintained worldwide.'}</p>
         
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;">
           <!-- 海外支持 -->

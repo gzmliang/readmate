@@ -34,28 +34,28 @@
         "default": "Ctrl+Shift+E",
         "mac": "MacCtrl+Shift+E"
       },
-      "description": "朗读选中文字"
+      "description": "__MSG_cmdReadSelection__"
     },
     "read-page": {
       "suggested_key": {
         "default": "Ctrl+Shift+P",
         "mac": "MacCtrl+Shift+P"
       },
-      "description": "朗读整页"
+      "description": "__MSG_cmdReadPage__"
     },
     "toggle-read": {
       "suggested_key": {
         "default": "Ctrl+Shift+Space",
         "mac": "MacCtrl+Shift+Space"
       },
-      "description": "暂停/继续朗读"
+      "description": "__MSG_cmdToggleRead__"
     },
     "stop-read": {
       "suggested_key": {
         "default": "Ctrl+Shift+S",
         "mac": "MacCtrl+Shift+S"
       },
-      "description": "停止朗读"
+      "description": "__MSG_cmdStopRead__"
     }
   },
   "content_scripts": [{
@@ -86,5 +86,5 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "default_locale": "zh_CN"
+  "default_locale": "en"
 }

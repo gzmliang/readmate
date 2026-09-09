@@ -670,5 +670,17 @@
   "btnDonateThumbTip": {
     "message": "Support Author / Buy a coffee ☕",
     "description": "Thumb donate button tooltip"
+  },
+  "cmdReadSelection": {
+    "message": "選択したテキストを読み上げ"
+  },
+  "cmdReadPage": {
+    "message": "ページ全体を読み上げ"
+  },
+  "cmdToggleRead": {
+    "message": "読み上げの一時停止/再開"
+  },
+  "cmdStopRead": {
+    "message": "読み上げを停止"
   }
 }

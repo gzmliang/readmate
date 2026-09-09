@@ -620,5 +620,17 @@
   "btnDonateThumbTip": {
     "message": "Support Author / Buy a coffee ☕",
     "description": "Thumb donate button tooltip"
+  },
+  "cmdReadSelection": {
+    "message": "Ausgewählten Text vorlesen"
+  },
+  "cmdReadPage": {
+    "message": "Ganze Seite vorlesen"
+  },
+  "cmdToggleRead": {
+    "message": "Vorlesen anhalten / fortsetzen"
+  },
+  "cmdStopRead": {
+    "message": "Vorlesen beenden"
   }
 }

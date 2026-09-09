@@ -47,11 +47,16 @@ function getBrowserLang() {
   const lang = (navigator.language || 'en').replace('-', '_');
   if (lang.startsWith('zh')) return 'zh_CN';
   if (lang.startsWith('ja')) return 'ja';
+  if (lang.startsWith('ko')) return 'ko';
+  if (lang.startsWith('de')) return 'de';
+  if (lang.startsWith('fr')) return 'fr';
+  if (lang.startsWith('es')) return 'es';
+  if (lang.startsWith('ru')) return 'ru';
   return 'en';
 }
 
 async function loadMessages(lang) {
-  activeUiLang = lang || 'zh_CN';
+  activeUiLang = lang || 'en';
   try {
     const url = chrome.runtime.getURL(`_locales/${activeUiLang}/messages.json`);
     const resp = await fetch(url);
@@ -441,7 +446,7 @@ function testVoiceFromPopup(type, btn, resultEl) {
   btn.disabled = true;
   btn.textContent = '...';
   const speed = parseFloat(document.getElementById('ttsSpeed').value);
-  const text = 'ReadMate voice test. 你好，欢迎使用读伴。';
+  const text = 'ReadMate voice test. Text-to-speech audio is working properly.';
 
   if (type === 'cloud') {
     const endpoint = document.getElementById('cloudTtsEndpoint').value;
@@ -549,7 +554,7 @@ document.getElementById('btnHelpAiPopup')?.addEventListener('click', () => {
   const isZh = activeUiLang && activeUiLang.startsWith('zh');
   if (isZh) {
     openPopupHelp('🤖 AI 服务商与 API Key 配置指南', `
-      <p>读伴支持任何兼容 OpenAI 规范的大模型，推荐以下高性价比/免费方案：</p>
+      <p>ReadMate 支持任何兼容 OpenAI 规范的大模型，推荐以下高性价比/免费方案：</p>
       <div style="background:rgba(255,255,255,0.05);padding:8px 10px;border-radius:6px;margin-bottom:8px;">
         <strong style="color:#60a5fa;">1. DeepSeek（强烈推荐 / 超低成本）</strong><br>
         • 服务商选：DeepSeek<br>

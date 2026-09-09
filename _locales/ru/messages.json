@@ -620,5 +620,17 @@
   "btnDonateThumbTip": {
     "message": "Support Author / Buy a coffee ☕",
     "description": "Thumb donate button tooltip"
+  },
+  "cmdReadSelection": {
+    "message": "Озвучить выделенный текст"
+  },
+  "cmdReadPage": {
+    "message": "Озвучить всю страницу"
+  },
+  "cmdToggleRead": {
+    "message": "Пауза / Возобновление чтения"
+  },
+  "cmdStopRead": {
+    "message": "Остановить чтение"
   }
 }
