@@ -571,23 +571,30 @@ const ContentExtractor = (() => {
       text = (document.body.innerText || '').substring(0, 1000);
     }
 
-    if (text && text.length >= 5) {
+    const htmlLang = (document.documentElement.lang || document.body?.getAttribute('lang') || '').toLowerCase();
+
+    if (text && text.length >= 1) {
       const hangul = (text.match(/[\uac00-\ud7af\u1100-\u11ff]/g) || []).length;
       const kana = (text.match(/[\u3040-\u30ff]/g) || []).length;
-      const cjk = (text.match(/[\u4e00-\u9fa5]/g) || []).length;
+      const cjk = (text.match(/[\u4e00-\u9fa5\u3400-\u4dbf]/g) || []).length;
       const cyrillic = (text.match(/[\u0400-\u04ff]/g) || []).length;
-      const latin = (text.match(/[a-zA-Z]/g) || []).length;
+      const latin = (text.match(/[a-zA-ZÀ-ÖØ-öø-ÿĀ-ž]/g) || []).length;
 
-      // 只要含韩文字符（优先精准锁定韩语）
-      if (hangul >= 3 || (hangul > 0 && hangul >= cjk)) return 'ko-KR';
-      // 只要含日文假名（优先精准锁定日语）
-      if (kana >= 3) return 'ja-JP';
-      // 中文汉字
-      if (cjk >= 5) return 'zh-CN';
+      // 日文假名具有最高排他性（只要出现假名，绝不可能是中文）
+      if (kana >= 1) return 'ja-JP';
+      // 韩文韩文字母具有最高排他性
+      if (hangul >= 1) return 'ko-KR';
+
+      // 若页面明确声明是日语且包含 CJK 字符（日文新闻纯汉字标题等无假名场景）
+      if (htmlLang.startsWith('ja') && cjk >= 1) return 'ja-JP';
+
+      // 此时既无假名也无韩文，汉字即为中文
+      if (cjk >= 1) return 'zh-CN';
       // 俄语西里尔字母
-      if (cyrillic >= 5) return 'ru-RU';
+      if (cyrillic >= 2) return 'ru-RU';
+
       // 拉丁语系（英语/德语/法语/西语等）
-      if (latin >= 10) {
+      if (latin >= 1) {
         if (/[äöüßÄÖÜ]/.test(text) || /\b(der|die|das|und|ist|nicht|für|mit|ein|eine)\b/i.test(text)) return 'de-DE';
         if (/[éèêëàâùûôîïçÉÈÊËÀÂÙÛÔÎÏÇ]/.test(text) || /\b(le|la|les|des|est|une|dans|pour|avec|que)\b/i.test(text)) return 'fr-FR';
         if (/[áéíóúñ¿¡ÁÉÍÓÚÑ]/.test(text) || /\b(el|la|los|las|por|para|con|una|del|que)\b/i.test(text)) return 'es-ES';
@@ -597,8 +604,7 @@ const ContentExtractor = (() => {
       }
     }
 
-    // 2. 只有文本样本不足或无法区分时，才回退参考 HTML 声明
-    const htmlLang = (document.documentElement.lang || document.body?.getAttribute('lang') || '').toLowerCase();
+    // 2. 只有文本样本不足时，参考 HTML 声明
     if (htmlLang.startsWith('zh')) return 'zh-CN';
     if (htmlLang.startsWith('ja')) return 'ja-JP';
     if (htmlLang.startsWith('ko')) return 'ko-KR';

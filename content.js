@@ -83,7 +83,7 @@ function getBestVoiceForLang(langCode, customVoice = '') {
       return customVoice;
     }
   }
-  return VOICE_MAP[langCode] || VOICE_MAP[shortCode] || (shortCode === 'zh' ? 'zh-CN-XiaoxiaoNeural' : 'en-US-JennyNeural');
+  return VOICE_MAP[langCode] || VOICE_MAP[shortCode] || (shortCode === 'zh' ? 'zh-CN-XiaoxiaoNeural' : (shortCode === 'ja' ? 'ja-JP-NanamiNeural' : (shortCode === 'ko' ? 'ko-KR-SunHiNeural' : 'en-US-JennyNeural')));
 }
 
 /** 获取浏览器本地最匹配的高质量语音对象（严格校验语种匹配） */
@@ -1311,7 +1311,12 @@ async function playSentencesFlow(sentences) {
   // 原文音色与译文音色匹配（附带强制保底与双语自动映射）
   let origVoice = useCloud ? getBestVoiceForLang(detectedDocLang, settings.cloudTtsVoiceOrig || settings.cloudTtsVoice) : '';
   let transVoice = useCloud ? getBestVoiceForLang(targetLangCode, settings.cloudTtsVoiceTrans) : '';
-  if (!origVoice) origVoice = (detectedDocLang && detectedDocLang.startsWith('zh')) ? 'zh-CN-XiaoxiaoNeural' : (detectedDocLang && detectedDocLang.startsWith('ko') ? 'ko-KR-SunHiNeural' : 'en-US-JennyNeural');
+  if (!origVoice) {
+    if (detectedDocLang && detectedDocLang.startsWith('zh')) origVoice = 'zh-CN-XiaoxiaoNeural';
+    else if (detectedDocLang && detectedDocLang.startsWith('ja')) origVoice = 'ja-JP-NanamiNeural';
+    else if (detectedDocLang && detectedDocLang.startsWith('ko')) origVoice = 'ko-KR-SunHiNeural';
+    else origVoice = 'en-US-JennyNeural';
+  }
   if (!transVoice) transVoice = (targetLangCode && targetLangCode.startsWith('en')) ? 'en-US-JennyNeural' : 'zh-CN-XiaoxiaoNeural';
 
   DebugLog.add(`TTS Config: useCloud=${useCloud}, endpoint=${ttsEndpoint}, origVoice=${origVoice}, buffer=${bufferSize}`);
@@ -2457,7 +2462,7 @@ async function downloadFullAudio() {
   const cleanTitle = title.replace(/[\\/:*?"<>|]+/g, '_').substring(0, 40);
 
   const ttsEndpoint = (settings.cloudTtsEndpoint || 'http://p-plus.duckdns.org:5001').replace(/\/+$/, '') + '/tts';
-  const origVoice = getBestVoiceForLang(detectedDocLang, settings.cloudTtsVoiceOrig || settings.cloudTtsVoice) || 'zh-CN-XiaoxiaoNeural';
+  const origVoice = getBestVoiceForLang(detectedDocLang, settings.cloudTtsVoiceOrig || settings.cloudTtsVoice) || (detectedDocLang && detectedDocLang.startsWith('ja') ? 'ja-JP-NanamiNeural' : 'zh-CN-XiaoxiaoNeural');
   const speed = settings.ttsSpeed || 1.0;
 
   const startMsg = _t('toastAudioStart', '📥 开始合成整篇有声书（共 {count} 句）...').replace('{count}', readerSentences.length);

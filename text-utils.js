@@ -20,19 +20,31 @@ const TextUtils = (() => {
 
     let cjk = 0, jp = 0, ko = 0, latin = 0, other = 0;
     for (const ch of cleaned) {
-      if (CJK_RE.test(ch)) cjk++;
-      else if (JP_RE.test(ch)) jp++;
+      if (JP_RE.test(ch)) jp++;
       else if (KO_RE.test(ch)) ko++;
+      else if (CJK_RE.test(ch)) cjk++;
       else if (LATIN_RE.test(ch)) latin++;
       else other++;
     }
+
+    // 1. 日文假名具有最高排他性：只要出现假名，绝不可能是中文
+    if (jp >= 1) return 'ja';
+    // 2. 韩文字母具有最高排他性
+    if (ko >= 1) return 'ko';
+
+    // 3. 参考页面 HTML 声明（处理纯汉字日文标题等无假名场景）
+    if (typeof document !== 'undefined') {
+      const docLang = (document.documentElement.lang || document.body?.getAttribute('lang') || '').toLowerCase();
+      if (docLang.startsWith('ja') && cjk >= 1) return 'ja';
+    }
+
+    // 4. 此时既无假名也无韩文，汉字即为中文
+    if (cjk >= 1) return 'zh';
+
     const total = cjk + jp + ko + latin + other;
     const ratio = (count) => (count / total);
-    if (ratio(cjk) > 0.3) return 'zh';
-    if (ratio(jp) > 0.3) return 'ja';
-    if (ratio(ko) > 0.3) return 'ko';
-    if (ratio(latin) > 0.5) return 'latin';
-    return 'mixed';
+    if (ratio(latin) > 0.4) return 'latin';
+    return 'latin';
   }
 
   /** 检测文本是否是中文 */
