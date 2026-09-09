@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "ReadMate",
+    "message": "ReadMate: 音声読み上げ & Text to Speech (TTS)",
     "description": "アプリ名"
   },
   "appDesc": {
-    "message": "Web読み上げアシスタント — 音声合成+AI翻訳＆バイリンガル要約",
+    "message": "Web読み上げアシスタント — 自然なEdge-TTS音声、AI翻訳、日英対訳ハイライトで快適リーディング。",
     "description": "アプリ説明"
   },
   "menuReadSelection": {

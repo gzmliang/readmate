@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "ReadMate / 读伴",
-  "version": "1.0.1",
-  "version_name": "1.0.1 (internal 2.14.7)",
-  "description": "网页朗读助手 — 浏览器原生语音朗读+AI翻译，读外语新闻轻松跟上",
+  "name": "__MSG_appName__",
+  "version": "1.0.2",
+  "version_name": "1.0.2",
+  "description": "__MSG_appDesc__",
   "permissions": [
     "contextMenus",
     "storage",
@@ -15,7 +15,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "ReadMate 读伴",
+    "default_title": "__MSG_appName__",
     "default_popup": "popup/popup.html",
     "default_icon": {
       "16": "icons/icon16.png",

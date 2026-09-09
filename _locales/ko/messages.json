@@ -1,9 +1,9 @@
 {
   "appName": {
-    "message": "ReadMate"
+    "message": "ReadMate: 텍스트 음성 변환 (TTS) & Read Aloud"
   },
   "appDesc": {
-    "message": "Web TTS Assistant — Native/Edge-TTS + AI Translation & Bilingual Summary"
+    "message": "스마트 웹 TTS 음성 리더 — 자연스러운 AI 음성 낭독, 이중 언어 문장 하이라이트 및 실시간 번역."
   },
   "menuReadSelection": {
     "message": "선택 영역 읽기"

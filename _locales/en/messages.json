@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "ReadMate",
+    "message": "ReadMate: Read Aloud & Text to Speech (TTS)",
     "description": "App name"
   },
   "appDesc": {
-    "message": "Web TTS Assistant — Native/Edge-TTS + AI Translation & Bilingual Summary",
+    "message": "Smart Web TTS Reader & Read Aloud Companion — Natural Edge-TTS AI Voices, bilingual sentence highlight and instant translation.",
     "description": "App description"
   },
   "menuReadSelection": {

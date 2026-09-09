@@ -1,9 +1,9 @@
 {
   "appName": {
-    "message": "ReadMate"
+    "message": "ReadMate: Vorlesen & Text to Speech (TTS)"
   },
   "appDesc": {
-    "message": "Web-TTS-Assistent — Native/Edge-TTS + KI-Übersetzung & Zweisprachige Zusammenfassung"
+    "message": "Web-TTS-Assistent — Vorlesen mit natürlichen Edge-TTS-Stimmen, KI-Übersetzung und zweisprachiger Hervorhebung."
   },
   "menuReadSelection": {
     "message": "Auswahl vorlesen"

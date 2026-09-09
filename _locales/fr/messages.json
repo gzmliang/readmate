@@ -1,9 +1,9 @@
 {
   "appName": {
-    "message": "ReadMate"
+    "message": "ReadMate: Lecture à voix haute & Synthèse Vocale (TTS)"
   },
   "appDesc": {
-    "message": "Assistant TTS Web — Synthèse Vocale + Traduction AI & Résumé Bilingue"
+    "message": "Assistant TTS Web — Lecture à voix haute naturelle Edge-TTS, traduction IA et surlignage bilingue."
   },
   "menuReadSelection": {
     "message": "Lire la sélection"

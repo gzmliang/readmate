@@ -6,8 +6,8 @@
 
 | 申报字段 (Field) | 中文填写内容 (Chinese) | 英文填写内容 (English) | 说明 / 限制 |
 | :--- | :--- | :--- | :--- |
-| **扩展名称 (Name)** | ReadMate / 读伴 — 网页双语朗读与AI精读助手 | ReadMate — Immersive Web Reader, TTS & AI Study | 建议 45 字符内，突出朗读与沉浸阅读 |
-| **版本号 (Version)** | `1.0.0` | `1.0.0` | 内部版本为 `1.0.0 (internal 2.14.6)` |
+| **扩展名称 (Name)** | ReadMate 读伴 - 网页朗读与高亮跟读 (TTS) | ReadMate: Read Aloud & Text to Speech (TTS) | 优化海外与国内 ASO/SEO 大词，直击 TTS 刚需 |
+| **版本号 (Version)** | `1.0.2` | `1.0.2` | 解决搜索收录、大词截流与默认高可用节点更新 |
 | **简短摘要 (Summary)** | 纯净网页双语朗读助手。支持全屏沉浸净读、Edge-TTS高清语音、即时查词与AI深度摘要，读外文新闻轻松跟上。 | Read web articles with natural neural voices, bilingual subtitles, immersive distraction-free mode and AI summaries. | 严格控制在 132 字符以内 |
 | **主要类别 (Category)** | 生产工具 (Productivity) 或 新闻与天气 (News & Weather) | Productivity / Accessibility | 推荐【Productivity】 |
 | **支持语言 (Language)** | 中文 (简体)、英语 (共覆盖 8 种语言) | English, Chinese Simplified, etc. | 自动读取 `_locales` |

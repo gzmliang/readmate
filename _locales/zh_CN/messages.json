@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "ReadMate / 读伴",
+    "message": "ReadMate 读伴 - 网页朗读与高亮跟读 (TTS)",
     "description": "应用名称"
   },
   "appDesc": {
-    "message": "网页朗读助手 — 原生语音+Edge TTS+AI翻译与双语摘要",
+    "message": "网页朗读与双语学习助手 — Edge-TTS逼真人声+浏览器原生朗读+AI翻译与沉浸净读，读外语新闻轻松跟上",
     "description": "应用描述"
   },
   "menuReadSelection": {
