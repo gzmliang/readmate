@@ -144,15 +144,25 @@
   100% { transform: translate(-50%, 0); opacity: 1; }
 }
 
-/* 上层主控制栏（紧凑精致胶囊排版） */
+/* 上层主控制栏（紧凑精致胶囊排版，强隔离宿主样式） */
 .readmate-bar-main {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 14px;
-  cursor: default;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  gap: 6px;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 8px 14px !important;
+  cursor: default !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  gap: 6px !important;
+  box-sizing: border-box !important;
+  height: 48px !important;
+}
+
+.readmate-bar-main * {
+  float: none !important;
+  clear: none !important;
+  box-sizing: border-box !important;
 }
 
 .readmate-bar-left {
@@ -203,18 +213,28 @@
 }
 
 .readmate-btn {
-  background: transparent;
-  border: none;
-  color: #cbd5e1;
-  font-size: 13.5px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
+  background: transparent !important;
+  border: none !important;
+  color: #cbd5e1 !important;
+  font-size: 13.5px !important;
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  min-height: 30px !important;
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s ease !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  float: none !important;
+  clear: none !important;
+  position: static !important;
+  flex-shrink: 0 !important;
+  vertical-align: middle !important;
+  line-height: 1 !important;
 }
 
 .readmate-btn:hover {
@@ -245,12 +265,19 @@
   background: rgba(248, 113, 113, 0.18) !important;
 }
 
-/* 右侧特性区 */
+/* 右侧特性区（绝对单行居中排布，严禁折行错位） */
 .readmate-bar-right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 6px !important;
+  flex-shrink: 0 !important;
+  height: 32px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  float: none !important;
 }
 
 /* 大拇指赞赏按钮与精致 SVG */
@@ -292,32 +319,46 @@
   transform: translateY(-1px);
 }
 
-/* 字幕与双语开关勾选（强约束防宿主样式污染、严禁折行） */
+/* 字幕与双语开关勾选（强约束防宿主样式污染、严禁折行与上下错位） */
 .readmate-chk-toggle, .readmate-sub-toggle {
   display: inline-flex !important;
   flex-direction: row !important;
   flex-wrap: nowrap !important;
   align-items: center !important;
+  justify-content: center !important;
   white-space: nowrap !important;
   word-break: keep-all !important;
   flex-shrink: 0 !important;
   min-width: max-content !important;
   gap: 4px !important;
   font-size: 11px !important;
-  line-height: 1 !important;
+  height: 30px !important;
+  line-height: 30px !important;
   color: #94a3b8 !important;
   cursor: pointer !important;
   user-select: none !important;
+  margin: 0 !important;
+  padding: 0 2px !important;
+  float: none !important;
+  clear: none !important;
+  position: static !important;
+  vertical-align: middle !important;
 }
 
 .readmate-chk-toggle input, .readmate-sub-toggle input {
   display: inline-block !important;
   accent-color: #3b82f6 !important;
   cursor: pointer !important;
-  margin: 0 !important;
+  margin: 0 2px 0 0 !important;
   padding: 0 !important;
   flex-shrink: 0 !important;
   vertical-align: middle !important;
+  float: none !important;
+  clear: none !important;
+  position: static !important;
+  width: 14px !important;
+  height: 14px !important;
+  line-height: normal !important;
 }
 
 .readmate-chk-toggle span, .readmate-sub-toggle span, #readmate-bilingual-text {
@@ -326,6 +367,12 @@
   word-break: keep-all !important;
   line-height: 1 !important;
   flex-shrink: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  vertical-align: middle !important;
+  float: none !important;
+  clear: none !important;
+  position: static !important;
 }
 
 .readmate-chk-toggle:hover, .readmate-sub-toggle:hover {

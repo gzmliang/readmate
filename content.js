@@ -589,12 +589,12 @@ function createFloatingBar() {
         <button class="readmate-btn readmate-btn-stop" id="readmate-stop-btn" title="${_t('btnStop', '停止')}">⏹</button>
       </div>
 
-      <div class="readmate-bar-right">
-        <label class="readmate-chk-toggle" id="readmate-bilingual-label" title="${_t('lblEnableBilingual', '双语翻译 (不勾选省Token)')}">
-          <input type="checkbox" id="readmate-bilingual-chk" ${enableBilingual ? 'checked' : ''}>
-          <span id="readmate-bilingual-text">${_t('lblBilingual', '双语')}</span>
+      <div class="readmate-bar-right" style="display:flex !important; flex-direction:row !important; flex-wrap:nowrap !important; align-items:center !important; gap:6px !important;">
+        <label class="readmate-chk-toggle" id="readmate-bilingual-label" title="${_t('lblEnableBilingual', '双语翻译 (不勾选省Token)')}" style="display:inline-flex !important; flex-direction:row !important; flex-wrap:nowrap !important; align-items:center !important; margin:0 !important; padding:0 2px !important; height:30px !important; vertical-align:middle !important;">
+          <input type="checkbox" id="readmate-bilingual-chk" ${enableBilingual ? 'checked' : ''} style="margin:0 2px 0 0 !important; vertical-align:middle !important; width:14px !important; height:14px !important;">
+          <span id="readmate-bilingual-text" style="white-space:nowrap !important; word-break:keep-all !important; line-height:1 !important; vertical-align:middle !important;">${_t('lblBilingual', '双语')}</span>
         </label>
-        <button class="readmate-btn readmate-btn-reader" id="readmate-bar-reader-btn" title="${_t('btnReaderMode', '📖 沉浸净读模式 (Alt+R / F9)')}">📖</button>
+        <button class="readmate-btn readmate-btn-reader" id="readmate-bar-reader-btn" title="${_t('btnReaderMode', '📖 沉浸净读模式 (Alt+R / F9)')}" style="display:inline-flex !important; align-items:center !important; justify-content:center !important; margin:0 !important; vertical-align:middle !important;">📖</button>
         <button class="readmate-btn readmate-btn-donate-thumb" id="readmate-bar-donate-btn" title="${_t('btnDonateThumbTip', '支持作者 / 请喝咖啡 ☕')}">
           <svg class="readmate-thumb-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
