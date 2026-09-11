@@ -292,24 +292,44 @@
   transform: translateY(-1px);
 }
 
-/* 字幕与双语开关勾选 */
+/* 字幕与双语开关勾选（强约束防宿主样式污染、严禁折行） */
 .readmate-chk-toggle, .readmate-sub-toggle {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 11px;
-  color: #94a3b8;
-  cursor: pointer;
-  user-select: none;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  flex-shrink: 0 !important;
+  min-width: max-content !important;
+  gap: 4px !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
+  color: #94a3b8 !important;
+  cursor: pointer !important;
+  user-select: none !important;
 }
 
 .readmate-chk-toggle input, .readmate-sub-toggle input {
-  accent-color: #3b82f6;
-  cursor: pointer;
+  display: inline-block !important;
+  accent-color: #3b82f6 !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex-shrink: 0 !important;
+  vertical-align: middle !important;
+}
+
+.readmate-chk-toggle span, .readmate-sub-toggle span, #readmate-bilingual-text {
+  display: inline-block !important;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  line-height: 1 !important;
+  flex-shrink: 0 !important;
 }
 
 .readmate-chk-toggle:hover, .readmate-sub-toggle:hover {
-  color: #f1f5f9;
+  color: #f1f5f9 !important;
 }
 
 .readmate-btn-summary {
