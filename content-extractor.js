@@ -563,113 +563,112 @@ const ContentExtractor = (() => {
     return candidates.slice(0, 25);
   }
 
-  /** 智能语言检测：以实际正文文本特征为主准绳，结合 HTML 声明判断语种代码 */
-  // 欧洲主流语言核心高频词与变音符特征库（防拉丁语系误读为英语）
-  const EU_LANG_PATTERNS = {
-    de: {
-      words: /\b(der|die|das|den|dem|des|und|in|zu|nicht|von|sie|ist|es|sich|mit|als|für|auf|ein|eine|einer|einem|einen|eines|nach|wie|im|auch|wir|aus|hat|dass|bei|ihr|nur|noch|über|so|haben|aber|sehr|guten|tag|morgen|jahr|deutsch|zeit)\b/i,
-      chars: /[äöüßÄÖÜ]/,
-      code: 'de-DE'
-    },
-    fr: {
-      words: /\b(le|la|les|un|une|des|et|en|du|de|dans|pour|avec|sur|est|qui|que|ce|cette|ces|il|elle|ils|elles|nous|vous|sont|plus|pas|par|faire|tout|merci|bonjour|bien|oui|non)\b|\b(c'|d'|l'|j'|m'|t'|s'|n'|qu')/i,
-      chars: /[éèêëàâùûôîïçœæÉÈÊËÀÂÙÛÔÎÏÇŒÆ]/,
-      code: 'fr-FR'
-    },
-    es: {
-      words: /\b(el|la|los|las|un|una|unos|unas|y|en|de|del|por|para|con|que|es|son|se|su|sus|como|más|pero|este|esta|estos|estas|muy|gracias|buenos|días|hola|bien|todo|todos)\b/i,
-      chars: /[áéíóúüñ¿¡ÁÉÍÓÚÜÑ]/,
-      code: 'es-ES'
-    },
-    it: {
-      words: /\b(il|lo|la|i|gli|le|un|uno|una|e|di|da|in|con|su|per|tra|fra|del|della|dei|degli|delle|è|sono|che|non|si|ci|ha|hanno|questo|questa|grazie|ciao|molto)\b|\b(l'|d'|c'|dell'|all'|nell'|sull')/i,
-      chars: /[àèéìíîòóùúÀÈÉÌÍÎÒÓÙÚ]/,
-      code: 'it-IT'
-    },
-    pt: {
-      words: /\b(o|a|os|as|um|uma|uns|umas|e|de|do|da|dos|das|em|no|na|nos|nas|para|por|com|que|não|é|são|se|mais|como|muito|obrigado|olá|este|esta)\b/i,
-      chars: /[ãõáéíóúâêôçÃÕÁÉÍÓÚÂÊÔÇ]/,
-      code: 'pt-PT'
-    }
-  };
-
-  /** 智能语言检测：以实际正文文本特征为主准绳，结合 HTML 声明判断语种代码 */
+  /** 智能语言检测：结合正文样本特征与 HTML 声明，精准判定语种代码（防欧洲小语种将英文误判） */
   function detectLanguage(sampleText) {
     // 1. 优先提取实际文本样本（优先使用传入文本，否则提取页面正文文本）
-    let text = (sampleText || '').trim();
-    if (!text && document.body) {
-      text = (document.body.innerText || '').substring(0, 1000);
+    let text = (sampleText || "").trim();
+    if (!text && typeof document !== "undefined" && document.body) {
+      text = (document.body.innerText || "").substring(0, 1000);
     }
 
-    const htmlLang = (document.documentElement.lang || document.body?.getAttribute('lang') || '').toLowerCase();
+    const htmlLang = (typeof document !== "undefined")
+      ? (document.documentElement?.lang || (document.body && typeof document.body.getAttribute === 'function' ? document.body.getAttribute('lang') : '') || '').toLowerCase()
+      : "";
 
     if (text && text.length >= 1) {
+      // 编码排他性字符集检测（第一优先级）
       const hangul = (text.match(/[\uac00-\ud7af\u1100-\u11ff]/g) || []).length;
       const kana = (text.match(/[\u3040-\u30ff]/g) || []).length;
       const cjk = (text.match(/[\u4e00-\u9fa5\u3400-\u4dbf]/g) || []).length;
       const cyrillic = (text.match(/[\u0400-\u04ff]/g) || []).length;
-      const latin = (text.match(/[a-zA-ZÀ-ÖØ-öø-ÿĀ-ž]/g) || []).length;
+      const arabic = (text.match(/[\u0600-\u06ff]/g) || []).length;
 
       // 日文假名具有最高排他性（只要出现假名，绝不可能是中文）
-      if (kana >= 1) return 'ja-JP';
+      if (kana >= 1) return "ja-JP";
       // 韩文韩文字母具有最高排他性
-      if (hangul >= 1) return 'ko-KR';
+      if (hangul >= 1) return "ko-KR";
+      // 俄语西里尔字母
+      if (cyrillic >= 3) return "ru-RU";
+      // 阿拉伯语
+      if (arabic >= 3) return "ar-SA";
 
       // 若页面明确声明是日语且包含 CJK 字符（日文新闻纯汉字标题等无假名场景）
-      if (htmlLang.startsWith('ja') && cjk >= 1) return 'ja-JP';
+      if (htmlLang.startsWith("ja") && cjk >= 1) return "ja-JP";
 
       // 此时既无假名也无韩文，汉字即为中文
-      if (cjk >= 1) return 'zh-CN';
-      // 俄语西里尔字母
-      if (cyrillic >= 1) return 'ru-RU';
+      if (cjk >= 2 || (cjk === 1 && text.length < 10)) return "zh-CN";
 
-      // 欧洲拉丁语系多维综合打分（特征词 + 变音符 + 页面元数据加权）
+      // 拉丁语系检测（英语 vs 欧洲小语种）
+      const latin = (text.match(/[a-zA-ZÀ-ÖØ-öø-ÿĀ-ž]/g) || []).length;
       if (latin >= 1) {
-        const scores = { de: 0, fr: 0, es: 0, it: 0, pt: 0 };
-        for (const [k, pat] of Object.entries(EU_LANG_PATTERNS)) {
-          if (pat.chars.test(text)) scores[k] += 4;
-          const wordMatches = text.match(new RegExp(pat.words.source, 'gi'));
-          if (wordMatches) scores[k] += wordMatches.length * 2;
-          // 页面 HTML 明确声明加权
-          if (htmlLang.startsWith(k)) scores[k] += 3;
-        }
+        // 欧洲小语种专属变音符号统计（现代英文几乎不含变音符）
+        const deChars = (text.match(/[äöüßÄÖÜ]/g) || []).length;
+        const frChars = (text.match(/[éèêëàâùûôîïçœæÉÈÊËÀÂÙÛÔÎÏÇŒÆ]/g) || []).length;
+        const esChars = (text.match(/[áéíóúñ¿¡ÁÉÍÓÚÑ]/g) || []).length;
+        const ptChars = (text.match(/[ãõáéíóúâêôçÃÕÁÉÍÓÚÂÊÔÇ]/g) || []).length;
+        const itChars = (text.match(/[àèéìíîòóùúÀÈÉÌÍÎÒÓÙÚ]/g) || []).length;
 
-        let bestKey = 'en';
-        let maxScore = 0;
-        for (const [k, score] of Object.entries(scores)) {
-          if (score > maxScore) {
-            maxScore = score;
-            bestKey = k;
+        // 英语最具代表性的排他高频词库（严禁使用 in, a, so, on, to 等跨语种通用短词）
+        const enMatches = (text.match(/\b(the|this|that|these|those|with|have|from|which|would|there|their|what|about|when|make|time|just|know|take|into|year|your|good|some|could|them|other|than|then|now|look|only|come|its|over|think|also|back|after|use|two|how|our|work|first|well|way|even|new|want|because|any|give|day|most|us)\b/gi) || []).length;
+
+        // 欧洲小语种排他特征词库（彻底过滤掉与英语容易混淆的公共词如 die, per, con, in, a, so 等）
+        const deMatches = (text.match(/\b(der|das|den|dem|des|und|nicht|von|sie|ist|sich|mit|als|fuer|auf|ein|eine|einer|einem|einen|eines|nach|wie|auch|wir|aus|hat|dass|bei|ihr|noch|ueber|haben|aber|sehr|deutsch|zeit)\b/gi) || []).length;
+        const frMatches = (text.match(/\b(les|des|dans|pour|avec|sur|qui|que|cette|ces|ils|elles|nous|vous|sont|plus|pas|par|faire|tout|merci|bonjour)\b|\b(c'|d'|l'|j'|m'|t'|s'|n'|qu')/gi) || []).length;
+        const esMatches = (text.match(/\b(los|las|unos|unas|del|por|para|son|sus|como|mas|pero|este|esta|estos|estas|muy|gracias|buenos|dias|todos)\b/gi) || []).length;
+        const itMatches = (text.match(/\b(gli|della|dei|degli|delle|sono|che|non|hanno|questo|questa|grazie|ciao|molto)\b|\b(dell'|all'|nell'|sull')/gi) || []).length;
+        const ptMatches = (text.match(/\b(dos|das|para|nao|sao|mais|como|muito|obrigado|ola)\b/gi) || []).length;
+
+        // 加权打分：变音符权重最高 (x4)，排他词 (x2)，页面 HTML 声明 (x4)
+        const scores = {
+          en: enMatches * 2 + (htmlLang.startsWith("en") ? 4 : 0),
+          de: deChars * 4 + deMatches * 2 + (htmlLang.startsWith("de") ? 4 : 0),
+          fr: frChars * 4 + frMatches * 2 + (htmlLang.startsWith("fr") ? 4 : 0),
+          es: esChars * 4 + esMatches * 2 + (htmlLang.startsWith("es") ? 4 : 0),
+          it: itChars * 4 + itMatches * 2 + (htmlLang.startsWith("it") ? 4 : 0),
+          pt: ptChars * 4 + ptMatches * 2 + (htmlLang.startsWith("pt") ? 4 : 0)
+        };
+
+        let bestLang = "en";
+        let maxScore = scores.en;
+        for (const [k, s] of Object.entries(scores)) {
+          if (s > maxScore) {
+            maxScore = s;
+            bestLang = k;
           }
         }
 
-        if (maxScore >= 2 && EU_LANG_PATTERNS[bestKey]) {
-          return EU_LANG_PATTERNS[bestKey].code;
+        const langMap = {
+          en: "en-US",
+          de: "de-DE",
+          fr: "fr-FR",
+          es: "es-ES",
+          it: "it-IT",
+          pt: "pt-PT"
+        };
+
+        if (maxScore <= 2 && htmlLang) {
+          for (const k of ["de", "fr", "es", "it", "pt", "en"]) {
+            if (htmlLang.startsWith(k)) return langMap[k];
+          }
         }
 
-        // 纯短句但页面有明确欧洲语言声明时直接信赖页面
-        if (htmlLang.startsWith('de')) return 'de-DE';
-        if (htmlLang.startsWith('fr')) return 'fr-FR';
-        if (htmlLang.startsWith('es')) return 'es-ES';
-        if (htmlLang.startsWith('it')) return 'it-IT';
-        if (htmlLang.startsWith('pt')) return 'pt-PT';
-        return 'en-US';
+        return langMap[bestLang] || "en-US";
       }
     }
 
     // 2. 只有文本样本不足时，参考 HTML 声明
-    if (htmlLang.startsWith('zh')) return 'zh-CN';
-    if (htmlLang.startsWith('ja')) return 'ja-JP';
-    if (htmlLang.startsWith('ko')) return 'ko-KR';
-    if (htmlLang.startsWith('fr')) return 'fr-FR';
-    if (htmlLang.startsWith('de')) return 'de-DE';
-    if (htmlLang.startsWith('es')) return 'es-ES';
-    if (htmlLang.startsWith('ru')) return 'ru-RU';
-    if (htmlLang.startsWith('it')) return 'it-IT';
-    if (htmlLang.startsWith('pt')) return 'pt-PT';
-    if (htmlLang.startsWith('en')) return 'en-US';
+    if (htmlLang.startsWith("zh")) return "zh-CN";
+    if (htmlLang.startsWith("ja")) return "ja-JP";
+    if (htmlLang.startsWith("ko")) return "ko-KR";
+    if (htmlLang.startsWith("fr")) return "fr-FR";
+    if (htmlLang.startsWith("de")) return "de-DE";
+    if (htmlLang.startsWith("es")) return "es-ES";
+    if (htmlLang.startsWith("ru")) return "ru-RU";
+    if (htmlLang.startsWith("it")) return "it-IT";
+    if (htmlLang.startsWith("pt")) return "pt-PT";
+    if (htmlLang.startsWith("en")) return "en-US";
 
-    return 'en-US';
+    return "en-US";
   }
 
   // 导出公共 API

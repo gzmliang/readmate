@@ -23,95 +23,84 @@ const TextUtils = (() => {
     return detectScript(text) === 'zh';
   }
 
-  // 欧洲语言核心特征库
-  const EU_PATTERNS = {
-    de: {
-      words: /\b(der|die|das|den|dem|des|und|in|zu|nicht|von|sie|ist|es|sich|mit|als|für|auf|ein|eine|einer|einem|einen|eines|nach|wie|im|auch|wir|aus|hat|dass|bei|ihr|nur|noch|über|so|haben|aber|sehr|guten|tag|morgen|jahr|deutsch|zeit)\b/i,
-      chars: /[äöüßÄÖÜ]/,
-      code: 'de-DE'
-    },
-    fr: {
-      words: /\b(le|la|les|un|une|des|et|en|du|de|dans|pour|avec|sur|est|qui|que|ce|cette|ces|il|elle|ils|elles|nous|vous|sont|plus|pas|par|faire|tout|merci|bonjour|bien|oui|non)\b|\b(c'|d'|l'|j'|m'|t'|s'|n'|qu')/i,
-      chars: /[éèêëàâùûôîïçœæÉÈÊËÀÂÙÛÔÎÏÇŒÆ]/,
-      code: 'fr-FR'
-    },
-    es: {
-      words: /\b(el|la|los|las|un|una|unos|unas|y|en|de|del|por|para|con|que|es|son|se|su|sus|como|más|pero|este|esta|estos|estas|muy|gracias|buenos|días|hola|bien|todo|todos)\b/i,
-      chars: /[áéíóúüñ¿¡ÁÉÍÓÚÜÑ]/,
-      code: 'es-ES'
-    },
-    it: {
-      words: /\b(il|lo|la|i|gli|le|un|uno|una|e|di|da|in|con|su|per|tra|fra|del|della|dei|degli|delle|è|sono|che|non|si|ci|ha|hanno|questo|questa|grazie|ciao|molto)\b|\b(l'|d'|c'|dell'|all'|nell'|sull')/i,
-      chars: /[àèéìíîòóùúÀÈÉÌÍÎÒÓÙÚ]/,
-      code: 'it-IT'
-    },
-    pt: {
-      words: /\b(o|a|os|as|um|uma|uns|umas|e|de|do|da|dos|das|em|no|na|nos|nas|para|por|com|que|não|é|são|se|mais|como|muito|obrigado|olá|este|esta)\b/i,
-      chars: /[ãõáéíóúâêôçÃÕÁÉÍÓÚÂÊÔÇ]/,
-      code: 'pt-PT'
-    }
-  };
-
-  /** 全面智能语言检测：精准识别日韩中及欧洲主要语种，防止误读为英语 */
+  /** 全面智能语言检测：结合正文样本特征与 HTML 声明，精准识别日韩中及欧洲主要语种（防误判英语） */
   function detectLanguage(text) {
-    if (!text || !text.trim()) return 'en-US';
-    const cleaned = text.replace(/\s+/g, '');
-    if (!cleaned) return 'en-US';
+    if (!text || !text.trim()) return "en-US";
+    const cleaned = text.trim();
+    if (!cleaned) return "en-US";
 
-    let cjk = 0, jp = 0, ko = 0, cyrillic = 0, latin = 0;
-    for (const ch of cleaned) {
-      if (JP_RE.test(ch)) jp++;
-      else if (KO_RE.test(ch)) ko++;
-      else if (CJK_RE.test(ch)) cjk++;
-      else if (/[\u0400-\u04ff]/.test(ch)) cyrillic++;
-      else if (LATIN_RE.test(ch)) latin++;
-    }
+    // 1. 排他性字符集检测（第一优先级）
+    const hangul = (cleaned.match(/[\uac00-\ud7af\u1100-\u11ff]/g) || []).length;
+    const kana = (cleaned.match(/[\u3040-\u30ff]/g) || []).length;
+    const cjk = (cleaned.match(/[\u4e00-\u9fa5\u3400-\u4dbf]/g) || []).length;
+    const cyrillic = (cleaned.match(/[\u0400-\u04ff]/g) || []).length;
+    const arabic = (cleaned.match(/[\u0600-\u06ff]/g) || []).length;
 
-    // 1. 排他性日韩俄语特征
-    if (jp >= 1) return 'ja-JP';
-    if (ko >= 1) return 'ko-KR';
-    if (cyrillic >= 1) return 'ru-RU';
+    if (kana >= 1) return "ja-JP";
+    if (hangul >= 1) return "ko-KR";
+    if (cyrillic >= 3) return "ru-RU";
+    if (arabic >= 3) return "ar-SA";
 
-    // 2. 参考页面 HTML 声明（处理纯汉字日文标题等无假名场景）
-    const docLang = (typeof document !== 'undefined')
-      ? (document.documentElement.lang || document.body?.getAttribute('lang') || '').toLowerCase()
-      : '';
-    if (docLang.startsWith('ja') && cjk >= 1) return 'ja-JP';
-    if (cjk >= 1) return 'zh-CN';
+    const docLang = (typeof document !== "undefined")
+      ? (document.documentElement?.lang || (document.body && typeof document.body.getAttribute === 'function' ? document.body.getAttribute('lang') : '') || '').toLowerCase()
+      : "";
 
-    // 3. 欧洲拉丁语系特征打分
+    if (docLang.startsWith("ja") && cjk >= 1) return "ja-JP";
+    if (cjk >= 2 || (cjk === 1 && cleaned.length < 10)) return "zh-CN";
+
+    // 2. 欧洲拉丁语系特征加权打分
+    const latin = (cleaned.match(/[a-zA-ZÀ-ÖØ-öø-ÿĀ-ž]/g) || []).length;
     if (latin >= 1) {
-      const scores = { de: 0, fr: 0, es: 0, it: 0, pt: 0 };
-      for (const [k, pat] of Object.entries(EU_PATTERNS)) {
-        if (pat.chars.test(text)) scores[k] += 4;
-        const matches = text.match(new RegExp(pat.words.source, 'gi'));
-        if (matches) scores[k] += matches.length * 2;
-        if (docLang.startsWith(k)) scores[k] += 3;
-      }
+      const deChars = (cleaned.match(/[äöüßÄÖÜ]/g) || []).length;
+      const frChars = (cleaned.match(/[éèêëàâùûôîïçœæÉÈÊËÀÂÙÛÔÎÏÇŒÆ]/g) || []).length;
+      const esChars = (cleaned.match(/[áéíóúñ¿¡ÁÉÍÓÚÑ]/g) || []).length;
+      const ptChars = (cleaned.match(/[ãõáéíóúâêôçÃÕÁÉÍÓÚÂÊÔÇ]/g) || []).length;
+      const itChars = (cleaned.match(/[àèéìíîòóùúÀÈÉÌÍÎÒÓÙÚ]/g) || []).length;
 
-      let bestKey = 'en';
-      let maxScore = 0;
-      for (const [k, score] of Object.entries(scores)) {
-        if (score > maxScore) {
-          maxScore = score;
-          bestKey = k;
+      const enMatches = (cleaned.match(/\b(the|this|that|these|those|with|have|from|which|would|there|their|what|about|when|make|time|just|know|take|into|year|your|good|some|could|them|other|than|then|now|look|only|come|its|over|think|also|back|after|use|two|how|our|work|first|well|way|even|new|want|because|any|give|day|most|us)\b/gi) || []).length;
+      const deMatches = (cleaned.match(/\b(der|das|den|dem|des|und|nicht|von|sie|ist|sich|mit|als|fuer|auf|ein|eine|einer|einem|einen|eines|nach|wie|auch|wir|aus|hat|dass|bei|ihr|noch|ueber|haben|aber|sehr|deutsch|zeit)\b/gi) || []).length;
+      const frMatches = (cleaned.match(/\b(les|des|dans|pour|avec|sur|qui|que|cette|ces|ils|elles|nous|vous|sont|plus|pas|par|faire|tout|merci|bonjour)\b|\b(c'|d'|l'|j'|m'|t'|s'|n'|qu')/gi) || []).length;
+      const esMatches = (cleaned.match(/\b(los|las|unos|unas|del|por|para|son|sus|como|mas|pero|este|esta|estos|estas|muy|gracias|buenos|dias|todos)\b/gi) || []).length;
+      const itMatches = (cleaned.match(/\b(gli|della|dei|degli|delle|sono|che|non|hanno|questo|questa|grazie|ciao|molto)\b|\b(dell'|all'|nell'|sull')/gi) || []).length;
+      const ptMatches = (cleaned.match(/\b(dos|das|para|nao|sao|mais|como|muito|obrigado|ola)\b/gi) || []).length;
+
+      const scores = {
+        en: enMatches * 2 + (docLang.startsWith("en") ? 4 : 0),
+        de: deChars * 4 + deMatches * 2 + (docLang.startsWith("de") ? 4 : 0),
+        fr: frChars * 4 + frMatches * 2 + (docLang.startsWith("fr") ? 4 : 0),
+        es: esChars * 4 + esMatches * 2 + (docLang.startsWith("es") ? 4 : 0),
+        it: itChars * 4 + itMatches * 2 + (docLang.startsWith("it") ? 4 : 0),
+        pt: ptChars * 4 + ptMatches * 2 + (docLang.startsWith("pt") ? 4 : 0)
+      };
+
+      let bestLang = "en";
+      let maxScore = scores.en;
+      for (const [k, s] of Object.entries(scores)) {
+        if (s > maxScore) {
+          maxScore = s;
+          bestLang = k;
         }
       }
 
-      if (maxScore >= 2 && EU_PATTERNS[bestKey]) {
-        return EU_PATTERNS[bestKey].code;
+      const langMap = {
+        en: "en-US",
+        de: "de-DE",
+        fr: "fr-FR",
+        es: "es-ES",
+        it: "it-IT",
+        pt: "pt-PT"
+      };
+
+      if (maxScore <= 2 && docLang) {
+        for (const k of ["de", "fr", "es", "it", "pt", "en"]) {
+          if (docLang.startsWith(k)) return langMap[k];
+        }
       }
 
-      if (docLang.startsWith('de')) return 'de-DE';
-      if (docLang.startsWith('fr')) return 'fr-FR';
-      if (docLang.startsWith('es')) return 'es-ES';
-      if (docLang.startsWith('it')) return 'it-IT';
-      if (docLang.startsWith('pt')) return 'pt-PT';
-      if (docLang.startsWith('ru')) return 'ru-RU';
-      return 'en-US';
+      return langMap[bestLang] || "en-US";
     }
 
-    return 'en-US';
+    return "en-US";
   }
 
   // ====== 句子分割 ======

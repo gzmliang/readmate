@@ -73,20 +73,24 @@ const VOICE_MAP = {
   'pt': 'pt-BR-FranciscaNeural',
 };
 
-/** 根据语言代码与偏好，智能获取最佳云端音色（严格按语言智能匹配，避免跨语言错配如中文音色读英文） */
+/** 根据语言代码与偏好，智能获取最佳云端音色（优先尊重用户手工指定，自动模式按语种精确匹配） */
 function getBestVoiceForLang(langCode, customVoice = '') {
   const shortCode = (langCode || 'en').split('-')[0].toLowerCase();
-  // 仅当用户指定的音色前缀与当前目标语言匹配时才使用 customVoice
-  if (customVoice) {
+  if (customVoice && customVoice.trim()) {
     const vLower = customVoice.toLowerCase();
+    // 1. 语言前缀匹配 (如 zh- 匹配 zh-CN-YunxiNeural, en- 匹配 en-US-GuyNeural)
     if (vLower.startsWith(shortCode)) {
+      return customVoice;
+    }
+    // 2. 英语国际多地域音色兼容 (如 en-US, en-GB, en-AU, en-CA, en-IN 等任意英语音色相互兼容)
+    if (shortCode === 'en' && vLower.startsWith('en-')) {
       return customVoice;
     }
   }
   return VOICE_MAP[langCode] || VOICE_MAP[shortCode] || (shortCode === 'zh' ? 'zh-CN-XiaoxiaoNeural' : (shortCode === 'ja' ? 'ja-JP-NanamiNeural' : (shortCode === 'ko' ? 'ko-KR-SunHiNeural' : 'en-US-JennyNeural')));
 }
 
-/** 获取浏览器本地最匹配的高质量语音对象（严格校验语种匹配） */
+/** 获取浏览器本地最匹配的高质量语音对象（优先尊重用户手工指定，严格校验语种匹配） */
 function getBestBrowserVoice(langCode, customVoiceName = '') {
   if (!window.speechSynthesis) return null;
   const voices = window.speechSynthesis.getVoices() || [];
@@ -95,8 +99,11 @@ function getBestBrowserVoice(langCode, customVoiceName = '') {
   const short = (langCode || 'en').split('-')[0].toLowerCase();
   if (customVoiceName) {
     const matched = voices.find(v => v.name === customVoiceName);
-    if (matched && matched.lang.toLowerCase().startsWith(short)) {
-      return matched;
+    if (matched) {
+      const vLang = (matched.lang || '').toLowerCase();
+      if (vLang.startsWith(short) || (short === 'en' && vLang.startsWith('en'))) {
+        return matched;
+      }
     }
   }
 
@@ -1572,6 +1579,20 @@ async function startReading(text, forceLang = null, voiceModeOverride = null) {
   }
 
   if (sentences.length === 0) return;
+
+  // 梁老师核心经验：利用正文前 2~3 句最具代表性的纯净开篇语句，精准预判整篇语种，杜绝整篇页脚/版权信息/借词干扰
+  if (!forceLang && sentences.length > 0) {
+    const headSample = sentences.slice(0, 3).join(' ');
+    try {
+      const calibratedLang = detectTextLanguage(headSample);
+      if (calibratedLang) {
+        detectedDocLang = calibratedLang;
+        DebugLog.add(`Calibrated doc language from head 2-3 sentences: ${detectedDocLang}`);
+      }
+    } catch(e) {
+      DebugLog.add('Calibrate doc language error: ' + e.message);
+    }
+  }
 
   DebugLog.add(`Ready to play: ${sentences.length} sentences`);
   playSentencesFlow(sentences);
