@@ -105,6 +105,17 @@ function localize() {
   setText('optProviderQwen', _('optProviderQwen'));
   setText('optProviderCustom', _('optProviderCustom'));
 
+  setText('lblEnableBilingual', _('lblBilingualStudyMode'));
+  setText('lblChkEnableBilingual', _('descBilingualStudyMode'));
+  setText('lblTranslateProvider', _('lblTranslateProvider'));
+  setText('optProviderMicrosoft', _('optProviderMicrosoft'));
+  setText('optProviderGoogle', _('optProviderGoogle'));
+  setText('optProviderCustomAI', _('optProviderCustomAI'));
+  setText('lblPdfLayout', _('lblPdfLayout'));
+  setText('optPdfStacked', _('optPdfStacked'));
+  setText('optPdfColumns', _('optPdfColumns'));
+  setText('optPdfOriginal', _('optPdfOriginal'));
+
   setText('lblEndpoint', _('lblEndpoint'));
   setText('lblApiKey', _('lblApiKey'));
   setText('lblModel', _('lblModel'));
@@ -218,7 +229,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('aiEndpoint').value = settings.aiEndpoint || 'https://api.openai.com/v1';
     document.getElementById('aiApiKey').value = settings.aiApiKey || '';
     document.getElementById('aiModel').value = settings.aiModel || 'gpt-4o-mini';
+    document.getElementById('translateProvider').value = settings.translateProvider || 'microsoft';
     document.getElementById('translateTarget').value = settings.translateTarget || 'Simplified Chinese';
+    document.getElementById('pdfLayout').value = settings.pdfLayout || 'stacked';
     document.getElementById('defaultSummaryView').value = settings.defaultSummaryView || 'bilingual';
     document.getElementById('highlightEnabled').checked = settings.highlightEnabled !== false;
     document.getElementById('highlightParagraphEnabled').checked = settings.highlightParagraphEnabled !== false;
@@ -421,7 +434,9 @@ function saveSettings(silent) {
     aiEndpoint: document.getElementById('aiEndpoint').value,
     aiApiKey: document.getElementById('aiApiKey').value,
     aiModel: document.getElementById('aiModel').value,
+    translateProvider: document.getElementById('translateProvider')?.value || 'microsoft',
     translateTarget: document.getElementById('translateTarget').value,
+    pdfLayout: document.getElementById('pdfLayout')?.value || 'stacked',
     defaultSummaryView: document.getElementById('defaultSummaryView')?.value || 'bilingual',
     highlightEnabled: document.getElementById('highlightEnabled').checked,
     highlightParagraphEnabled: document.getElementById('highlightParagraphEnabled').checked,

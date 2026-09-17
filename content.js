@@ -879,12 +879,13 @@ function nextSentence() {
   jumpToSentence(currentSentenceIndex + 1);
 }
 
-// ====== 翻译预取流水线（确保读译文和双语无延迟） ======
+// ====== 翻译预取与批量流水线（支持免费免配置接口与自定义API） ======
 async function fetchTranslation(text) {
   if (!text || !text.trim()) return '';
   if (translationCache.has(text)) return translationCache.get(text);
 
   const targetLang = settings.translateTarget || 'Simplified Chinese';
+  const provider = settings.translateProvider || 'microsoft';
   const apiKey = settings.aiApiKey || '';
   const endpoint = settings.aiEndpoint || 'https://api.openai.com/v1';
   const model = settings.aiModel || 'gpt-4o-mini';
@@ -892,6 +893,7 @@ async function fetchTranslation(text) {
   return new Promise((resolve) => {
     chrome.runtime.sendMessage({
       action: 'proxyTranslate',
+      provider,
       endpoint,
       apiKey,
       model,
@@ -901,6 +903,59 @@ async function fetchTranslation(text) {
       const translated = (resp && resp.ok && resp.text) ? resp.text.trim() : '';
       if (translated) translationCache.set(text, translated);
       resolve(translated);
+    });
+  });
+}
+
+/** 批量翻译多段文本（极大减少网络往返，防止单段频发 429） */
+async function fetchTranslationsBatch(texts) {
+  if (!texts || texts.length === 0) return [];
+  const results = new Array(texts.length).fill('');
+  const missingIndices = [];
+  const missingTexts = [];
+
+  texts.forEach((txt, idx) => {
+    if (!txt || !txt.trim()) {
+      results[idx] = '';
+    } else if (translationCache.has(txt)) {
+      results[idx] = translationCache.get(txt);
+    } else {
+      missingIndices.push(idx);
+      missingTexts.push(txt);
+    }
+  });
+
+  if (missingTexts.length === 0) {
+    return results;
+  }
+
+  const targetLang = settings.translateTarget || 'Simplified Chinese';
+  const provider = settings.translateProvider || 'microsoft';
+  const apiKey = settings.aiApiKey || '';
+  const endpoint = settings.aiEndpoint || 'https://api.openai.com/v1';
+  const model = settings.aiModel || 'gpt-4o-mini';
+
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({
+      action: 'proxyTranslate',
+      provider,
+      endpoint,
+      apiKey,
+      model,
+      texts: missingTexts,
+      targetLang,
+    }, (resp) => {
+      if (resp && resp.ok && Array.isArray(resp.results)) {
+        resp.results.forEach((trans, i) => {
+          const origIdx = missingIndices[i];
+          const cleanTrans = (trans || '').trim();
+          results[origIdx] = cleanTrans;
+          if (cleanTrans && missingTexts[i]) {
+            translationCache.set(missingTexts[i], cleanTrans);
+          }
+        });
+      }
+      resolve(results);
     });
   });
 }
@@ -1232,6 +1287,7 @@ function playSpeechUtterance(text, lang, customVoiceName = '', onStart = null, o
     if (matchedVoice) {
       utterance.voice = matchedVoice;
     }
+    DebugLog.add(`Browser TTS Voice: ${matchedVoice ? matchedVoice.name : 'System Default'}`);
 
     let done = false;
     let started = false;
@@ -1261,7 +1317,10 @@ function playSpeechUtterance(text, lang, customVoiceName = '', onStart = null, o
     };
 
     utterance.onstart = () => {
-      DebugLog.add('SpeechUtterance onstart');
+      const activeVoice = utterance.voice || (window.speechSynthesis.getVoices() || []).find(v => v.default);
+      const voiceName = activeVoice ? `${activeVoice.name} (${activeVoice.lang})` : 'System Default';
+      console.log('%c[ReadMate Voice Actual]%c ' + voiceName, 'color:#fff;background:#0284c7;font-weight:bold;padding:3px 8px;border-radius:4px;', 'color:#0284c7;font-weight:bold;font-size:14px;');
+      DebugLog.add('SpeechUtterance onstart: ' + voiceName);
       triggerStart();
     };
 
@@ -1306,7 +1365,11 @@ async function playSentencesFlow(sentences) {
   showBar();
   updateReaderPlayButton();
   const playBtn = floatingBar?.querySelector('#readmate-play-btn');
-  if (playBtn) playBtn.textContent = '⏸';
+  if (playBtn) {
+    playBtn.textContent = '⏸';
+    const localVoice = getBestBrowserVoice(detectedDocLang, settings.ttsVoiceOrig || settings.ttsVoice);
+    playBtn.title = (settings.ttsEngine === 'cloud' || settings.ttsEngine === 'openai') ? 'Cloud TTS' : `Browser Voice: ${localVoice ? localVoice.name : 'System Default'}`;
+  }
   DebugLog.add(`playSentencesFlow started: ${sentences.length} sentences`);
 
   const useCloud = (settings.ttsEngine === 'cloud' || settings.ttsEngine === 'openai') && (settings.ttsEngine === 'openai' ? true : (settings.cloudTtsEndpoint && settings.cloudTtsEndpoint.includes('://')));
@@ -2106,6 +2169,8 @@ let readerOverlay = null;
 let readerTheme = 'sepia';
 let readerFontSize = 19;
 let readerSentences = []; // 权威句子列表：确保眼睛看到的每一句与耳朵听到的每一句 100% 绝对一致！
+let readerViewMode = 'original'; // 'original' | 'bilingual' | 'translated'
+let isTranslatingAllParas = false;
 try {
   readerTheme = localStorage.getItem('readmate_reader_theme') || 'sepia';
   readerFontSize = parseInt(localStorage.getItem('readmate_reader_font_size') || '19', 10);
@@ -2126,6 +2191,12 @@ function ensureReaderOverlay() {
         <button id="readmate-reader-close" class="readmate-reader-btn" style="background:rgba(59,130,246,0.12)!important;border-color:rgba(59,130,246,0.3)!important;color:#2563eb!important;" title="${_t('btnExitReader', '返回网页 (ESC)')}">
           ✕ ${_t('btnExitReader', '返回网页')}
         </button>
+        <!-- 高阶双语研读药丸切换（开启双语时才显示） -->
+        <div class="readmate-bilingual-pills" id="readmate-reader-bi-pills" style="display:none;">
+          <button class="readmate-pill active" data-mode="original" id="readmate-pill-orig">${_t('lblViewOriginal', '原文')}</button>
+          <button class="readmate-pill" data-mode="bilingual" id="readmate-pill-bi">${_t('lblViewBilingual', '双语')}</button>
+          <button class="readmate-pill" data-mode="translated" id="readmate-pill-trans">${_t('lblViewTranslated', '译文')}</button>
+        </div>
       </div>
       <div class="readmate-reader-header-center">
         <span class="readmate-reader-stats" id="readmate-reader-stats"></span>
@@ -2185,6 +2256,17 @@ function ensureReaderOverlay() {
   `;
 
   document.body.appendChild(readerOverlay);
+
+  // 双语药丸切换事件绑定
+  const biPills = readerOverlay.querySelector('#readmate-reader-bi-pills');
+  if (biPills) {
+    biPills.querySelectorAll('.readmate-pill').forEach(btn => {
+      btn.onclick = () => {
+        const mode = btn.dataset.mode;
+        if (mode) switchReaderViewMode(mode);
+      };
+    });
+  }
 
   // 绑定事件：点返回按钮时退出净读模式（捕获阶段强力优先绑定）
   const closeBtn = readerOverlay.querySelector('#readmate-reader-close');
@@ -2327,7 +2409,11 @@ function renderReaderModeContent() {
       const safeText = sObj.text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       return `<span class="readmate-reader-s" data-sentence-idx="${sObj.idx}">${safeText}</span>`;
     }).join(' ');
-    return `<p class="readmate-reader-p" data-para-idx="${item.pIdx}">${spansHtml}</p>`;
+    const fullParaText = item.sentences.map(sObj => sObj.text).join(' ');
+    const cachedTrans = translationCache.get(fullParaText) || '';
+    const safeTrans = cachedTrans ? cachedTrans.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+    const transStyle = (readerViewMode === 'bilingual' || readerViewMode === 'translated') ? '' : 'display:none;';
+    return `<p class="readmate-reader-p" data-para-idx="${item.pIdx}" data-para-text="${encodeURIComponent(fullParaText)}">${spansHtml}<span class="readmate-reader-trans-block" style="${transStyle}">${safeTrans}</span></p>`;
   }).join('\n');
 
   bodyEl.innerHTML = parasHtml;
@@ -2388,6 +2474,12 @@ function openReaderMode() {
   document.body.style.overflow = 'hidden';
   hideFAB();
 
+  // 高阶双语药丸显隐受控于 enableBilingual 总开关
+  const biPills = readerOverlay.querySelector('#readmate-reader-bi-pills');
+  if (biPills) {
+    biPills.style.display = enableBilingual ? 'inline-flex' : 'none';
+  }
+
   // 核心改进：进入净读模式时，底部控制条立即浮现可用
   showBar();
   updateReaderPlayButton();
@@ -2431,16 +2523,205 @@ function toggleReaderMode() {
   }
 }
 
+// ====== 沉浸净读双语对照与批量段落翻译 ======
+async function ensureAllParagraphsTranslated() {
+  if (!readerOverlay) return;
+  const bodyEl = readerOverlay.querySelector('#readmate-reader-body');
+  if (!bodyEl) return;
+
+  const paras = Array.from(bodyEl.querySelectorAll('.readmate-reader-p'));
+  const missingParas = [];
+  const missingTexts = [];
+
+  paras.forEach((pEl) => {
+    const rawText = pEl.dataset.paraText ? decodeURIComponent(pEl.dataset.paraText) : '';
+    const transBlock = pEl.querySelector('.readmate-reader-trans-block');
+    if (rawText && (!transBlock || !transBlock.textContent.trim())) {
+      if (translationCache.has(rawText)) {
+        if (transBlock) {
+          transBlock.textContent = translationCache.get(rawText);
+          transBlock.style.display = '';
+        }
+      } else {
+        missingParas.push(pEl);
+        missingTexts.push(rawText);
+      }
+    } else if (transBlock && transBlock.textContent.trim()) {
+      transBlock.style.display = '';
+    }
+  });
+
+  if (missingTexts.length === 0) {
+    return;
+  }
+
+  showTranslation(_t('toastTranslatingPage', '🌐 正在极速翻译正文...'), false);
+  isTranslatingAllParas = true;
+
+  try {
+    const results = await fetchTranslationsBatch(missingTexts);
+    results.forEach((trans, i) => {
+      const pEl = missingParas[i];
+      if (pEl) {
+        let transBlock = pEl.querySelector('.readmate-reader-trans-block');
+        if (!transBlock) {
+          transBlock = document.createElement('span');
+          transBlock.className = 'readmate-reader-trans-block';
+          pEl.appendChild(transBlock);
+        }
+        transBlock.textContent = trans || '';
+        transBlock.style.display = '';
+      }
+    });
+    showTranslation(_t('toastBilingualReady', '✨ 双语翻译已就绪'), true);
+  } catch(e) {
+    DebugLog.add('ensureAllParagraphsTranslated error: ' + e.message);
+    showTranslation(_t('toastTranslateFailed', '❌ 翻译失败，请检查网络或配置'), true);
+  } finally {
+    isTranslatingAllParas = false;
+  }
+}
+
+async function switchReaderViewMode(mode) {
+  readerViewMode = mode || 'original';
+  if (!readerOverlay) return;
+
+  const biPills = readerOverlay.querySelector('#readmate-reader-bi-pills');
+  if (biPills) {
+    biPills.querySelectorAll('.readmate-pill').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.mode === readerViewMode);
+    });
+  }
+
+  const bodyEl = readerOverlay.querySelector('#readmate-reader-body');
+  if (!bodyEl) return;
+
+  bodyEl.classList.remove('readmate-view-orig-only', 'readmate-view-trans-only');
+  if (readerViewMode === 'original') {
+    bodyEl.classList.add('readmate-view-orig-only');
+    bodyEl.querySelectorAll('.readmate-reader-trans-block').forEach(el => el.style.display = 'none');
+  } else if (readerViewMode === 'translated') {
+    bodyEl.classList.add('readmate-view-trans-only');
+    await ensureAllParagraphsTranslated();
+  } else if (readerViewMode === 'bilingual') {
+    await ensureAllParagraphsTranslated();
+  }
+}
+
+// ====== 📑 PDF 导出体系：支持纯原文与多种双语排版 ======
 function exportPdf() {
+  if (!enableBilingual) {
+    // 纯原文直通导出（极简零打扰）
+    executePrintExport('original');
+    return;
+  }
+  // 高阶双语已开启：弹出排版选择卡片
+  showPdfExportModal();
+}
+
+function showPdfExportModal() {
+  let modal = document.getElementById('readmate-pdf-modal');
+  if (modal) modal.remove();
+
+  modal = document.createElement('div');
+  modal.id = 'readmate-pdf-modal';
+
+  let currentLayout = settings.pdfLayout || 'stacked';
+
+  modal.innerHTML = `
+    <div class="readmate-pdf-card">
+      <h3>📄 ${_t('modalExportPdfTitle', '导出文章为 PDF')}</h3>
+      <div class="readmate-pdf-opt-list">
+        <label class="readmate-pdf-opt-item ${currentLayout === 'original' ? 'active' : ''}">
+          <input type="radio" name="readmate-pdf-choice" value="original" ${currentLayout === 'original' ? 'checked' : ''}>
+          <div>
+            <div class="readmate-pdf-opt-title">📄 ${_t('optPdfOriginal', '纯原文 PDF')}</div>
+            <div class="readmate-pdf-opt-desc">${_t('descPdfOriginal', '清爽无广告、排版优雅的纯正文文档')}</div>
+          </div>
+        </label>
+        <label class="readmate-pdf-opt-item ${currentLayout === 'stacked' ? 'active' : ''}">
+          <input type="radio" name="readmate-pdf-choice" value="stacked" ${currentLayout === 'stacked' ? 'checked' : ''}>
+          <div>
+            <div class="readmate-pdf-opt-title">📑 ${_t('optPdfStacked', '双语上下对照')}</div>
+            <div class="readmate-pdf-opt-desc">${_t('descPdfStacked', '原文一段紧跟译文一段，适合手机/iPad竖屏研读')}</div>
+          </div>
+        </label>
+        <label class="readmate-pdf-opt-item ${currentLayout === 'columns' ? 'active' : ''}">
+          <input type="radio" name="readmate-pdf-choice" value="columns" ${currentLayout === 'columns' ? 'checked' : ''}>
+          <div>
+            <div class="readmate-pdf-opt-title">📖 ${_t('optPdfColumns', '双语左右双栏对照')}</div>
+            <div class="readmate-pdf-opt-desc">${_t('descPdfColumns', '左栏原文、右栏译文，适合大屏与学术文献精读')}</div>
+          </div>
+        </label>
+        <label class="readmate-pdf-opt-item ${currentLayout === 'translated' ? 'active' : ''}">
+          <input type="radio" name="readmate-pdf-choice" value="translated" ${currentLayout === 'translated' ? 'checked' : ''}>
+          <div>
+            <div class="readmate-pdf-opt-title">🌐 ${_t('optPdfTranslated', '纯译文 PDF')}</div>
+            <div class="readmate-pdf-opt-desc">${_t('descPdfTranslated', '仅导出高质量译文，母语流利阅读')}</div>
+          </div>
+        </label>
+      </div>
+      <div class="readmate-pdf-actions">
+        <button class="readmate-pdf-btn-cancel" id="readmate-pdf-cancel">${_t('btnCancel', '取消')}</button>
+        <button class="readmate-pdf-btn-export" id="readmate-pdf-submit">${_t('btnExportPdfAction', '立即导出')}</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  modal.querySelectorAll('.readmate-pdf-opt-item').forEach(item => {
+    item.addEventListener('click', () => {
+      modal.querySelectorAll('.readmate-pdf-opt-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      const radio = item.querySelector('input[type="radio"]');
+      if (radio) radio.checked = true;
+    });
+  });
+
+  const close = () => modal.remove();
+  modal.querySelector('#readmate-pdf-cancel').onclick = close;
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) close();
+  });
+
+  modal.querySelector('#readmate-pdf-submit').onclick = async () => {
+    const selected = modal.querySelector('input[name="readmate-pdf-choice"]:checked')?.value || 'stacked';
+    settings.pdfLayout = selected;
+    chrome.runtime.sendMessage({ action: 'saveSettings', settings: { pdfLayout: selected } });
+    close();
+
+    if (selected === 'stacked' || selected === 'columns' || selected === 'translated') {
+      await ensureAllParagraphsTranslated();
+    }
+    executePrintExport(selected);
+  };
+}
+
+async function executePrintExport(format = 'original') {
   if (!isReaderModeActive) openReaderMode();
+
+  document.body.classList.remove('readmate-pdf-original', 'readmate-pdf-stacked', 'readmate-pdf-columns', 'readmate-pdf-translated');
+
+  if (format === 'stacked') {
+    document.body.classList.add('readmate-pdf-stacked');
+  } else if (format === 'columns') {
+    document.body.classList.add('readmate-pdf-columns');
+  } else if (format === 'translated') {
+    document.body.classList.add('readmate-pdf-translated');
+  } else {
+    document.body.classList.add('readmate-pdf-original');
+  }
+
   document.body.classList.add('readmate-print-mode');
   showTranslation(_t('toastPreparingPdf', '📄 正在唤起系统打印/保存为 PDF...'), true);
+
   setTimeout(() => {
     window.print();
     setTimeout(() => {
-      document.body.classList.remove('readmate-print-mode');
-    }, 500);
-  }, 150);
+      document.body.classList.remove('readmate-print-mode', 'readmate-pdf-original', 'readmate-pdf-stacked', 'readmate-pdf-columns', 'readmate-pdf-translated');
+    }, 600);
+  }, 220);
 }
 
 function highlightReaderModeSentence(index) {

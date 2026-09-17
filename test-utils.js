@@ -227,7 +227,7 @@ console.log('\n=== TextUtils.preprocess ===');
 (function testDetect() {
   console.log('\n-- Script detection --');
   assert(TextUtils.detectScript('你好世界') === 'zh', 'Chinese → zh');
-  assert(TextUtils.detectScript('Hello world') === 'latin', 'English → latin');
+  assert(TextUtils.detectScript('Hello world') === 'en', 'English → en');
   assert(TextUtils.detectScript('こんにちは') === 'ja', 'Japanese → ja');
   assert(TextUtils.detectScript('안녕하세요') === 'ko', 'Korean → ko');
 })();

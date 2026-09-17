@@ -632,5 +632,97 @@
   },
   "cmdStopRead": {
     "message": "Arrêter la lecture"
+  },
+  "lblBilingualStudySection": {
+    "message": "Bilingual Study & Translation",
+    "description": "Bilingual study section"
+  },
+  "lblBilingualStudyMode": {
+    "message": "Bilingual Study Mode",
+    "description": "Bilingual study mode label"
+  },
+  "descBilingualStudyMode": {
+    "message": "Enable full-page bilingual comparison, bilingual alternating TTS, and bilingual PDF export",
+    "description": "Bilingual study mode description"
+  },
+  "lblTranslateProvider": {
+    "message": "Translation Provider",
+    "description": "Translation provider label"
+  },
+  "optProviderMicrosoft": {
+    "message": "Microsoft Edge Translate (Free, Instant)",
+    "description": "Microsoft edge translate"
+  },
+  "optProviderGoogle": {
+    "message": "Google Translate (Free)",
+    "description": "Google translate"
+  },
+  "optProviderCustomAI": {
+    "message": "Custom AI API (DeepSeek / OpenAI / etc.)",
+    "description": "Custom API translate"
+  },
+  "lblPdfLayout": {
+    "message": "Default PDF Layout",
+    "description": "Default PDF layout"
+  },
+  "optPdfOriginal": {
+    "message": "Clean Original PDF (Distraction-free)",
+    "description": "Clean original PDF"
+  },
+  "descPdfOriginal": {
+    "message": "Clean, advertisement-free article document with elegant typography",
+    "description": "Clean original PDF description"
+  },
+  "optPdfStacked": {
+    "message": "Bilingual - Stacked",
+    "description": "Bilingual stacked"
+  },
+  "descPdfStacked": {
+    "message": "Original paragraph followed immediately by translation, ideal for mobile/tablet reading",
+    "description": "Bilingual stacked description"
+  },
+  "optPdfColumns": {
+    "message": "Bilingual - Side by Side",
+    "description": "Bilingual side by side"
+  },
+  "descPdfColumns": {
+    "message": "Left column original, right column translation, ideal for desktop and academic study",
+    "description": "Bilingual side by side description"
+  },
+  "optPdfTranslated": {
+    "message": "Translated Only PDF",
+    "description": "Translated only PDF"
+  },
+  "descPdfTranslated": {
+    "message": "Export clean translated article only for rapid native reading",
+    "description": "Translated only PDF description"
+  },
+  "modalExportPdfTitle": {
+    "message": "📑 Export Article to PDF",
+    "description": "Export PDF dialog title"
+  },
+  "btnExportPdfAction": {
+    "message": "Export Now",
+    "description": "Export PDF action button"
+  },
+  "toastTranslatingPage": {
+    "message": "🌐 Translating article in parallel...",
+    "description": "Translating page toast"
+  },
+  "toastBilingualReady": {
+    "message": "✨ Bilingual translation ready",
+    "description": "Bilingual ready toast"
+  },
+  "lblViewOriginal": {
+    "message": "Original",
+    "description": "View original pill"
+  },
+  "lblViewBilingual": {
+    "message": "Bilingual",
+    "description": "View bilingual pill"
+  },
+  "lblViewTranslated": {
+    "message": "Translation",
+    "description": "View translated pill"
   }
 }

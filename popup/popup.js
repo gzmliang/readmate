@@ -126,6 +126,8 @@ function localize() {
   setText('optModelGpt4oMini', _('optModelGpt4oMini'));
   setText('optModelSiliconFree', _('optModelSiliconFree'));
   setText('lblTargetLanguage', _('lblTargetLanguage'));
+  setText('lblEnableBilingual', _('lblBilingualStudyMode'));
+  setText('lblChkEnableBilingual', _('descBilingualStudyMode'));
   setText('lblHighlight', _('lblHighlight'));
   setText('testBtn', _('btnTestAi'));
 
@@ -266,6 +268,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 朗读语音流模式与字幕
     if (document.getElementById('readVoiceMode')) {
       document.getElementById('readVoiceMode').value = settings.readVoiceMode || 'original';
+    }
+    if (document.getElementById('enableBilingual')) {
+      document.getElementById('enableBilingual').checked = !!settings.enableBilingual;
+      document.getElementById('enableBilingual').addEventListener('change', autoSave);
     }
     if (document.getElementById('showBilingualSubtitles')) {
       document.getElementById('showBilingualSubtitles').checked = settings.showBilingualSubtitles !== false;
@@ -477,6 +483,7 @@ function saveSettings(silent) {
     ttsSpeed: parseFloat(document.getElementById('ttsSpeed').value),
     ttsVoice: document.getElementById('ttsVoice').value || '',
     readVoiceMode: document.getElementById('readVoiceMode')?.value || 'original',
+    enableBilingual: document.getElementById('enableBilingual')?.checked || false,
     showBilingualSubtitles: document.getElementById('showBilingualSubtitles')?.checked !== false,
     cloudTtsEndpoint: document.getElementById('cloudTtsEndpoint').value,
     cloudTtsVoice: document.getElementById('cloudTtsVoice').value || '',

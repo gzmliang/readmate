@@ -1142,7 +1142,173 @@ h6.readmate-active-paragraph {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* ====== 📄 纯净 PDF 打印专用样式 ====== */
+/* ====== 沉浸净读模式下的双语呈现与排版 ====== */
+.readmate-reader-trans-block {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.92em;
+  line-height: 1.7;
+  color: #64748b;
+  font-style: normal;
+  padding-left: 10px;
+  border-left: 2px solid rgba(59, 130, 246, 0.35);
+  transition: color 0.2s ease;
+}
+#readmate-reader-overlay[data-theme="dark"] .readmate-reader-trans-block {
+  color: #94a3b8;
+  border-left-color: rgba(59, 130, 246, 0.5);
+}
+#readmate-reader-overlay[data-theme="sepia"] .readmate-reader-trans-block {
+  color: #78716c;
+}
+
+/* 仅译文模式 */
+.readmate-reader-body.readmate-view-trans-only .readmate-reader-s {
+  display: none !important;
+}
+.readmate-reader-body.readmate-view-trans-only .readmate-reader-trans-block {
+  display: block !important;
+  margin-top: 0 !important;
+  padding-left: 0 !important;
+  border-left: none !important;
+  font-size: 1em !important;
+  color: inherit !important;
+}
+
+/* 仅原文模式 */
+.readmate-reader-body.readmate-view-orig-only .readmate-reader-trans-block {
+  display: none !important;
+}
+
+/* 净读顶栏：高阶双语视图药丸组 */
+.readmate-bilingual-pills {
+  display: inline-flex !important;
+  align-items: center !important;
+  background: rgba(0, 0, 0, 0.06) !important;
+  border-radius: 20px !important;
+  padding: 2px !important;
+  margin-right: 8px !important;
+  vertical-align: middle !important;
+}
+#readmate-reader-overlay[data-theme="dark"] .readmate-bilingual-pills {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+.readmate-bilingual-pills .readmate-pill {
+  background: transparent !important;
+  border: none !important;
+  padding: 3px 10px !important;
+  font-size: 12px !important;
+  border-radius: 14px !important;
+  color: inherit !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  font-weight: 500 !important;
+}
+.readmate-bilingual-pills .readmate-pill.active {
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 4px rgba(59, 130, 246, 0.3) !important;
+}
+
+/* PDF 导出选项弹窗 */
+#readmate-pdf-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(3px);
+}
+.readmate-pdf-card {
+  background: #ffffff;
+  color: #1e293b;
+  width: 380px;
+  max-width: 90vw;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  animation: readmateFadeIn 0.2s ease-out;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  box-sizing: border-box;
+}
+.readmate-pdf-card h3 {
+  margin: 0 0 14px 0;
+  font-size: 16.5px;
+  font-weight: 600;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.readmate-pdf-opt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-bottom: 20px;
+}
+.readmate-pdf-opt-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.readmate-pdf-opt-item:hover {
+  border-color: #93c5fd;
+  background: #f8fafc;
+}
+.readmate-pdf-opt-item.active {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.05);
+}
+.readmate-pdf-opt-item input[type="radio"] {
+  margin-top: 3px;
+  accent-color: #3b82f6;
+  cursor: pointer;
+}
+.readmate-pdf-opt-title {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: #0f172a;
+}
+.readmate-pdf-opt-desc {
+  font-size: 11.5px;
+  color: #64748b;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+.readmate-pdf-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.readmate-pdf-btn-cancel {
+  background: #f1f5f9;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #475569;
+  cursor: pointer;
+}
+.readmate-pdf-btn-export {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #ffffff;
+  border: none;
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+
+/* ====== 📄 纯净 PDF 打印专用样式（支持原文/双语上下/双语双栏/译文） ====== */
 @media print {
   body.readmate-print-mode > *:not(#readmate-reader-overlay) {
     display: none !important;
@@ -1154,16 +1320,28 @@ h6.readmate-active-paragraph {
     overflow: visible !important;
     background: #ffffff !important;
     color: #111827 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Roboto, sans-serif !important;
   }
   body.readmate-print-mode .readmate-reader-header,
   body.readmate-print-mode #readmate-bar,
   body.readmate-print-mode #readmate-fab-container,
-  body.readmate-print-mode .readmate-reader-btn {
+  body.readmate-print-mode .readmate-reader-btn,
+  body.readmate-print-mode .readmate-reader-action-bar,
+  body.readmate-print-mode #readmate-pdf-modal {
     display: none !important;
   }
   body.readmate-print-mode .readmate-reader-article {
     max-width: 100% !important;
-    padding: 24px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  body.readmate-print-mode .readmate-reader-p {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 1.4em !important;
+    padding-left: 0 !important;
+    border-left: none !important;
+    background: none !important;
   }
   body.readmate-print-mode .readmate-reader-s.readmate-reader-active-s {
     background: none !important;
@@ -1173,6 +1351,49 @@ h6.readmate-active-paragraph {
   body.readmate-print-mode .readmate-reader-p.readmate-reader-active-p {
     border-left-color: transparent !important;
     background: none !important;
+  }
+
+  /* 打印模式：纯原文 */
+  body.readmate-print-mode.readmate-pdf-original .readmate-reader-trans-block {
+    display: none !important;
+  }
+
+  /* 打印模式：双语上下对照 */
+  body.readmate-print-mode.readmate-pdf-stacked .readmate-reader-trans-block {
+    display: block !important;
+    color: #4b5563 !important;
+    font-size: 0.92em !important;
+    margin-top: 6px !important;
+    padding-left: 10px !important;
+    border-left: 2px solid #93c5fd !important;
+  }
+
+  /* 打印模式：双语左右双栏对照 */
+  body.readmate-print-mode.readmate-pdf-columns .readmate-reader-p {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    column-gap: 28px !important;
+    align-items: start !important;
+    margin-bottom: 1.6em !important;
+  }
+  body.readmate-print-mode.readmate-pdf-columns .readmate-reader-trans-block {
+    display: block !important;
+    color: #374151 !important;
+    margin-top: 0 !important;
+    border-left: 1px dashed #cbd5e1 !important;
+    padding-left: 14px !important;
+  }
+
+  /* 打印模式：仅译文 */
+  body.readmate-print-mode.readmate-pdf-translated .readmate-reader-s {
+    display: none !important;
+  }
+  body.readmate-print-mode.readmate-pdf-translated .readmate-reader-trans-block {
+    display: block !important;
+    color: #111827 !important;
+    margin-top: 0 !important;
+    padding-left: 0 !important;
+    border-left: none !important;
   }
 }
 

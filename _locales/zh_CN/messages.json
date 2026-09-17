@@ -686,5 +686,97 @@
   "cmdStopRead": {
     "message": "停止朗读",
     "description": "快捷键：停止朗读"
+  },
+  "lblBilingualStudySection": {
+    "message": "双语研读与翻译引擎",
+    "description": "Bilingual study section"
+  },
+  "lblBilingualStudyMode": {
+    "message": "双语研读模式",
+    "description": "Bilingual study mode label"
+  },
+  "descBilingualStudyMode": {
+    "message": "开启后解锁整页双语对照、双语交替朗读及双语 PDF 导出",
+    "description": "Bilingual study mode description"
+  },
+  "lblTranslateProvider": {
+    "message": "翻译引擎",
+    "description": "Translation provider label"
+  },
+  "optProviderMicrosoft": {
+    "message": "微软 Edge 翻译 (免费免配置·极速)",
+    "description": "Microsoft edge translate"
+  },
+  "optProviderGoogle": {
+    "message": "谷歌翻译 (免费免配置)",
+    "description": "Google translate"
+  },
+  "optProviderCustomAI": {
+    "message": "自定义 API / AI 大模型 (DeepSeek / OpenAI 等)",
+    "description": "Custom API translate"
+  },
+  "lblPdfLayout": {
+    "message": "PDF 默认排版",
+    "description": "Default PDF layout"
+  },
+  "optPdfOriginal": {
+    "message": "纯原文 PDF (无广告·纯净)",
+    "description": "Clean original PDF"
+  },
+  "descPdfOriginal": {
+    "message": "清爽无广告、排版优雅的纯正文文档",
+    "description": "Clean original PDF description"
+  },
+  "optPdfStacked": {
+    "message": "双语上下对照",
+    "description": "Bilingual stacked"
+  },
+  "descPdfStacked": {
+    "message": "原文一段紧跟译文一段，适合手机/iPad竖屏研读",
+    "description": "Bilingual stacked description"
+  },
+  "optPdfColumns": {
+    "message": "双语左右双栏对照",
+    "description": "Bilingual side by side"
+  },
+  "descPdfColumns": {
+    "message": "左栏原文、右栏译文，适合大屏与学术文献精读",
+    "description": "Bilingual side by side description"
+  },
+  "optPdfTranslated": {
+    "message": "纯译文 PDF",
+    "description": "Translated only PDF"
+  },
+  "descPdfTranslated": {
+    "message": "仅导出高质量译文，母语流利阅读",
+    "description": "Translated only PDF description"
+  },
+  "modalExportPdfTitle": {
+    "message": "📑 导出文章为 PDF",
+    "description": "Export PDF dialog title"
+  },
+  "btnExportPdfAction": {
+    "message": "立即导出",
+    "description": "Export PDF action button"
+  },
+  "toastTranslatingPage": {
+    "message": "🌐 正在极速翻译正文...",
+    "description": "Translating page toast"
+  },
+  "toastBilingualReady": {
+    "message": "✨ 双语翻译已就绪",
+    "description": "Bilingual ready toast"
+  },
+  "lblViewOriginal": {
+    "message": "原文",
+    "description": "View original pill"
+  },
+  "lblViewBilingual": {
+    "message": "双语",
+    "description": "View bilingual pill"
+  },
+  "lblViewTranslated": {
+    "message": "译文",
+    "description": "View translated pill"
   }
 }

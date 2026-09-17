@@ -183,9 +183,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         aiEndpoint: 'https://api.openai.com/v1',
         aiApiKey: '',
         aiModel: 'gpt-4o-mini',
-        enableBilingual: false, // 默认不开启双语翻译（省 Token）
+        enableBilingual: false, // 默认不开启双语翻译（高阶开关，按需激活）
         translateEnabled: false,
+        translateProvider: 'microsoft', // 默认免费免配置：'microsoft' (微软Edge), 'google' (谷歌免费), 'custom' (自定义AI API)
         translateTarget: 'Simplified Chinese',
+        bilingualDisplayMode: 'bilingual', // 'bilingual' (双语对照), 'original' (仅原文), 'translated' (仅译文)
+        pdfLayout: 'stacked', // 'stacked' (上下对照), 'columns' (左右双栏)
         defaultSummaryView: 'bilingual',
         highlightEnabled: true,
         highlightParagraphEnabled: true,
@@ -374,36 +377,21 @@ ${(text || '').substring(0, 5000)}`;
       return true;
     }
 
-    // ====== AI 翻译代理 ======
+    // ====== 全能双语翻译代理（支持免费免配置 Edge/Google 与 自定义 AI API） ======
     case 'proxyTranslate': {
-      const { endpoint, apiKey, model, text, targetLang } = msg;
-      let ep = (endpoint || 'https://api.openai.com/v1').trim();
-      if (!ep.endsWith('/chat/completions')) {
-        ep = ep.replace(/\/+$/, '') + '/chat/completions';
-      }
-      fetch(ep, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey || ''}`,
-        },
-        body: JSON.stringify({
-          model: model || 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: `You are a translator. Translate the following text to ${targetLang || 'Simplified Chinese'}. Return ONLY the translation, no explanation.` },
-            { role: 'user', content: text },
-          ],
-          temperature: 0.1,
-        }),
+      const { endpoint, apiKey, model, text, texts, targetLang, sourceLang, provider } = msg;
+      executeTranslation({
+        endpoint,
+        apiKey,
+        model,
+        text,
+        texts,
+        targetLang,
+        sourceLang,
+        provider,
       })
-        .then(async (resp) => {
-          if (!resp.ok) {
-            const errTxt = await resp.text();
-            throw new Error(`HTTP ${resp.status}: ${errTxt}`);
-          }
-          const data = await resp.json();
-          const result = data.choices?.[0]?.message?.content?.trim() || null;
-          sendResponse({ ok: true, text: result });
+        .then((res) => {
+          sendResponse({ ok: true, ...res });
         })
         .catch((err) => {
           sendResponse({ ok: false, error: err.message });
@@ -450,3 +438,226 @@ ${(text || '').substring(0, 5000)}`;
     }
   }
 });
+
+// ============================================================================
+// 全语种通用双语翻译核心引擎（支持免费开箱即用接口与自定义 AI API）
+// ============================================================================
+
+function normalizeLangCode(lang) {
+  if (!lang) return 'zh-Hans';
+  const lower = String(lang).toLowerCase().trim();
+  if (lower.includes('simplified') || lower === 'zh-cn' || lower === 'zh-hans' || lower === 'zh') return 'zh-Hans';
+  if (lower.includes('traditional') || lower === 'zh-tw' || lower === 'zh-hant' || lower === 'zh-hk') return 'zh-Hant';
+  if (lower.includes('english') || lower === 'en' || lower.startsWith('en-')) return 'en';
+  if (lower.includes('japanese') || lower === 'ja' || lower.startsWith('ja-')) return 'ja';
+  if (lower.includes('korean') || lower === 'ko' || lower.startsWith('ko-')) return 'ko';
+  if (lower.includes('spanish') || lower === 'es' || lower.startsWith('es-')) return 'es';
+  if (lower.includes('french') || lower === 'fr' || lower.startsWith('fr-')) return 'fr';
+  if (lower.includes('german') || lower === 'de' || lower.startsWith('de-')) return 'de';
+  if (lower.includes('russian') || lower === 'ru' || lower.startsWith('ru-')) return 'ru';
+  if (lower.includes('portuguese') || lower === 'pt' || lower.startsWith('pt-')) return 'pt';
+  if (lower.includes('italian') || lower === 'it' || lower.startsWith('it-')) return 'it';
+  if (lower.includes('arabic') || lower === 'ar' || lower.startsWith('ar-')) return 'ar';
+  if (lower.includes('vietnamese') || lower === 'vi' || lower.startsWith('vi-')) return 'vi';
+  return lang;
+}
+
+/** 微软 Edge 翻译（免费免配置，超快响应，支持批量） */
+async function translateWithMicrosoft(texts, targetLang, sourceLang = '') {
+  const to = normalizeLangCode(targetLang);
+  const from = sourceLang ? normalizeLangCode(sourceLang) : '';
+  const url = `https://edge.microsoft.com/translate/translatetext?to=${encodeURIComponent(to)}&from=${encodeURIComponent(from)}&isEnterpriseClient=false`;
+
+  const chunkSize = 20;
+  const results = [];
+
+  for (let i = 0; i < texts.length; i += chunkSize) {
+    const chunk = texts.slice(i, i + chunkSize);
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(chunk),
+      signal: AbortSignal.timeout(6000),
+    });
+
+    if (!resp.ok) {
+      const errTxt = await resp.text();
+      throw new Error(`Microsoft Translate HTTP ${resp.status}: ${errTxt}`);
+    }
+
+    const data = await resp.json();
+    for (const item of data) {
+      const translated = item?.translations?.map(t => t.text).join(' ') || '';
+      results.push(translated);
+    }
+  }
+
+  return results;
+}
+
+/** 谷歌免 Key 翻译接口（备用兜底） */
+async function translateWithGoogle(texts, targetLang, sourceLang = '') {
+  let to = normalizeLangCode(targetLang);
+  if (to === 'zh-Hans') to = 'zh-CN';
+  if (to === 'zh-Hant') to = 'zh-TW';
+
+  let from = 'auto';
+  if (sourceLang) {
+    from = normalizeLangCode(sourceLang);
+    if (from === 'zh-Hans') from = 'zh-CN';
+    if (from === 'zh-Hant') from = 'zh-TW';
+  }
+
+  const results = [];
+  for (const text of texts) {
+    if (!text || !text.trim()) {
+      results.push('');
+      continue;
+    }
+    const params = new URLSearchParams({
+      client: 'gtx',
+      dt: 't',
+      dj: '1',
+      ie: 'UTF-8',
+      sl: from,
+      tl: to,
+      q: text,
+    });
+    const url = `https://translate.googleapis.com/translate_a/single?${params.toString()}`;
+    const resp = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!resp.ok) {
+      throw new Error(`Google Translate HTTP ${resp.status}`);
+    }
+    const data = await resp.json();
+    const translated = (data?.sentences || []).map(s => s.trans).join('') || '';
+    results.push(translated);
+  }
+  return results;
+}
+
+/** 通用 OpenAI / DeepSeek / 自定义 API 翻译 */
+async function translateWithOpenAI(texts, targetLang, endpoint, apiKey, model) {
+  let ep = (endpoint || 'https://api.openai.com/v1').trim();
+  if (!ep.endsWith('/chat/completions')) {
+    ep = ep.replace(/\/+$/, '') + '/chat/completions';
+  }
+
+  const targetName = targetLang || 'Simplified Chinese';
+  const systemPrompt = `You are a professional translator. Translate the given text accurately and naturally into ${targetName}. Output ONLY the direct translation without explanations or conversational filler.`;
+
+  if (texts.length === 1) {
+    const resp = await fetch(ep, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey || ''}`,
+      },
+      body: JSON.stringify({
+        model: model || 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: texts[0] },
+        ],
+        temperature: 0.1,
+      }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error(`OpenAI Translate HTTP ${resp.status}: ${err}`);
+    }
+    const data = await resp.json();
+    return [data.choices?.[0]?.message?.content?.trim() || ''];
+  }
+
+  // 批量并发处理（每 5 个一组，保持稳定）
+  const batchPrompt = `${systemPrompt} The user provides a JSON array of strings. You MUST return ONLY a strict JSON array of translated strings corresponding 1:1 in order: ["trans1", "trans2", ...]. No markdown, no extra keys.`;
+  const resp = await fetch(ep, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey || ''}`,
+    },
+    body: JSON.stringify({
+      model: model || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: batchPrompt },
+        { role: 'user', content: JSON.stringify(texts) },
+      ],
+      temperature: 0.1,
+    }),
+  });
+  if (!resp.ok) {
+    const err = await resp.text();
+    throw new Error(`OpenAI Batch Translate HTTP ${resp.status}: ${err}`);
+  }
+  const data = await resp.json();
+  let raw = data.choices?.[0]?.message?.content?.trim() || '[]';
+  raw = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+  } catch(e) {}
+  return [raw];
+}
+
+/** 统一翻译执行入口：调度免费与自定义源，带智能自愈 fallback */
+async function executeTranslation({ endpoint, apiKey, model, text, texts, targetLang, sourceLang, provider }) {
+  const inputList = Array.isArray(texts) ? texts : (text ? [text] : []);
+  if (inputList.length === 0) {
+    return { text: '', results: [] };
+  }
+
+  // 读取已保存的设置以获取默认 provider
+  const currentSettings = await new Promise((resolve) => {
+    chrome.storage.sync.get(['translateProvider', 'translateTarget', 'aiApiKey', 'aiEndpoint', 'aiModel'], resolve);
+  });
+
+  const activeProvider = provider || currentSettings?.translateProvider || 'microsoft';
+  const target = targetLang || currentSettings?.translateTarget || 'Simplified Chinese';
+  const finalEndpoint = endpoint || currentSettings?.aiEndpoint;
+  const finalApiKey = apiKey || currentSettings?.aiApiKey;
+  const finalModel = model || currentSettings?.aiModel;
+
+  let results = null;
+
+  // 1. 若用户指定了自定义 AI API 且填写了 Key
+  if ((activeProvider === 'openai' || activeProvider === 'custom') && finalApiKey) {
+    try {
+      results = await translateWithOpenAI(inputList, target, finalEndpoint, finalApiKey, finalModel);
+    } catch(err) {
+      console.warn('[ReadMate] OpenAI translate failed, falling back to Microsoft free:', err);
+    }
+  }
+
+  // 2. 若用户选了 Google 翻译
+  if (!results && activeProvider === 'google') {
+    try {
+      results = await translateWithGoogle(inputList, target, sourceLang);
+    } catch(err) {
+      console.warn('[ReadMate] Google translate failed, falling back to Microsoft:', err);
+    }
+  }
+
+  // 3. 默认首选 / Fallback：微软 Edge 免费高速翻译
+  if (!results) {
+    try {
+      results = await translateWithMicrosoft(inputList, target, sourceLang);
+    } catch(err) {
+      console.warn('[ReadMate] Microsoft translate failed, trying Google free:', err);
+      try {
+        results = await translateWithGoogle(inputList, target, sourceLang);
+      } catch(gErr) {
+        throw new Error(`All translation channels failed. MS: ${err.message}, Google: ${gErr.message}`);
+      }
+    }
+  }
+
+  return {
+    text: results[0] || '',
+    results: results,
+  };
+}
+
