@@ -303,8 +303,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('highlightEnabled').checked = settings.highlightEnabled !== false;
 
     // 云端 Edge TTS
-    document.getElementById('cloudTtsEndpoint').value = settings.cloudTtsEndpoint || 'http://p-plus.duckdns.org:5001';
-    loadCloudVoices(settings.cloudTtsEndpoint || 'http://p-plus.duckdns.org:5001', settings.cloudTtsVoice || '');
+    document.getElementById('cloudTtsEndpoint').value = settings.cloudTtsEndpoint || 'https://liang-studio.duckdns.org/edge-tts';
+    loadCloudVoices(settings.cloudTtsEndpoint || 'https://liang-studio.duckdns.org/edge-tts', settings.cloudTtsVoice || '');
 
     // 本地语音
     loadVoices(settings.ttsVoice);
@@ -377,8 +377,7 @@ function loadCloudVoices(endpoint, savedVoice) {
   if (!endpoint) return;
 
   const DEFAULT_SERVERS = [
-    'http://p-plus.duckdns.org:5001',
-    'http://powerplus.blogsyte.com:5001'
+    'https://liang-studio.duckdns.org/edge-tts'
   ];
   let endpointsToTry = [endpoint];
   for (const s of DEFAULT_SERVERS) {
@@ -542,7 +541,7 @@ document.getElementById('btnHelpTtsPopup')?.addEventListener('click', () => {
         💡 <strong>Edge 浏览器原生免搭技巧（强烈推荐）</strong>：<br>
         如果您使用的是微软 Edge 浏览器，直接在上方选择【🔊 浏览器本地】引擎，即可免费调用微软晓晓、Yunxi 等自然语音，零网络延迟！
       </div>
-      <p><strong>1. 默认云端服务</strong><br>插件已默认内置梁老师为大家长期维护的高音质公共节点：<br><code>http://p-plus.duckdns.org:5001</code>（内置主备自动容灾），开箱即用无需改动。</p>
+      <p><strong>1. 默认云端服务</strong><br>插件已默认内置梁老师为大家长期维护的高音质公共安全节点：<br><code>https://liang-studio.duckdns.org/edge-tts</code>（HTTPS 全程加密，安全合规），开箱即用无需改动。</p>
       <p><strong>2. 自建专属服务</strong><br>若您有自己的云服务器，可通过完整设置页（⚙ 完整设置）查看一键部署 Python 脚本教程，独享高速带宽。</p>
     `);
   } else {
@@ -551,7 +550,7 @@ document.getElementById('btnHelpTtsPopup')?.addEventListener('click', () => {
         💡 <strong>Microsoft Edge Users</strong>:<br>
         Simply select <strong>Browser Native</strong> above to access Microsoft's neural voices (Jenny, Guy, Xiaoxiao) locally with zero latency!
       </div>
-      <p><strong>1. Default Cloud Service</strong><br>Comes pre-configured with teacher Liang's permanently maintained free public node: <code>http://p-plus.duckdns.org:5001</code> (with auto-failover redundancy).</p>
+      <p><strong>1. Default Cloud Service</strong><br>Comes pre-configured with teacher Liang's permanently maintained free public secure node: <code>https://liang-studio.duckdns.org/edge-tts</code> (HTTPS encrypted, privacy compliant).</p>
       <p><strong>2. Self-Host Dedicated Node</strong><br>Check full options (⚙ Full Options) for the complete 5-minute Python server script.</p>
     `);
   }

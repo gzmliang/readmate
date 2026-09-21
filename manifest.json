@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "__MSG_appName__",
-  "version": "1.0.7",
-  "version_name": "1.0.7",
+  "version": "1.0.8",
+  "version_name": "1.0.8",
   "description": "__MSG_appDesc__",
   "permissions": [
     "contextMenus",

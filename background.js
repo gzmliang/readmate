@@ -166,8 +166,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         ttsBuffer: 2,
         readVoiceMode: 'original', // 'original', 'translated', 'bilingual'
         showBilingualSubtitles: true,
-        // 云端 Edge TTS 服务端（默认指向主节点，支持自动容灾）
-        cloudTtsEndpoint: 'http://p-plus.duckdns.org:5001',
+        // 云端 Edge TTS 服务端（默认指向官方 HTTPS 安全加密节点）
+        cloudTtsEndpoint: 'https://liang-studio.duckdns.org/edge-tts',
         cloudTtsVoice: '', // 保持空 = 智能双轨自动匹配
         cloudTtsVoiceOrig: '', // 留空 = 原文语种智能匹配 (如 Jenny/美式)
         cloudTtsVoiceTrans: '', // 留空 = 译文语种智能匹配 (如 Xiaoxiao/晓晓)
@@ -199,6 +199,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         enableShortcuts: true,
         translateOnSelect: false,
       }, (settings) => {
+        // 安全自动平滑迁移：彻底消除老版本存留的明文 http:// 节点
+        if (settings.cloudTtsEndpoint && (
+            settings.cloudTtsEndpoint.includes('p-plus.duckdns.org') ||
+            settings.cloudTtsEndpoint.includes('powerplus.blogsyte.com') ||
+            settings.cloudTtsEndpoint.startsWith('http://')
+        )) {
+          settings.cloudTtsEndpoint = 'https://liang-studio.duckdns.org/edge-tts';
+          chrome.storage.sync.set({ cloudTtsEndpoint: settings.cloudTtsEndpoint });
+        }
         sendResponse(settings);
       });
       return true;
@@ -293,14 +302,13 @@ ${(text || '').substring(0, 5000)}`;
       return true;
     }
 
-    // ====== Edge TTS 代理 fetch（支持 HTTPS 页面）====== 
+    // ====== Edge TTS 代理 fetch（全程 HTTPS 加密传输，保障数据安全）====== 
     case 'proxyFetch': {
       const { url, options } = msg;
       (async () => {
-        // 主备双节点自动容灾重试
+        // 安全 HTTPS 云端 TTS 主节点
         const DEFAULT_SERVERS = [
-          'http://p-plus.duckdns.org:5001',
-          'http://powerplus.blogsyte.com:5001'
+          'https://liang-studio.duckdns.org/edge-tts'
         ];
         let urlsToTry = [url];
         for (const s of DEFAULT_SERVERS) {
@@ -314,7 +322,11 @@ ${(text || '').substring(0, 5000)}`;
 
         let lastErr = null;
         for (let i = 0; i < urlsToTry.length; i++) {
-          const targetUrl = urlsToTry[i];
+          let targetUrl = urlsToTry[i];
+          // 强制走安全加密通道，杜绝明文 HTTP 传输违规
+          if (targetUrl && targetUrl.startsWith('http://')) {
+            targetUrl = targetUrl.replace(/^http:\/\//i, 'https://');
+          }
           try {
             const resp = await fetch(targetUrl, options || {});
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);

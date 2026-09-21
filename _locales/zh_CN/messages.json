@@ -107,6 +107,10 @@
     "message": "⚡ 自动选择 (推荐)",
     "description": "自动选择最佳音色"
   },
+  "optCloudTransAuto": {
+    "message": "跟随母语最佳音色 (中文自动用晓晓)",
+    "description": "译文音色自动跟随母语"
+  },
   "btnTestCloud": {
     "message": "☁️ 测试云端",
     "description": "测试云端按钮"

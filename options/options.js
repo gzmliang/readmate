@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('openaiTtsVoice').value = settings.openaiTtsVoice || 'alloy';
 
     // Edge TTS
-    const defaultEdgeEndpoint = 'http://p-plus.duckdns.org:5001';
+    const defaultEdgeEndpoint = 'https://liang-studio.duckdns.org/edge-tts';
     document.getElementById('cloudTtsEndpoint').value = settings.cloudTtsEndpoint || defaultEdgeEndpoint;
     loadCloudVoices(settings.cloudTtsEndpoint || defaultEdgeEndpoint, settings.cloudTtsVoice || '', settings.cloudTtsVoiceTrans || '');
 
@@ -369,8 +369,7 @@ function loadCloudVoices(endpoint, savedVoice, savedTransVoice) {
   if (!endpoint) return;
 
   const DEFAULT_SERVERS = [
-    'http://p-plus.duckdns.org:5001',
-    'http://powerplus.blogsyte.com:5001'
+    'https://liang-studio.duckdns.org/edge-tts'
   ];
   let endpointsToTry = [endpoint];
   for (const s of DEFAULT_SERVERS) {
@@ -399,7 +398,7 @@ function loadCloudVoices(endpoint, savedVoice, savedTransVoice) {
           if (savedVoice) voiceSelect.value = savedVoice;
         }
         if (transSelect) {
-          transSelect.innerHTML = `<option value="">跟随母语最佳音色 (中文自动用晓晓)</option>`;
+          transSelect.innerHTML = `<option value="">${_('optCloudTransAuto')}</option>`;
           for (const v of voices) {
             const opt = document.createElement('option');
             opt.value = v.ShortName || v.name;
@@ -487,7 +486,7 @@ function setupHelpModal() {
         </div>
 
         <h4 style="color:#facc15;margin:16px 0 8px;">1. 默认公共服务</h4>
-        <p>插件默认内置了梁老师为大家长期维护的免费高音质服务：<code>http://p-plus.duckdns.org:5001</code>（内置主备自动容灾），全球开箱即用，无需配置。</p>
+        <p>插件默认内置了梁老师为大家长期维护的免费高音质安全加密服务：<code>https://liang-studio.duckdns.org/edge-tts</code>（全程 HTTPS 传输，安全合规），全球开箱即用，无需配置。</p>
 
         <h4 style="color:#facc15;margin:16px 0 8px;">2. 5分钟在自己的 VPS/服务器 上搭建专属 Edge-TTS（附完整代码）</h4>
         <p>如果您有自己的云服务器（Ubuntu/Debian/CentOS），可以自建专属节点，完全独享带宽：</p>
@@ -540,7 +539,7 @@ if __name__ == '__main__':
         </div>
 
         <h4 style="color:#facc15;margin:16px 0 8px;">1. Default Public Service</h4>
-        <p>ReadMate comes with teacher Liang's permanently maintained free public node: <code>http://p-plus.duckdns.org:5001</code> (with auto-failover redundancy). Works out of the box worldwide.</p>
+        <p>ReadMate comes with teacher Liang's permanently maintained free public secure node: <code>https://liang-studio.duckdns.org/edge-tts</code> (HTTPS encrypted, privacy compliant). Works out of the box worldwide.</p>
 
         <h4 style="color:#facc15;margin:16px 0 8px;">2. Self-Host Edge-TTS on Your Own VPS (in 5 minutes)</h4>
         <p>If you have a Linux VPS (Ubuntu/Debian), deploy your own dedicated node for unlimited bandwidth:</p>

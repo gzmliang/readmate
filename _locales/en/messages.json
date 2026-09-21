@@ -107,6 +107,10 @@
     "message": "⚡ Auto Select (Recommended)",
     "description": "Auto select best voice"
   },
+  "optCloudTransAuto": {
+    "message": "Auto match native voice (e.g. Xiaoxiao for Chinese)",
+    "description": "Auto match native voice for translation"
+  },
   "btnTestCloud": {
     "message": "☁️ Test Cloud",
     "description": "Test cloud button"
