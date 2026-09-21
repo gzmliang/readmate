@@ -247,6 +247,7 @@ function createSelectionPlayBtn() {
 }
 
 let currentSelectionRect = null;
+let currentSelectionRange = null;
 
 function showSelectionBtn(x, y, rect = null) {
   currentSelectionRect = rect;
@@ -277,7 +278,9 @@ document.addEventListener('mouseup', (e) => {
       selectionText = txt;
       let rect = null;
       try {
-        rect = sel.getRangeAt(0).getBoundingClientRect();
+        const r = sel.getRangeAt(0);
+        rect = r.getBoundingClientRect();
+        currentSelectionRange = r.cloneRange();
       } catch(err) {}
       showSelectionBtn(e.clientX, e.clientY, rect);
     } else {
@@ -724,6 +727,8 @@ function hideBar() {
   clearHighlights();
   currentSentences = [];
   currentSentenceIndex = 0;
+  currentMode = null;
+  currentSelectionRange = null;
   showFAB();
 }
 
@@ -1897,7 +1902,8 @@ function showSummaryCard(summaryList) {
 }
 
 // ====== 句子高亮算法（基于 Range 精确字元定位 + 原生 CSS Custom Highlight 支持 + 墨阅双层段落体系） ======
-let highlightSpans = [];
+let highlightCreatedSpans = []; // 仅存储由 ReadMate 动态创建的包裹 span 元素 (标有 data-readmate-created)
+let highlightTaggedElements = []; // 仅存储被临时附加了高亮 class 的原生宿主 DOM 节点（只移除 class，绝不解构 DOM）
 let activeHighlightRange = null;
 let activeParagraphEl = null;
 
@@ -1912,15 +1918,28 @@ function clearHighlights() {
       CSS.highlights.delete('readmate-word-highlight');
     } catch(e) {}
   }
-  highlightSpans.forEach(span => {
-    const parent = span.parentNode;
-    if (parent) {
-      while (span.firstChild) parent.insertBefore(span.firstChild, span);
-      parent.removeChild(span);
-      parent.normalize();
-    }
+
+  // 1. 仅移除在宿主原生元素上附加的高亮 class，绝对严禁解构或删除任何原生 DOM 节点
+  highlightTaggedElements.forEach(el => {
+    try {
+      el.classList.remove('readmate-highlight-heading');
+      el.classList.remove('readmate-highlight');
+    } catch(e) {}
   });
-  highlightSpans = [];
+  highlightTaggedElements = [];
+
+  // 2. 仅对由 ReadMate 自己 createElement 生成的包装 span 进行安全解包还原
+  highlightCreatedSpans.forEach(span => {
+    try {
+      const parent = span.parentNode;
+      if (parent && span.dataset?.readmateCreated === 'true') {
+        while (span.firstChild) parent.insertBefore(span.firstChild, span);
+        parent.removeChild(span);
+        parent.normalize();
+      }
+    } catch(e) {}
+  });
+  highlightCreatedSpans = [];
   activeHighlightRange = null;
 
   if (activeParagraphEl) {
@@ -1952,9 +1971,10 @@ function findParagraphContainer(node) {
   return null;
 }
 
-/** 更新当前活跃段落的高亮状态（保持平滑无感过渡） */
+/** 更新当前活跃段落的高亮状态（划词模式下静默保持原样，不干扰原版排版） */
 function updateActiveParagraph(node) {
-  if (settings.highlightParagraphEnabled === false) return;
+  // 划词朗读模式下保持原版网页排版完全纯净无侵入，不添加段落底座
+  if (currentMode === 'selection' || settings.highlightParagraphEnabled === false || !node) return;
   const newPara = findParagraphContainer(node);
   if (activeParagraphEl && activeParagraphEl !== newPara) {
     try { activeParagraphEl.classList.remove('readmate-active-paragraph'); } catch(e) {}
@@ -2030,7 +2050,13 @@ function findSentenceRange(targetText) {
   const root = document.querySelector('article, main, [role="main"], .article, .post, .entry-content') || document.body;
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
-      if (node.parentElement?.closest('#readmate-bar, #readmate-fab-container, #readmate-summary-dialog, script, style, noscript, nav, footer, header')) {
+      const parent = node.parentElement;
+      if (!parent) return NodeFilter.FILTER_REJECT;
+      if (parent.closest('#readmate-bar, #readmate-fab-container, #readmate-summary-dialog, #readmate-dict-bubble, #readmate-vocab-drawer, #readmate-reader-overlay, script, style, noscript, nav, footer')) {
+        return NodeFilter.FILTER_REJECT;
+      }
+      const header = parent.closest('header');
+      if (header && !header.closest('article, main, [role="main"]') && !parent.closest('h1, h2, h3, h4, h5, h6')) {
         return NodeFilter.FILTER_REJECT;
       }
       return NodeFilter.FILTER_ACCEPT;
@@ -2109,23 +2135,45 @@ function highlightSentence(index) {
   const targetText = currentSentences[index].trim();
   if (targetText.length < 2) return;
 
-  // 1. 优先标题匹配
-  const headings = document.querySelectorAll('h1, h2, h3, [class*="headline"], [class*="title"]');
-  for (const h of headings) {
-    if (h.textContent.trim().includes(targetText.substring(0, 20))) {
-      h.classList.add('readmate-highlight-heading');
-      highlightSpans.push(h);
-      updateActiveParagraph(h);
-      h.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
+  let range = null;
+
+  // 1. 划词朗读模式下，优先使用已捕获的用户划选 Range，实现毫秒级精准高亮
+  if (currentMode === 'selection' && currentSelectionRange) {
+    try {
+      const selFullText = currentSelectionRange.toString().replace(/\s+/g, ' ').trim();
+      const cleanTarget = targetText.replace(/\s+/g, ' ').trim();
+      if (selFullText.includes(cleanTarget) || cleanTarget.includes(selFullText) || currentSentences.length === 1) {
+        range = currentSelectionRange.cloneRange();
+      }
+    } catch(e) {}
+  }
+
+  // 2. 原版网页正文深度搜索（优先找到文本 Range）
+  if (!range) {
+    range = findSentenceRange(targetText);
+  }
+
+  // 3. 容错处理：若为标题，构建该标题对应的 Range，绝不强行包裹或解构原生 DOM 元素
+  if (!range) {
+    const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6, [class*="headline"], [class*="title"]');
+    for (const h of headings) {
+      if (h.textContent && h.textContent.trim().includes(targetText.substring(0, Math.min(20, targetText.length)))) {
+        try {
+          range = document.createRange();
+          range.selectNodeContents(h);
+          break;
+        } catch(e) {}
+      }
     }
   }
 
-  // 2. 精确 Range 高亮
-  const range = findSentenceRange(targetText);
   if (range) {
     activeHighlightRange = range;
-    updateActiveParagraph(range.commonAncestorContainer || range.startContainer);
+    if (currentMode !== 'selection') {
+      updateActiveParagraph(range.commonAncestorContainer || range.startContainer);
+    }
+
+    // 核心：优先使用原生 CSS Custom Highlight API（纯虚拟光标渲染，零 DOM 篡改，零排版形变）
     let customHighlightSuccess = false;
     if (window.CSS && CSS.highlights) {
       try {
@@ -2135,18 +2183,20 @@ function highlightSentence(index) {
       } catch(e) {}
     }
 
+    // 仅在低版本不支持 CSS.highlights 的环境下的安全降级
     if (!customHighlightSuccess) {
       try {
         const span = document.createElement('span');
         span.className = 'readmate-highlight';
+        span.dataset.readmateCreated = 'true';
         range.surroundContents(span);
-        highlightSpans.push(span);
+        highlightCreatedSpans.push(span);
       } catch(e) {
         const parent = range.commonAncestorContainer;
         const el = parent.nodeType === Node.ELEMENT_NODE ? parent : parent.parentElement;
         if (el) {
           el.classList.add('readmate-highlight');
-          highlightSpans.push(el);
+          highlightTaggedElements.push(el);
         }
       }
     }
@@ -3330,6 +3380,27 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         updateSummaryDialogI18n();
         updateFloatingBarI18n();
       });
+      sendResponse({ ok: true });
+      break;
+    case 'readSelection':
+    case 'readSelectionShortcut':
+      const sel = window.getSelection();
+      const txt = msg.text || (sel ? sel.toString().trim() : '');
+      if (txt) {
+        currentMode = 'selection';
+        if (sel && sel.rangeCount > 0) {
+          try { currentSelectionRange = sel.getRangeAt(0).cloneRange(); } catch(e) {}
+        }
+        startReading(txt);
+      }
+      sendResponse({ ok: true });
+      break;
+    case 'translateSelection':
+      const selTr = window.getSelection();
+      const txtTr = msg.text || (selTr ? selTr.toString().trim() : '');
+      if (txtTr) {
+        translateAndShow(txtTr, currentSelectionRect);
+      }
       sendResponse({ ok: true });
       break;
     case 'readPage':

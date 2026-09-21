@@ -738,10 +738,9 @@
 /* ====== 墨阅风格双层高亮体系（段落基座 + 句子焦点 + 逐词跟随） ====== */
 .readmate-active-paragraph {
   background-color: rgba(59, 130, 246, 0.07) !important;
-  border-left: 3.5px solid #3b82f6 !important;
+  box-shadow: inset 3.5px 0 0 #3b82f6 !important;
   border-radius: 4px !important;
-  padding-left: 8px !important;
-  transition: all 0.25s ease !important;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease !important;
 }
 
 h1.readmate-active-paragraph,
@@ -750,9 +749,8 @@ h3.readmate-active-paragraph,
 h4.readmate-active-paragraph,
 h5.readmate-active-paragraph,
 h6.readmate-active-paragraph {
-  border-left: 4px solid #38bdf8 !important;
+  box-shadow: inset 4px 0 0 #38bdf8 !important;
   background-color: rgba(56, 189, 248, 0.1) !important;
-  padding-left: 8px !important;
 }
 
 /* ====== 高亮样式 (支持原生 CSS Custom Highlight API + DOM Fallback) ====== */
@@ -783,8 +781,8 @@ h6.readmate-active-paragraph {
 
 .readmate-highlight-heading {
   background-color: rgba(56, 189, 248, 0.25) !important;
-  border-left: 4px solid #38bdf8 !important;
-  padding-left: 6px !important;
+  box-shadow: inset 4px 0 0 #38bdf8 !important;
+  border-radius: 4px !important;
 }
 
 /* ========================================================
