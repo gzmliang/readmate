@@ -30,8 +30,9 @@ const BookImporter = (() => {
     /^\s*(?:Chapter|CHAPTER|Chapitre)\s+[0-9IVXLCivxlc]+/,
     // PART TWO / BOOK I / SECTION 3
     /^\s*(?:PART|Part|BOOK|Book|SECTION|Section)\s+(?:[0-9]+|[IVXLC]+|[A-Za-z]+)\s*$/,
-    // Markdown 标题
-    /^\s*#{1,4}\s*\S/,
+    // Markdown 标题（# 后要有空格；或紧跟中文，如「#天文」）
+    // 注意：不能写成 #{1,4}\s*\S，否则 C 的 #include / #define 会被当成章标题
+    /^\s*#{1,4}(?:\s+\S|[\u3400-\u4dbf\u4e00-\u9fff])/,
     // 中文单行篇名
     /^\s*(?:序|序言|自序|代序|前言|引子|楔子|尾声|终章|后记|跋|附录|番外|外传|目录)\s*$/,
     // 西文单行篇名
@@ -42,6 +43,13 @@ const BookImporter = (() => {
   const SENTENCE_END = /[。！？；…]$/;
   const MID_SENTENCE = /[。！？；，、]/;
 
+  // 章级标题形态（用于「显式 Markdown 标题」直通判定）
+  const CHAPTER_LIKE = [
+    new RegExp('^第\\s*[' + CN_NUM + ']{1,12}\\s*[章回卷節节篇部集話话折]'),
+    /^(?:Chapter|CHAPTER|Chapitre)\s+[0-9IVXLCivxlc]+/,
+    /^(?:PART|Part|BOOK|Book|SECTION|Section)\s+(?:[0-9]+|[IVXLC]+|[A-Za-z]+)\s*$/,
+  ];
+
   function isHeadingLine(line) {
     const raw = line.replace(/\r$/, '');
     const t = raw.trim();
@@ -49,6 +57,13 @@ const BookImporter = (() => {
     // 标题行不会太长（中文标题 30 字以内、西文 80 字符以内）
     if (t.length > 80) return false;
     if (SENTENCE_END.test(t)) return false;
+
+    // 显式 Markdown 章级标题：「# 第五章、MySQL 操作表中数据」这类标题自带「、」「：」，
+    // 会被下面的「正文误判防护」误杀；既然作者已经用 # 标了，就直接认。
+    if (/^\s*#{1,4}\s+\S/.test(t)) {
+      const body = t.replace(/^\s*#{1,4}\s+/, '').trim();
+      if (body && body.length <= 60 && CHAPTER_LIKE.some(function (re) { return re.test(body); })) return true;
+    }
 
     let matched = false;
     for (const re of HEAD_PATTERNS) {

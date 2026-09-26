@@ -136,6 +136,18 @@ const BookPdf = (() => {
     return t;
   }
 
+  // 显式 Markdown 标记（# / ## …）：不少教材 PDF 是从 Markdown 导出的，
+  // 行首会残留「# 第五章、xxx」，那个 # 是标记不是正文，得剥掉。
+  // 要求 # 后跟空格或中文（避免误伤 C 的 #include 这类行）。
+  const MD_MARK_RE = /^\s*#{1,4}(?:\s+|(?=[\u3400-\u4dbf\u4e00-\u9fff]))/;
+  const stripMdMark = function (t) { return MD_MARK_RE.test(t) ? t.replace(MD_MARK_RE, '').trim() : t; };
+  function isMdChapterTitle(t) {
+    if (!MD_MARK_RE.test(t)) return false;
+    const body = t.replace(MD_MARK_RE, '').trim();
+    if (!body || body.length > 60) return false;
+    return BookImporter._internal.isHeadingLine('# ' + body);
+  }
+
   function isCjkChar(ch) { return !!ch && CJK_RE.test(ch); }
 
   // ====== pdf.js 懒加载 ======
@@ -285,7 +297,8 @@ const BookPdf = (() => {
       // 标题判定：① 字号明显大于正文（且不長） ② 命中老引擎的章节标题规则
       // （M1 的 isHeadingLine 已排除「第二章的内容其实还有一句话」这类陷阱行，直接复用）
       const isHeading = (l.h >= bodyH * 1.16 && chars <= 60) ||
-        (chars <= 60 && BookImporter._internal.isHeadingLine(text));
+        (chars <= 60 && BookImporter._internal.isHeadingLine(text)) ||
+        isMdChapterTitle(text);
       // 中文排版惯例：段首缩进 2 个全角空格（缩进是字符，x 坐标看不出来）
       const rawIndent = /^[\u3000\s]{2,}\S/.test(l.text) || /^\u3000/.test(l.text);
 
@@ -307,6 +320,9 @@ const BookPdf = (() => {
         const sentenceBreak = /[.!?:]["'”)]?$/.test(prev.text) && nextStartsUpper;
         brk = gapBreak || (!prevHyphen && (indentBreak || shortBreak || sentenceBreak)) || (isHeading !== buf.isHeading);
       }
+      // 行首带 Markdown 标记的行（教材 PDF 里常见「# 第五章、xxx」）必须自成一段：
+      // 一旦被并进后面的正文长段，章标题就永远认不出来（真书里踩到过）
+      if (MD_MARK_RE.test(text)) brk = true;
       if (brk) flush();
 
       if (!buf) {
@@ -433,9 +449,17 @@ const BookPdf = (() => {
     const blocks = [];
     pages.forEach(function (pg) {
       pg.paragraphs.forEach(function (p) {
-        const text = stripRefs(stripControls(p.text)).replace(/\s{2,}/g, ' ').trim();
+        // 「# 第五章、xxx」这类显式 Markdown 章标题：整行先认出来（剥标记后仍认得）
+        const mdChap = isMdChapterTitle(p.text);
+        const text = stripMdMark(stripRefs(stripControls(p.text)).replace(/\s{2,}/g, ' ').trim());
         if (!text) return;
-        if (p.isHeading) { blocks.push({ text: text, heading: true, page: pg.index }); return; }
+        // 只有「真会被切成章」的标题才加 # 标记：
+        // 不少 PDF 的大号标题并不符合章节名规则（如「1.1 基本语法」），
+        // 一旦加了标记而切章引擎不认，那个 # 就会原样漏进正文（真书里抓到过）。
+        if (p.isHeading && (mdChap || BookImporter._internal.isHeadingLine(text))) {
+          blocks.push({ text: text, heading: true, page: pg.index });
+          return;
+        }
         // 一整页挤成一个段落的 PDF 很常见：按句子炸开，否则排版与翻译队列都会被拖垮
         BookImporter._internal.explodeParagraphs([text]).forEach(function (piece) {
           const t = piece.trim();
@@ -486,6 +510,29 @@ const BookPdf = (() => {
 
     chapters = chapters.filter(function (c) { return c && c.paragraphs && c.paragraphs.length; });
     if (!chapters.length) throw pdfError('PDF_NO_TEXT', String(total));
+
+    // 假标题（例如教材里讲解「# 注释」的示例代码行）会切出不到 200 字的碎章：
+    // 内容顺序不动，把它并到下一个正常章节的开头；真实章标题（第 X 章 / Chapter N）不并。
+    const tidied = [];
+    let carry = [];
+    chapters.forEach(function (c) {
+      const chars = c.charCount || c.paragraphs.join('').replace(/\s+/g, '').length;
+      const realTitle = /^(?:#{1,4}\s*)?(?:第\s*[0-9\u96f6\u3007\u4e00\u4e8c\u4e09\u56db\u4e94\u516d\u4e03\u516b\u4e5d\u5341\u767e\u5343\u4e07\u4e24]{1,12}\s*[\u7ae0\u56de\u5377\u7bc0\u8282\u7bc7\u90e8\u96c6\u8a71\u8bdd\u6298]|Chapter\s+[0-9IVXLCivxlc]+)/.test(String(c.title || ''));
+      if (chars < 200 && !realTitle) { carry = carry.concat(c.paragraphs); return; }
+      const paras = carry.concat(c.paragraphs);
+      carry = [];
+      tidied.push({ title: c.title, auto: c.auto, paragraphs: paras, charCount: paras.join('').replace(/\s+/g, '').length });
+    });
+    if (carry.length) {
+      if (tidied.length) {
+        const last = tidied[tidied.length - 1];
+        last.paragraphs = last.paragraphs.concat(carry);
+        last.charCount = last.paragraphs.join('').replace(/\s+/g, '').length;
+      } else {
+        tidied.push({ title: '', auto: true, paragraphs: carry, charCount: carry.join('').replace(/\s+/g, '').length });
+      }
+    }
+    chapters = tidied;
 
     const metaTitle = String(info.Title || '').replace(/[\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
     const title = (metaTitle && metaTitle.length >= 2 && metaTitle.length <= 120 ? metaTitle : '') ||
