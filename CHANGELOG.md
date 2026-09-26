@@ -57,6 +57,8 @@
 
 **🔒 安全**：全面 HTTPS 加密传输（延续 v1.0.8 合规整改）
 
+**📌 补记（2026-09-26）商店文案整改**：v1.0.9 提审因商店「商品说明」被判 Yellow Argon（关键字垃圾内容）——被点名英文句 `Import txt, Markdown, EPUB and PDF files`。根因：新增的 What's New 段落把 `txt / Markdown / EPUB / PDF` 这串格式关键词重复堆了 9 次，且与下方功能章节重复叙述同一件事。整改：删除整个 What's New 块、删除开头人群词（language learners / researchers / daily readers）、文件格式枚举全篇清零，发布日志改由后台独立的 What's new 字段承载。整改后文案见 `store-assets/store-description.md`（**商店自此只用英文文案**，中文介绍仅保留在个人网站）。
+
 ---
 
 ### v1.0.8 — 2026-09-21

@@ -7,7 +7,7 @@
 | 申报字段 (Field) | 中文填写内容 (Chinese) | 英文填写内容 (English) | 说明 / 限制 |
 | :--- | :--- | :--- | :--- |
 | **扩展名称 (Name)** | ReadMate - 网页朗读与跟读助手 (TTS) | ReadMate: Read Aloud & Text to Speech (TTS) | 优化海外与国内 ASO/SEO 大词，直击 TTS 刚需 |
-| **版本号 (Version)** | `1.0.0` | `1.0.0` | 商店官方正式发布首发版本 |
+| **版本号 (Version)** | `1.0.9` | `1.0.9` | 以 `manifest.json` 的 `version` 为唯一权威（见 `CHANGELOG.md`） |
 | **简短摘要 (Summary)** | 纯净网页双语朗读助手。支持全屏沉浸净读、Edge-TTS高清语音、即时查词与AI深度摘要，读外文新闻轻松跟上。 | Read web articles with natural neural voices, bilingual subtitles, immersive distraction-free mode and AI summaries. | 严格控制在 132 字符以内 |
 | **主要类别 (Category)** | 生产工具 (Productivity) 或 新闻与天气 (News & Weather) | Productivity / Accessibility | 推荐【Productivity】 |
 | **支持语言 (Language)** | 中文 (简体)、英语 (共覆盖 8 种语言) | English, Chinese Simplified, etc. | 自动读取 `_locales` |
@@ -16,55 +16,48 @@
 
 ## 二、详细描述 (Detailed Description)
 
-### 【中文版推荐文案】（可直接复制粘贴到后台）
+### 【商店文案：英文版】（Store Description —— 后台只填这一份）
+
+> 2026-09-26 梁老师拍板：**商店不再使用中文文案**（中文介绍只保留在个人网站）。
+> 英文文案必须守住「零关键词堆砌」红线（Yellow Argon 判罚依据）：
+> 1. 严禁罗列适用人群（language learners / researchers / ESL students …）；
+> 2. 严禁枚举文件格式串（txt / Markdown / EPUB / PDF 这类格式清单）；
+> 3. 严禁把发布日志塞进描述里，与下面的功能章节重复叙述同一件事。
+
 ```markdown
-ReadMate（读伴）是一款为深度阅读者、外语学习者打造的纯净网页朗读与 AI 辅助阅读扩展。
-
-无论您是在阅读外语长篇新闻、技术博客、论文，还是想在做家务、通勤时“听”网页，读伴都能提供如丝般顺滑的声画同步体验。
-
-🌟 核心功能亮点：
-
-1. 📖 墨阅级“沉浸净读模式”（Reader Mode）
-一键滤除网页杂乱广告、侧边栏干扰，以典雅全屏书页（羊皮纸、夜间黑等 6 款护眼底色）呈现正文。支持字号调节、声画双层高亮跟读、一键排版导出纯净 PDF，更支持整篇打包下载为 MP3 有声书！
-
-2. ☁️ 高品质云端与原生语音（TTS）
-内置高质量自然语音支持，支持 Edge-TTS 拟真情感发音，亦可调用浏览器本地原生语音（零延迟）；同时开放通用 OpenAI 兼容语音协议，随心切换。
-
-3. 🌐 双轨对照与自由听读
-支持【仅听原文】、【外文直接读译文】、【双语对照交替朗读】三档模式。在控制条优雅显示双语流动字幕，满足自学外语的精听精读需求。
-
-4. ⚡ 毫秒级极速查词 + AI 核心摘要
-遇到生词鼠标轻触即显音标与权威释义，支持一键加入生词本导出 Markdown；点击摘要按钮，大模型可在数秒内为您提炼全篇 4~6 条中英双语核心要点。
-
-🔒 隐私与品质承诺：
-- 零数据收集：所有阅读设置、生词仅存储在您的浏览器本地。
-- 无广告干扰：纯净独立开发，绝不插入推广内容。
-- 极轻资源占用：纯原生 JavaScript 驱动，秒开不卡顿。
-```
-
-### 【英文版推荐文案】（English Description for Store）
-```markdown
-ReadMate is an elegant, privacy-friendly text-to-speech (TTS) and immersive reading companion designed for language learners, researchers, and daily readers.
+ReadMate is a privacy-friendly text-to-speech (TTS) and immersive reading companion for your browser.
 
 Listen to articles with high-definition neural voices, read along with synchronized word highlighting, or eliminate online distractions with our full-screen Reader Mode.
 
 🌟 Key Features:
 
 1. 📖 Immersive Reader Mode
-Transform cluttered web pages into a clean, book-like reading layout with 6 soothing themes (Vintage Sepia, Dark, E-Ink, etc.). Enjoy sentence-by-sentence read-along highlighting, PDF export, and one-click MP3 audiobook downloads.
+Transform cluttered web pages into a clean, book-like reading layout with soothing themes (Vintage Sepia, Dark, E-Ink, etc.). Enjoy sentence-by-sentence read-along highlighting, PDF export, and one-click MP3 audiobook downloads.
 
-2. ☁️ High-Definition TTS & Neural Voices
+2. 📚 Book Page - Read Your Own Books
+Import your own e-books into a dedicated reading page and read them exactly like web articles: narration, click-to-read, dictionary lookup, bilingual translation and export all work the same way. A small library keeps your books in order and remembers how far you got.
+
+3. ☁️ Natural Voices & Neural TTS
 Supports crystal-clear neural speech with natural pacing and emotion. Choose between local browser voices for zero latency or cloud neural voices for supreme naturalness.
 
-3. 🌐 Bilingual Streaming & Audio Subtitles
+4. 🌐 Bilingual Streaming & Audio Subtitles
 Switch seamlessly between original audio, translated audio, or alternate bilingual playback. Live bilingual floating subtitles keep you on track without losing context.
 
-4. ⚡ Instant Vocabulary & AI Highlights
+5. ⚡ Instant Vocabulary & AI Highlights
 Hover or select words to view instant definitions, phonetic transcriptions, and save them to your personal notebook. Trigger AI summaries to distill thousands of words into bilingual bullet points in seconds.
 
 🔒 Privacy First:
 - Zero Data Collection: Your reading preferences and vocabulary stay strictly in your local browser storage.
-- Ad-Free & Distraction-Free.
+- Offline Parsing: Files you open are processed entirely inside your browser - nothing is ever uploaded to any server.
+- Ad-Free & Distraction-Free: Clean and lightweight experience with no promotional clutter.
+```
+
+### 【What's new 字段】（后台单独的发布说明字段，务必短，不要重复功能列表）
+
+```text
+Book Page: import your own e-books and read them like web articles, with a small library and automatic reading progress.
+Reading now starts from the exact sentence you click, with a quick confirmation bubble before playback.
+The floating ball can be dragged anywhere on the page.
 ```
 
 ---
