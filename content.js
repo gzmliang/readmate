@@ -213,9 +213,9 @@ function loadSettings() {
 function updateSelectionBtnI18n() {
   if (!selectionPlayBtn) return;
   const playBtn = selectionPlayBtn.querySelector('#readmate-sel-play-btn');
-  if (playBtn) playBtn.title = _t('selPlayTip', '朗读选中文字');
+  if (playBtn) playBtn.title = _t('selPlayTip', 'Read Selected Text');
   const transBtn = selectionPlayBtn.querySelector('#readmate-sel-trans-btn');
-  if (transBtn) transBtn.title = _t('selTranslateTip', '翻译选中文字');
+  if (transBtn) transBtn.title = _t('selTranslateTip', 'Translate Selected Text');
 }
 
 // ====== 选中文字悬浮播放按钮 ======
@@ -226,8 +226,8 @@ function createSelectionPlayBtn() {
   selectionPlayBtn = document.createElement('div');
   selectionPlayBtn.id = 'readmate-sel-btn-group';
   selectionPlayBtn.innerHTML = `
-    <button class="readmate-sel-btn readmate-sel-play" id="readmate-sel-play-btn" title="${_t('selPlayTip', '朗读选中文字')}">▶</button>
-    <button class="readmate-sel-btn readmate-sel-translate" id="readmate-sel-trans-btn" title="${_t('selTranslateTip', '翻译选中文字')}">🌐</button>
+    <button class="readmate-sel-btn readmate-sel-play" id="readmate-sel-play-btn" title="${_t('selPlayTip', 'Read Selected Text')}">▶</button>
+    <button class="readmate-sel-btn readmate-sel-translate" id="readmate-sel-trans-btn" title="${_t('selTranslateTip', 'Translate Selected Text')}">🌐</button>
   `;
   document.body.appendChild(selectionPlayBtn);
 
@@ -300,66 +300,66 @@ let suppressNextFabClick = false;
 function updateFABI18n() {
   if (!fabContainer) return;
   const readerBtn = fabContainer.querySelector('#readmate-fab-reader');
-  if (readerBtn) readerBtn.title = _t('btnReaderMode', '📖 沉浸净读模式 (Alt+R / F9)');
+  if (readerBtn) readerBtn.title = _t('btnReaderMode', 'Immersive Reader Mode');
   const summaryBtn = fabContainer.querySelector('#readmate-fab-summary');
-  if (summaryBtn) summaryBtn.title = _t('fabSummaryTip', 'AI 双语摘要');
+  if (summaryBtn) summaryBtn.title = _t('fabSummaryTip', 'AI Bilingual Summary');
   const playBtn = fabContainer.querySelector('#readmate-fab-play');
-  if (playBtn) playBtn.title = _t('fabPlayTip', '朗读当前文章 (Ctrl+Shift+P)');
+  if (playBtn) playBtn.title = _t('fabPlayTip', 'Read Current Article (Ctrl+Shift+P)');
 }
 
 function updateSummaryDialogI18n() {
   if (!summaryDialog) return;
   const titleEl = summaryDialog.querySelector('.readmate-summary-title');
-  if (titleEl) titleEl.textContent = _t('summaryCardTitle', '⚡ AI 双语核心要闻摘要');
+  if (titleEl) titleEl.textContent = _t('summaryCardTitle', '⚡ AI Bilingual Core Summary');
 
   const tabBi = summaryDialog.querySelector('.readmate-summary-tab[data-view="bilingual"]');
   if (tabBi) {
-    tabBi.textContent = _t('summaryTabBilingual', '🔄 双语');
-    tabBi.title = _t('summaryTabBilingualTip', '双语对照模式');
+    tabBi.textContent = _t('summaryTabBilingual', '🔄 Bilingual');
+    tabBi.title = _t('summaryTabBilingualTip', 'Bilingual comparison mode');
   }
   const tabOrig = summaryDialog.querySelector('.readmate-summary-tab[data-view="original"]');
   if (tabOrig) {
-    tabOrig.textContent = _t('summaryTabOriginal', '📄 原文');
-    tabOrig.title = _t('summaryTabOriginalTip', '仅看原文 (纯净沉浸)');
+    tabOrig.textContent = _t('summaryTabOriginal', '📄 Original');
+    tabOrig.title = _t('summaryTabOriginalTip', 'Original text only (Immersive)');
   }
   const tabTrans = summaryDialog.querySelector('.readmate-summary-tab[data-view="translated"]');
   if (tabTrans) {
-    tabTrans.textContent = _t('summaryTabTranslated', '🌐 译文');
-    tabTrans.title = _t('summaryTabTranslatedTip', '仅看译文 (母语速览)');
+    tabTrans.textContent = _t('summaryTabTranslated', '🌐 Translation');
+    tabTrans.title = _t('summaryTabTranslatedTip', 'Translation only (Quick glance)');
   }
 
   const regenBtn = summaryDialog.querySelector('#readmate-summary-regen-btn');
-  if (regenBtn) regenBtn.title = _t('summaryRegenerateTip', '重新生成摘要');
+  if (regenBtn) regenBtn.title = _t('summaryRegenerateTip', 'Regenerate summary');
   const minBtn = summaryDialog.querySelector('#readmate-summary-min-btn');
-  if (minBtn) minBtn.title = _t('summaryMinimizeTip', '最小化');
+  if (minBtn) minBtn.title = _t('summaryMinimizeTip', 'Minimize');
   const closeBtn = summaryDialog.querySelector('#readmate-summary-close-btn');
-  if (closeBtn) closeBtn.title = _t('summaryCloseTip', '关闭 (ESC)');
+  if (closeBtn) closeBtn.title = _t('summaryCloseTip', 'Close (ESC)');
 
   summaryDialog.querySelectorAll('.readmate-summary-play-btn[data-type="orig"]').forEach(btn => {
-    btn.title = _t('readOriginal', '读原文');
+    btn.title = _t('readOriginal', 'Read Original');
   });
   summaryDialog.querySelectorAll('.readmate-summary-play-btn[data-type="trans"]').forEach(btn => {
-    btn.title = _t('readTranslated', '读译文');
+    btn.title = _t('readTranslated', 'Read Translated');
   });
 
   const playBiBtn = summaryDialog.querySelector('#readmate-summary-play-bilingual');
   if (playBiBtn) {
-    playBiBtn.textContent = _t('summaryPlayBilingual', '🔄 连播摘要 (双语)');
-    playBiBtn.title = _t('summaryPlayBilingualTip', '双语交替读摘要');
+    playBiBtn.textContent = _t('summaryPlayBilingual', '🔄 Play Summary (Bilingual)');
+    playBiBtn.title = _t('summaryPlayBilingualTip', 'Play summary in bilingual alternation');
   }
   const playOrigBtn = summaryDialog.querySelector('#readmate-summary-play-orig');
   if (playOrigBtn) {
-    playOrigBtn.textContent = _t('summaryPlayOrig', '🔊 读原文');
-    playOrigBtn.title = _t('summaryPlayOrigTip', '仅读原文摘要');
+    playOrigBtn.textContent = _t('summaryPlayOrig', '🔊 Read Original');
+    playOrigBtn.title = _t('summaryPlayOrigTip', 'Read original summary only');
   }
   const playTransBtn = summaryDialog.querySelector('#readmate-summary-play-trans');
   if (playTransBtn) {
-    playTransBtn.textContent = _t('summaryPlayTrans', '🌐 读译文');
-    playTransBtn.title = _t('summaryPlayTransTip', '直接读译文摘要');
+    playTransBtn.textContent = _t('summaryPlayTrans', '🌐 Read Translation');
+    playTransBtn.title = _t('summaryPlayTransTip', 'Read translated summary only');
   }
   const copyMdBtn = summaryDialog.querySelector('#readmate-summary-copy-md');
   if (copyMdBtn) {
-    copyMdBtn.textContent = _t('copyMarkdown', '📋 复制 Markdown');
+    copyMdBtn.textContent = _t('copyMarkdown', '📋 Copy Markdown');
   }
 }
 
@@ -367,35 +367,35 @@ function updateFloatingBarI18n() {
   if (!floatingBar) return;
   const modeSel = floatingBar.querySelector('#readmate-voice-mode-select');
   if (modeSel) {
-    modeSel.title = _t('lblVoiceMode', '播放模式');
+    modeSel.title = _t('lblVoiceMode', 'Playback Mode');
     const optOrig = modeSel.querySelector('option[value="original"]');
-    if (optOrig) optOrig.textContent = _t('modeOriginal', '🔊 仅读原文');
+    if (optOrig) optOrig.textContent = _t('modeOriginal', '🔊 Original Only (Pure audio)');
     const optTrans = modeSel.querySelector('option[value="translated"]');
-    if (optTrans) optTrans.textContent = _t('modeTranslated', '🌐 直接读译文');
+    if (optTrans) optTrans.textContent = _t('modeTranslated', '🌐 Translated Only (Native broadcast)');
     const optBi = modeSel.querySelector('option[value="bilingual"]');
-    if (optBi) optBi.textContent = _t('modeBilingual', '🔄 双语交替读');
+    if (optBi) optBi.textContent = _t('modeBilingual', '🔄 Bilingual Alternating (Sentence by sentence)');
   }
 
   const prevBtn = floatingBar.querySelector('#readmate-prev-sentence');
-  if (prevBtn) prevBtn.title = _t('btnPrev', '上一句');
+  if (prevBtn) prevBtn.title = _t('btnPrev', 'Previous');
   const playBtn = floatingBar.querySelector('#readmate-play-btn');
-  if (playBtn) playBtn.title = _t('btnPlay', '播放/暂停');
+  if (playBtn) playBtn.title = _t('btnPlay', 'Play/Pause');
   const nextBtn = floatingBar.querySelector('#readmate-next-sentence');
-  if (nextBtn) nextBtn.title = _t('btnNext', '下一句');
+  if (nextBtn) nextBtn.title = _t('btnNext', 'Next');
   const stopBtn = floatingBar.querySelector('#readmate-stop-btn');
-  if (stopBtn) stopBtn.title = _t('btnStop', '停止');
+  if (stopBtn) stopBtn.title = _t('btnStop', '⏹ Stop');
 
   const biLabel = floatingBar.querySelector('#readmate-bilingual-label');
-  if (biLabel) biLabel.title = _t('lblEnableBilingual', '双语翻译 (不勾选省Token)');
+  if (biLabel) biLabel.title = _t('lblEnableBilingual', 'Bilingual translation (saves tokens when off)');
   const biText = floatingBar.querySelector('#readmate-bilingual-text');
-  if (biText) biText.textContent = _t('lblBilingual', '双语');
+  if (biText) biText.textContent = _t('lblBilingual', 'Bilingual');
 
   const summaryBtn = floatingBar.querySelector('#readmate-summary-btn');
-  if (summaryBtn) summaryBtn.title = _t('fabSummaryTip', 'AI 双语摘要');
+  if (summaryBtn) summaryBtn.title = _t('fabSummaryTip', 'AI Bilingual Summary');
   const readerBtn = floatingBar.querySelector('#readmate-bar-reader-btn');
-  if (readerBtn) readerBtn.title = _t('btnReaderMode', '📖 沉浸净读模式 (Alt+R / F9)');
+  if (readerBtn) readerBtn.title = _t('btnReaderMode', 'Immersive Reader Mode');
   const donateBtn = floatingBar.querySelector('#readmate-bar-donate-btn');
-  if (donateBtn) donateBtn.title = _t('btnDonateThumbTip', '支持作者 / 请喝咖啡 ☕');
+  if (donateBtn) donateBtn.title = _t('btnDonateThumbTip', 'Support Author / Buy a coffee ☕');
 }
 
 /** 智能文本语言检测辅助函数 */
@@ -513,9 +513,9 @@ function createFAB() {
   fabContainer = document.createElement('div');
   fabContainer.id = 'readmate-fab-container';
   fabContainer.innerHTML = `
-    <button id="readmate-fab-reader" class="readmate-fab-btn readmate-fab-sub" title="${_t('btnReaderMode', '📖 沉浸净读模式 (Alt+R / F9)')}">📖</button>
-    <button id="readmate-fab-summary" class="readmate-fab-btn readmate-fab-sub" title="${_t('fabSummaryTip', 'AI 双语摘要')}">⚡</button>
-    <button id="readmate-fab-play" class="readmate-fab-btn" title="${_t('fabPlayTip', '朗读当前文章 (Ctrl+Shift+P)')}">▶</button>
+    <button id="readmate-fab-reader" class="readmate-fab-btn readmate-fab-sub" title="${_t('btnReaderMode', 'Immersive Reader Mode')}">📖</button>
+    <button id="readmate-fab-summary" class="readmate-fab-btn readmate-fab-sub" title="${_t('fabSummaryTip', 'AI Bilingual Summary')}">⚡</button>
+    <button id="readmate-fab-play" class="readmate-fab-btn" title="${_t('fabPlayTip', 'Read Current Article (Ctrl+Shift+P)')}">▶</button>
   `;
   document.body.appendChild(fabContainer);
 
@@ -552,7 +552,7 @@ function createFAB() {
     }
 
     if (pageText.trim().length < 20) {
-      showTranslation(_t('toastTextTooShort', '⚠️ 正文过短，无法朗读'), true);
+      showTranslation(_t('toastTextTooShort', '⚠️ Text too short (<50 chars) to read'), true);
       return;
     }
 
@@ -585,32 +585,32 @@ function createFloatingBar() {
     <div class="readmate-bar-main">
       <div class="readmate-bar-left">
         <span class="readmate-progress">0/0</span>
-        <select class="readmate-mode-select" id="readmate-voice-mode-select" title="${_t('lblVoiceMode', '播放模式')}">
-          <option value="original">${_t('modeOriginal', '🔊 仅读原文')}</option>
-          <option value="translated">${_t('modeTranslated', '🌐 直接读译文')}</option>
-          <option value="bilingual">${_t('modeBilingual', '🔄 双语交替读')}</option>
+        <select class="readmate-mode-select" id="readmate-voice-mode-select" title="${_t('lblVoiceMode', 'Playback Mode')}">
+          <option value="original">${_t('modeOriginal', '🔊 Original Only (Pure audio)')}</option>
+          <option value="translated">${_t('modeTranslated', '🌐 Translated Only (Native broadcast)')}</option>
+          <option value="bilingual">${_t('modeBilingual', '🔄 Bilingual Alternating (Sentence by sentence)')}</option>
         </select>
       </div>
 
       <div class="readmate-bar-center">
-        <button class="readmate-btn" id="readmate-prev-sentence" title="${_t('btnPrev', '上一句')}">⏮</button>
-        <button class="readmate-btn readmate-btn-main" id="readmate-play-btn" title="${_t('btnPlay', '播放/暂停')}">⏸</button>
-        <button class="readmate-btn" id="readmate-next-sentence" title="${_t('btnNext', '下一句')}">⏭</button>
-        <button class="readmate-btn readmate-btn-stop" id="readmate-stop-btn" title="${_t('btnStop', '停止')}">⏹</button>
+        <button class="readmate-btn" id="readmate-prev-sentence" title="${_t('btnPrev', 'Previous')}">⏮</button>
+        <button class="readmate-btn readmate-btn-main" id="readmate-play-btn" title="${_t('btnPlay', 'Play/Pause')}">⏸</button>
+        <button class="readmate-btn" id="readmate-next-sentence" title="${_t('btnNext', 'Next')}">⏭</button>
+        <button class="readmate-btn readmate-btn-stop" id="readmate-stop-btn" title="${_t('btnStop', '⏹ Stop')}">⏹</button>
       </div>
 
       <div class="readmate-bar-right" style="display:flex !important; flex-direction:row !important; flex-wrap:nowrap !important; align-items:center !important; gap:6px !important;">
-        <label class="readmate-chk-toggle" id="readmate-bilingual-label" title="${_t('lblEnableBilingual', '双语翻译 (不勾选省Token)')}" style="display:inline-flex !important; flex-direction:row !important; flex-wrap:nowrap !important; align-items:center !important; margin:0 !important; padding:0 2px !important; height:30px !important; vertical-align:middle !important;">
+        <label class="readmate-chk-toggle" id="readmate-bilingual-label" title="${_t('lblEnableBilingual', 'Bilingual translation (saves tokens when off)')}" style="display:inline-flex !important; flex-direction:row !important; flex-wrap:nowrap !important; align-items:center !important; margin:0 !important; padding:0 2px !important; height:30px !important; vertical-align:middle !important;">
           <input type="checkbox" id="readmate-bilingual-chk" ${enableBilingual ? 'checked' : ''} style="margin:0 2px 0 0 !important; vertical-align:middle !important; width:14px !important; height:14px !important;">
-          <span id="readmate-bilingual-text" style="white-space:nowrap !important; word-break:keep-all !important; line-height:1 !important; vertical-align:middle !important;">${_t('lblBilingual', '双语')}</span>
+          <span id="readmate-bilingual-text" style="white-space:nowrap !important; word-break:keep-all !important; line-height:1 !important; vertical-align:middle !important;">${_t('lblBilingual', 'Bilingual')}</span>
         </label>
-        <button class="readmate-btn readmate-btn-reader" id="readmate-bar-reader-btn" title="${_t('btnReaderMode', '📖 沉浸净读模式 (Alt+R / F9)')}" style="display:inline-flex !important; align-items:center !important; justify-content:center !important; margin:0 !important; vertical-align:middle !important;">📖</button>
-        <button class="readmate-btn readmate-btn-donate-thumb" id="readmate-bar-donate-btn" title="${_t('btnDonateThumbTip', '支持作者 / 请喝咖啡 ☕')}">
+        <button class="readmate-btn readmate-btn-reader" id="readmate-bar-reader-btn" title="${_t('btnReaderMode', 'Immersive Reader Mode')}" style="display:inline-flex !important; align-items:center !important; justify-content:center !important; margin:0 !important; vertical-align:middle !important;">📖</button>
+        <button class="readmate-btn readmate-btn-donate-thumb" id="readmate-bar-donate-btn" title="${_t('btnDonateThumbTip', 'Support Author / Buy a coffee ☕')}">
           <svg class="readmate-thumb-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
           </svg>
         </button>
-        <button class="readmate-btn readmate-btn-summary" id="readmate-summary-btn" title="${_t('fabSummaryTip', 'AI 双语摘要')}">⚡</button>
+        <button class="readmate-btn readmate-btn-summary" id="readmate-summary-btn" title="${_t('fabSummaryTip', 'AI Bilingual Summary')}">⚡</button>
         <button class="readmate-btn" id="readmate-debug-btn" title="Debug" style="display:none">🐛</button>
         <button class="readmate-btn readmate-btn-close" id="readmate-close-btn" title="Close">✕</button>
       </div>
@@ -659,7 +659,7 @@ function createFloatingBar() {
       }
       audioPrefetchCache.clear(); // 清空旧模式预读缓存
       chrome.runtime.sendMessage({ action: 'saveSettings', settings: { readVoiceMode } });
-      showTranslation(`${_t('toastModeChanged', '模式已切换: ')}${modeSel.options[modeSel.selectedIndex].text}`, true);
+      showTranslation(`${_t('toastModeChanged', 'Mode changed: ')}${modeSel.options[modeSel.selectedIndex].text}`, true);
       // 如果正在播放，打断当前句，立即用新模式重播当前句
       if (isPlaying && interruptCurrentPlayback) {
         interruptCurrentPlayback();
@@ -673,7 +673,7 @@ function createFloatingBar() {
         enableBilingual = e.target.checked;
         chrome.runtime.sendMessage({ action: 'saveSettings', settings: { enableBilingual } });
         if (enableBilingual) {
-          showTranslation(_t('toastBilingualEnabled', '🌐 已开启双语翻译'), true);
+          showTranslation(_t('toastBilingualEnabled', '🌐 Bilingual translation enabled'), true);
           // 正在播放时，立即在后台异步预取当前句翻译
           if (isPlaying && currentSentences.length > 0) {
             const curOrig = currentSentences[currentSentenceIndex];
@@ -686,7 +686,7 @@ function createFloatingBar() {
             }
           }
         } else {
-          showTranslation(_t('toastBilingualDisabled', '📄 已关闭翻译 (纯原文省Token模式)'), true);
+          showTranslation(_t('toastBilingualDisabled', '📄 Translation disabled (Token saver mode)'), true);
           // 若之前处于仅读译文或双语模式，自动切回仅读原文
           if (readVoiceMode !== 'original') {
             readVoiceMode = 'original';
@@ -749,7 +749,7 @@ function updateSubtitleDisplay(original, translated) {
   const origEl = floatingBar.querySelector('#readmate-sub-original');
   const transEl = floatingBar.querySelector('#readmate-sub-translated');
   if (origEl) origEl.textContent = original || '';
-  if (transEl) transEl.textContent = translated || (original ? _t('translatingText', '正在翻译...') : '');
+  if (transEl) transEl.textContent = translated || (original ? _t('translatingText', 'Translating...') : '');
 }
 
 // ====== 拖拽移动支持（排除交互元素与标签，防止阻止复选框默认点击） ======
@@ -860,11 +860,11 @@ function refreshDebugPanel() {
   const b = document.getElementById('readmate-debug-body');
   const c = document.getElementById('readmate-debug-count');
   if (b) b.innerHTML = DebugLog.getHTML();
-  if (c) c.textContent = _t('debugLogCount', '{count} 条 (点击复制)').replace('{count}', DebugLog.logs.length);
+  if (c) c.textContent = _t('debugLogCount', '{count} entries (click to copy)').replace('{count}', DebugLog.logs.length);
 }
 function copyDebugLogs() {
   DebugLog.copy();
-  showTranslation(_t('toastDebugCopied', '✓ 调试日志已复制'), true);
+  showTranslation(_t('toastDebugCopied', '✓ Debug log copied to clipboard'), true);
 }
 let debugTimer = null;
 function startDebugTimer() { stopDebugTimer(); debugTimer = setInterval(refreshDebugPanel, 600); }
@@ -1650,7 +1650,7 @@ async function playSentencesFlow(sentences, startIndex = 0) {
   updateReaderPlayButton();
   hideBar();
   if (finishedNaturally) {
-    showTranslation(_t('toastArticleFinished', '🎉 当前文章已朗读完毕'), true);
+    showTranslation(_t('toastArticleFinished', '🎉 Article reading finished'), true);
   }
 }
 
@@ -1799,7 +1799,7 @@ async function generateAISummary(forceRefresh = false) {
   const endpoint = settings.aiEndpoint || 'https://api.openai.com/v1';
   const model = settings.aiModel || 'gpt-4o-mini';
 
-  showTranslation(_t('toastGeneratingSummary', '⚡ 正在由 AI 提炼详细双语核心要闻...'), true);
+  showTranslation(_t('toastGeneratingSummary', '⚡ AI is extracting in-depth bilingual summary...'), true);
 
   let pageText = '';
   try {
@@ -1820,7 +1820,7 @@ async function generateAISummary(forceRefresh = false) {
   }, (resp) => {
     if (!resp?.ok || !Array.isArray(resp.summary) || resp.summary.length === 0) {
       closeSummaryDialog();
-      showTranslation(_t('toastSummaryFailed', '❌ 摘要生成失败: ') + (resp?.error || ''), true);
+      showTranslation(_t('toastSummaryFailed', '❌ Summary generation failed, please check AI configuration') + (resp?.error || ''), true);
       return;
     }
     cachedSummaryList = resp.summary;
@@ -1839,17 +1839,17 @@ function showSummaryCard(summaryList) {
     <div class="readmate-summary-mask" id="readmate-summary-mask"></div>
     <div class="readmate-summary-content">
       <div class="readmate-summary-head">
-        <div class="readmate-summary-title">${_t('summaryCardTitle', '⚡ AI 核心要闻摘要')}</div>
+        <div class="readmate-summary-title">${_t('summaryCardTitle', '⚡ AI Bilingual Core Summary')}</div>
         <div class="readmate-summary-head-right">
           <div class="readmate-summary-tabs" id="readmate-summary-tabs">
-            <button class="readmate-summary-tab" data-view="bilingual" title="${_t('summaryTabBilingualTip', '双语对照模式')}">${_t('summaryTabBilingual', '🔄 双语')}</button>
-            <button class="readmate-summary-tab" data-view="original" title="${_t('summaryTabOriginalTip', '仅看原文 (纯净沉浸)')}">${_t('summaryTabOriginal', '📄 原文')}</button>
-            <button class="readmate-summary-tab" data-view="translated" title="${_t('summaryTabTranslatedTip', '仅看译文 (母语速览)')}">${_t('summaryTabTranslated', '🌐 译文')}</button>
+            <button class="readmate-summary-tab" data-view="bilingual" title="${_t('summaryTabBilingualTip', 'Bilingual comparison mode')}">${_t('summaryTabBilingual', '🔄 Bilingual')}</button>
+            <button class="readmate-summary-tab" data-view="original" title="${_t('summaryTabOriginalTip', 'Original text only (Immersive)')}">${_t('summaryTabOriginal', '📄 Original')}</button>
+            <button class="readmate-summary-tab" data-view="translated" title="${_t('summaryTabTranslatedTip', 'Translation only (Quick glance)')}">${_t('summaryTabTranslated', '🌐 Translation')}</button>
           </div>
           <div class="readmate-summary-window-actions">
-            <button class="readmate-summary-action-btn" id="readmate-summary-regen-btn" title="${_t('summaryRegenerateTip', '重新生成摘要')}">🔄</button>
-            <button class="readmate-summary-action-btn" id="readmate-summary-min-btn" title="${_t('summaryMinimizeTip', '最小化')}">一</button>
-            <button class="readmate-summary-action-btn readmate-summary-close" id="readmate-summary-close-btn" title="${_t('summaryCloseTip', '关闭 (ESC)')}">✕</button>
+            <button class="readmate-summary-action-btn" id="readmate-summary-regen-btn" title="${_t('summaryRegenerateTip', 'Regenerate summary')}">🔄</button>
+            <button class="readmate-summary-action-btn" id="readmate-summary-min-btn" title="${_t('summaryMinimizeTip', 'Minimize')}">一</button>
+            <button class="readmate-summary-action-btn readmate-summary-close" id="readmate-summary-close-btn" title="${_t('summaryCloseTip', 'Close (ESC)')}">✕</button>
           </div>
         </div>
       </div>
@@ -1863,8 +1863,8 @@ function showSummaryCard(summaryList) {
               <div class="readmate-summary-trans">${item.translated || ''}</div>
             </div>
             <div class="readmate-summary-item-actions">
-              <button class="readmate-summary-play-btn" data-type="orig" title="${_t('readOriginal', '读原文')}">🗣️</button>
-              <button class="readmate-summary-play-btn" data-type="trans" title="${_t('readTranslated', '读译文')}">🌐</button>
+              <button class="readmate-summary-play-btn" data-type="orig" title="${_t('readOriginal', 'Read Original')}">🗣️</button>
+              <button class="readmate-summary-play-btn" data-type="trans" title="${_t('readTranslated', 'Read Translated')}">🌐</button>
             </div>
           </div>
         `).join('')}
@@ -1872,11 +1872,11 @@ function showSummaryCard(summaryList) {
 
       <div class="readmate-summary-foot">
         <div class="readmate-summary-actions-left">
-          <button class="readmate-btn-primary" id="readmate-summary-play-bilingual" title="${_t('summaryPlayBilingualTip', '双语交替读摘要')}">${_t('summaryPlayBilingual', '🔄 连播摘要 (双语)')}</button>
-          <button class="readmate-btn-ghost" id="readmate-summary-play-orig" title="${_t('summaryPlayOrigTip', '仅读原文摘要')}">${_t('summaryPlayOrig', '🔊 读原文')}</button>
-          <button class="readmate-btn-ghost" id="readmate-summary-play-trans" title="${_t('summaryPlayTransTip', '直接读译文摘要')}">${_t('summaryPlayTrans', '🌐 读译文')}</button>
+          <button class="readmate-btn-primary" id="readmate-summary-play-bilingual" title="${_t('summaryPlayBilingualTip', 'Play summary in bilingual alternation')}">${_t('summaryPlayBilingual', '🔄 Play Summary (Bilingual)')}</button>
+          <button class="readmate-btn-ghost" id="readmate-summary-play-orig" title="${_t('summaryPlayOrigTip', 'Read original summary only')}">${_t('summaryPlayOrig', '🔊 Read Original')}</button>
+          <button class="readmate-btn-ghost" id="readmate-summary-play-trans" title="${_t('summaryPlayTransTip', 'Read translated summary only')}">${_t('summaryPlayTrans', '🌐 Read Translation')}</button>
         </div>
-        <button class="readmate-btn-ghost" id="readmate-summary-copy-md">${_t('copyMarkdown', '📋 复制 Markdown')}</button>
+        <button class="readmate-btn-ghost" id="readmate-summary-copy-md">${_t('copyMarkdown', '📋 Copy Markdown')}</button>
       </div>
     </div>
   `;
@@ -1975,7 +1975,7 @@ function showSummaryCard(summaryList) {
   summaryDialog.querySelector('#readmate-summary-copy-md').onclick = () => {
     const md = `# ${document.title || 'Summary'}\n\n` + summaryList.map((item, i) => `${i + 1}. **${item.original}**\n   *${item.translated}*`).join('\n\n');
     navigator.clipboard?.writeText(md);
-    showTranslation(_t('toastCopied', '✓ 已复制到剪贴板'), true);
+    showTranslation(_t('toastCopied', '✓ Copied to clipboard'), true);
   };
 }
 
@@ -2316,14 +2316,14 @@ function ensureReaderOverlay() {
   readerOverlay.innerHTML = `
     <header class="readmate-reader-header">
       <div class="readmate-reader-header-left">
-        <button id="readmate-reader-close" class="readmate-reader-btn" style="background:rgba(59,130,246,0.12)!important;border-color:rgba(59,130,246,0.3)!important;color:#2563eb!important;" title="${_t('btnExitReader', '返回网页 (ESC)')}">
-          ✕ ${_t('btnExitReader', '返回网页')}
+        <button id="readmate-reader-close" class="readmate-reader-btn" style="background:rgba(59,130,246,0.12)!important;border-color:rgba(59,130,246,0.3)!important;color:#2563eb!important;" title="${_t('btnExitReader', 'Back to Webpage')}">
+          ✕ ${_t('btnExitReader', 'Back to Webpage')}
         </button>
         <!-- 高阶双语研读药丸切换（开启双语时才显示） -->
         <div class="readmate-bilingual-pills" id="readmate-reader-bi-pills" style="display:none;">
-          <button class="readmate-pill active" data-mode="original" id="readmate-pill-orig">${_t('lblViewOriginal', '原文')}</button>
-          <button class="readmate-pill" data-mode="bilingual" id="readmate-pill-bi">${_t('lblViewBilingual', '双语')}</button>
-          <button class="readmate-pill" data-mode="translated" id="readmate-pill-trans">${_t('lblViewTranslated', '译文')}</button>
+          <button class="readmate-pill active" data-mode="original" id="readmate-pill-orig">${_t('lblViewOriginal', 'Original')}</button>
+          <button class="readmate-pill" data-mode="bilingual" id="readmate-pill-bi">${_t('lblViewBilingual', 'Bilingual')}</button>
+          <button class="readmate-pill" data-mode="translated" id="readmate-pill-trans">${_t('lblViewTranslated', 'Translation')}</button>
         </div>
       </div>
       <div class="readmate-reader-header-center">
@@ -2331,35 +2331,35 @@ function ensureReaderOverlay() {
       </div>
       <div class="readmate-reader-header-right">
         <!-- 主题切换 -->
-        <div class="readmate-theme-picker" title="${_t('tipThemePicker', '切换阅读底色')}">
-          <button class="readmate-theme-dot theme-sepia ${readerTheme === 'sepia' ? 'active' : ''}" data-theme="sepia" title="${_t('themeSepia', '复古羊皮纸')}"></button>
-          <button class="readmate-theme-dot theme-light ${readerTheme === 'light' ? 'active' : ''}" data-theme="light" title="${_t('themeLight', '纯净白')}"></button>
-          <button class="readmate-theme-dot theme-green ${readerTheme === 'green' ? 'active' : ''}" data-theme="green" title="${_t('themeGreen', '护眼绿')}"></button>
-          <button class="readmate-theme-dot theme-eink ${readerTheme === 'eink' ? 'active' : ''}" data-theme="eink" title="${_t('themeEink', '水墨灰')}"></button>
-          <button class="readmate-theme-dot theme-midnight ${readerTheme === 'midnight' ? 'active' : ''}" data-theme="midnight" title="${_t('themeMidnight', '深海蓝')}"></button>
-          <button class="readmate-theme-dot theme-dark ${readerTheme === 'dark' ? 'active' : ''}" data-theme="dark" title="${_t('themeDark', '夜间黑')}"></button>
+        <div class="readmate-theme-picker" title="${_t('tipThemePicker', 'Switch reader background theme')}">
+          <button class="readmate-theme-dot theme-sepia ${readerTheme === 'sepia' ? 'active' : ''}" data-theme="sepia" title="${_t('themeSepia', 'Vintage Sepia')}"></button>
+          <button class="readmate-theme-dot theme-light ${readerTheme === 'light' ? 'active' : ''}" data-theme="light" title="${_t('themeLight', 'Pure Light')}"></button>
+          <button class="readmate-theme-dot theme-green ${readerTheme === 'green' ? 'active' : ''}" data-theme="green" title="${_t('themeGreen', 'Gentle Green')}"></button>
+          <button class="readmate-theme-dot theme-eink ${readerTheme === 'eink' ? 'active' : ''}" data-theme="eink" title="${_t('themeEink', 'E-Ink Gray')}"></button>
+          <button class="readmate-theme-dot theme-midnight ${readerTheme === 'midnight' ? 'active' : ''}" data-theme="midnight" title="${_t('themeMidnight', 'Midnight Blue')}"></button>
+          <button class="readmate-theme-dot theme-dark ${readerTheme === 'dark' ? 'active' : ''}" data-theme="dark" title="${_t('themeDark', 'Night Dark')}"></button>
         </div>
         <!-- 字号调节 -->
-        <div class="readmate-font-controls" title="${_t('tipFontSize', '调节正文字号')}">
-          <button id="readmate-font-dec" class="readmate-reader-btn-icon" title="${_t('tipFontDec', '缩小字号')}">A-</button>
+        <div class="readmate-font-controls" title="${_t('tipFontSize', 'Adjust reading font size')}">
+          <button id="readmate-font-dec" class="readmate-reader-btn-icon" title="${_t('tipFontDec', 'Decrease font size')}">A-</button>
           <span id="readmate-font-val">${readerFontSize}</span>
-          <button id="readmate-font-inc" class="readmate-reader-btn-icon" title="${_t('tipFontInc', '放大字号')}">A+</button>
+          <button id="readmate-font-inc" class="readmate-reader-btn-icon" title="${_t('tipFontInc', 'Increase font size')}">A+</button>
         </div>
         <!-- 导出 PDF -->
-        <button id="readmate-reader-print-btn" class="readmate-reader-btn" title="${_t('btnExportPdf', '导出排版 PDF (打印)')}">
+        <button id="readmate-reader-print-btn" class="readmate-reader-btn" title="${_t('btnExportPdf', 'Export PDF')}">
           📄 PDF
         </button>
         <!-- 导出整篇有声书 -->
-        <button id="readmate-reader-download-audio-btn" class="readmate-reader-btn readmate-btn-pdf" title="${_t('btnDownloadAudio', '下载整篇语音 (MP3)')}">
-          📥 ${_t('btnAudio', '下载语音')}
+        <button id="readmate-reader-download-audio-btn" class="readmate-reader-btn readmate-btn-pdf" title="${_t('btnDownloadAudio', 'Download Audio (MP3)')}">
+          📥 ${_t('btnAudio', 'Audio')}
         </button>
         <!-- 生词本 -->
-        <button id="readmate-reader-vocab-btn" class="readmate-reader-btn" title="${_t('btnVocabNotebook', '我的生词本')}">
-          📚 ${_t('btnVocab', '生词本')}
+        <button id="readmate-reader-vocab-btn" class="readmate-reader-btn" title="${_t('btnVocabNotebook', 'Vocab Notebook')}">
+          📚 ${_t('btnVocab', 'Vocab')}
         </button>
         <!-- 请喝咖啡 / 赞助 -->
-        <button id="readmate-reader-donate-btn" class="readmate-reader-btn" style="background:rgba(234,179,8,0.15)!important;border-color:rgba(234,179,8,0.4)!important;color:#facc15!important;" title="${_t('btnDonateTitle', '请梁老师喝杯咖啡 ☕')}">
-          ☕ ${_t('btnDonate', '赞赏')}
+        <button id="readmate-reader-donate-btn" class="readmate-reader-btn" style="background:rgba(234,179,8,0.15)!important;border-color:rgba(234,179,8,0.4)!important;color:#facc15!important;" title="${_t('btnDonateTitle', 'Buy teacher Liang a coffee ☕')}">
+          ☕ ${_t('btnDonate', 'Donate')}
         </button>
       </div>
     </header>
@@ -2373,7 +2373,7 @@ function ensureReaderOverlay() {
         <div class="readmate-reader-action-bar">
           <button id="readmate-reader-play-main" class="readmate-reader-play-btn">
             <span class="readmate-reader-play-icon">▶</span>
-            <span class="readmate-reader-play-text">${_t('btnPlayArticle', '开始朗读全文')}</span>
+            <span class="readmate-reader-play-text">${_t('btnPlayArticle', 'Start Reading Article')}</span>
           </button>
           <span class="readmate-reader-play-progress" id="readmate-reader-play-progress"></span>
         </div>
@@ -2531,13 +2531,13 @@ function updateReaderPlayButton() {
   if (icon && txt) {
     if (isPlaying && !isPaused) {
       icon.textContent = '⏸';
-      txt.textContent = _t('btnPause', '暂停朗读');
+      txt.textContent = _t('btnPause', 'Pause Reading');
     } else if (isPaused) {
       icon.textContent = '▶';
-      txt.textContent = _t('btnResume', '继续朗读');
+      txt.textContent = _t('btnResume', 'Resume');
     } else {
       icon.textContent = '▶';
-      txt.textContent = _t('btnPlayArticle', '开始朗读全文');
+      txt.textContent = _t('btnPlayArticle', 'Start Reading Article');
     }
   }
 }
@@ -2582,18 +2582,18 @@ function renderReaderModeContent() {
   const estMinutes = Math.max(1, Math.round(totalChars / 350));
   const domain = window.location.hostname.replace(/^www\./, '');
 
-  if (statsEl) statsEl.textContent = `${totalChars} ${_t('statChars', '字')} · ${_t('statEst', '约')} ${estMinutes} ${_t('statMins', '分钟')}`;
+  if (statsEl) statsEl.textContent = `${totalChars} ${_t('statChars', 'chars')} · ${_t('statEst', 'approx.')} ${estMinutes} ${_t('statMins', 'min read')}`;
   if (metaEl) {
     metaEl.innerHTML = `
       <span>🌐 ${domain}</span>
-      <span>⏱️ ${_t('statEst', '约')} ${estMinutes} ${_t('statMins', '分钟朗读')}</span>
-      <span>📝 ${allS.length} ${_t('statParas', '个句子')}</span>
+      <span>⏱️ ${_t('statEst', 'approx.')} ${estMinutes} ${_t('statMins', 'min read')}</span>
+      <span>📝 ${allS.length} ${_t('statParas', 'paragraphs')}</span>
     `;
   }
 
   const progEl = readerOverlay.querySelector('#readmate-reader-play-progress');
   if (progEl) {
-    progEl.textContent = _t('readerProgressTip', '共 {count} 句 · 预计朗读 {time} 分钟 · 单击任意句可直接开播')
+    progEl.textContent = _t('readerProgressTip', '{count} sentences · approx. {time} min read · Click any sentence to play')
       .replace('{count}', allS.length)
       .replace('{time}', estMinutes);
   }
@@ -2713,7 +2713,7 @@ async function ensureAllParagraphsTranslated() {
     return;
   }
 
-  showTranslation(_t('toastTranslatingPage', '🌐 正在极速翻译正文...'), false);
+  showTranslation(_t('toastTranslatingPage', '🌐 Translating article in parallel...'), false);
   isTranslatingAllParas = true;
 
   try {
@@ -2731,10 +2731,10 @@ async function ensureAllParagraphsTranslated() {
         transBlock.style.display = '';
       }
     });
-    showTranslation(_t('toastBilingualReady', '✨ 双语翻译已就绪'), true);
+    showTranslation(_t('toastBilingualReady', '✨ Bilingual translation ready'), true);
   } catch(e) {
     DebugLog.add('ensureAllParagraphsTranslated error: ' + e.message);
-    showTranslation(_t('toastTranslateFailed', '❌ 翻译失败，请检查网络或配置'), true);
+    showTranslation(_t('toastTranslateFailed', '❌ Translation failed, please check AI config'), true);
   } finally {
     isTranslatingAllParas = false;
   }
@@ -2788,40 +2788,40 @@ function showPdfExportModal() {
 
   modal.innerHTML = `
     <div class="readmate-pdf-card">
-      <h3>📄 ${_t('modalExportPdfTitle', '导出文章为 PDF')}</h3>
+      <h3>📄 ${_t('modalExportPdfTitle', '📑 Export Article to PDF')}</h3>
       <div class="readmate-pdf-opt-list">
         <label class="readmate-pdf-opt-item ${currentLayout === 'original' ? 'active' : ''}">
           <input type="radio" name="readmate-pdf-choice" value="original" ${currentLayout === 'original' ? 'checked' : ''}>
           <div>
-            <div class="readmate-pdf-opt-title">📄 ${_t('optPdfOriginal', '纯原文 PDF')}</div>
-            <div class="readmate-pdf-opt-desc">${_t('descPdfOriginal', '清爽无广告、排版优雅的纯正文文档')}</div>
+            <div class="readmate-pdf-opt-title">📄 ${_t('optPdfOriginal', 'Clean Original PDF (Distraction-free)')}</div>
+            <div class="readmate-pdf-opt-desc">${_t('descPdfOriginal', 'Clean, advertisement-free article document with elegant typography')}</div>
           </div>
         </label>
         <label class="readmate-pdf-opt-item ${currentLayout === 'stacked' ? 'active' : ''}">
           <input type="radio" name="readmate-pdf-choice" value="stacked" ${currentLayout === 'stacked' ? 'checked' : ''}>
           <div>
-            <div class="readmate-pdf-opt-title">📑 ${_t('optPdfStacked', '双语上下对照')}</div>
-            <div class="readmate-pdf-opt-desc">${_t('descPdfStacked', '原文一段紧跟译文一段，适合手机/iPad竖屏研读')}</div>
+            <div class="readmate-pdf-opt-title">📑 ${_t('optPdfStacked', 'Bilingual - Stacked')}</div>
+            <div class="readmate-pdf-opt-desc">${_t('descPdfStacked', 'Original paragraph followed immediately by translation, ideal for mobile/tablet reading')}</div>
           </div>
         </label>
         <label class="readmate-pdf-opt-item ${currentLayout === 'columns' ? 'active' : ''}">
           <input type="radio" name="readmate-pdf-choice" value="columns" ${currentLayout === 'columns' ? 'checked' : ''}>
           <div>
-            <div class="readmate-pdf-opt-title">📖 ${_t('optPdfColumns', '双语左右双栏对照')}</div>
-            <div class="readmate-pdf-opt-desc">${_t('descPdfColumns', '左栏原文、右栏译文，适合大屏与学术文献精读')}</div>
+            <div class="readmate-pdf-opt-title">📖 ${_t('optPdfColumns', 'Bilingual - Side by Side')}</div>
+            <div class="readmate-pdf-opt-desc">${_t('descPdfColumns', 'Left column original, right column translation, ideal for desktop and academic study')}</div>
           </div>
         </label>
         <label class="readmate-pdf-opt-item ${currentLayout === 'translated' ? 'active' : ''}">
           <input type="radio" name="readmate-pdf-choice" value="translated" ${currentLayout === 'translated' ? 'checked' : ''}>
           <div>
-            <div class="readmate-pdf-opt-title">🌐 ${_t('optPdfTranslated', '纯译文 PDF')}</div>
-            <div class="readmate-pdf-opt-desc">${_t('descPdfTranslated', '仅导出高质量译文，母语流利阅读')}</div>
+            <div class="readmate-pdf-opt-title">🌐 ${_t('optPdfTranslated', 'Translated Only PDF')}</div>
+            <div class="readmate-pdf-opt-desc">${_t('descPdfTranslated', 'Export clean translated article only for rapid native reading')}</div>
           </div>
         </label>
       </div>
       <div class="readmate-pdf-actions">
-        <button class="readmate-pdf-btn-cancel" id="readmate-pdf-cancel">${_t('btnCancel', '取消')}</button>
-        <button class="readmate-pdf-btn-export" id="readmate-pdf-submit">${_t('btnExportPdfAction', '立即导出')}</button>
+        <button class="readmate-pdf-btn-cancel" id="readmate-pdf-cancel">${_t('btnCancel', 'Cancel')}</button>
+        <button class="readmate-pdf-btn-export" id="readmate-pdf-submit">${_t('btnExportPdfAction', 'Export Now')}</button>
       </div>
     </div>
   `;
@@ -2872,7 +2872,7 @@ async function executePrintExport(format = 'original') {
   }
 
   document.body.classList.add('readmate-print-mode');
-  showTranslation(_t('toastPreparingPdf', '📄 正在唤起系统打印/保存为 PDF...'), true);
+  showTranslation(_t('toastPreparingPdf', '📄 Opening print preview for PDF export...'), true);
 
   setTimeout(() => {
     window.print();
@@ -2903,14 +2903,14 @@ let isDownloadingAudio = false;
 
 async function downloadFullAudio() {
   if (isDownloadingAudio) {
-    showTranslation(_t('toastAudioDownloading', '⏳ 正在合成中，请稍候...'), true);
+    showTranslation(_t('toastAudioDownloading', '⏳ Synthesizing audio, please wait...'), true);
     return;
   }
   if (!readerSentences || readerSentences.length === 0) {
     renderReaderModeContent();
   }
   if (!readerSentences || readerSentences.length === 0) {
-    showTranslation(_t('toastNoContentToDownload', '⚠️ 没有可下载的文章内容'), true);
+    showTranslation(_t('toastNoContentToDownload', '⚠️ No article content available to download'), true);
     return;
   }
 
@@ -2923,7 +2923,7 @@ async function downloadFullAudio() {
   const origVoice = getBestVoiceForLang(detectedDocLang, settings.cloudTtsVoiceOrig || settings.cloudTtsVoice) || (detectedDocLang && detectedDocLang.startsWith('ja') ? 'ja-JP-NanamiNeural' : 'zh-CN-XiaoxiaoNeural');
   const speed = settings.ttsSpeed || 1.0;
 
-  const startMsg = _t('toastAudioStart', '📥 开始合成整篇有声书（共 {count} 句）...').replace('{count}', readerSentences.length);
+  const startMsg = _t('toastAudioStart', '📥 Synthesizing audiobook ({count} sentences)...').replace('{count}', readerSentences.length);
   showTranslation(startMsg, true);
 
   const audioBuffers = [];
@@ -2933,7 +2933,7 @@ async function downloadFullAudio() {
       const speech = getSpeechText(sentence);
       if (!speech) continue;
 
-      const progMsg = _t('toastAudioProgress', '📥 正在合成语音 ({current}/{total} 句)...')
+      const progMsg = _t('toastAudioProgress', '📥 Synthesizing audio ({current}/{total} sentences)...')
         .replace('{current}', i + 1)
         .replace('{total}', readerSentences.length);
       showTranslation(progMsg, true);
@@ -2961,7 +2961,7 @@ async function downloadFullAudio() {
 
     const a = document.createElement('a');
     a.href = downloadUrl;
-    a.download = `${cleanTitle}${_t('audioFilenameSuffix', '_有声朗读')}.mp3`;
+    a.download = `${cleanTitle}${_t('audioFilenameSuffix', '_Audiobook')}.mp3`;
     document.body.appendChild(a);
     a.click();
     setTimeout(() => {
@@ -2969,10 +2969,10 @@ async function downloadFullAudio() {
       URL.revokeObjectURL(downloadUrl);
     }, 6000);
 
-    showTranslation(_t('toastAudioSuccess', '🎉 整篇有声书已合成完毕并开始下载！'), true);
+    showTranslation(_t('toastAudioSuccess', '🎉 Audiobook synthesis complete! Download started.'), true);
   } catch(err) {
     DebugLog.add('downloadFullAudio error: ' + err.message);
-    showTranslation(_t('toastAudioFailed', '❌ 语音合成下载失败: ') + err.message, true);
+    showTranslation(_t('toastAudioFailed', '❌ Audiobook synthesis failed: ') + err.message, true);
   } finally {
     isDownloadingAudio = false;
   }
@@ -3018,11 +3018,11 @@ function showDictBubble(word, rect, contextSentence = '') {
         <span class="readmate-dict-phonetic" id="readmate-dict-ph">...</span>
       </div>
       <div class="readmate-dict-actions">
-        <button class="readmate-dict-btn" id="readmate-dict-pron" title="${_t('tipPronounce', '发音')}">🔊</button>
-        <button class="readmate-dict-btn" id="readmate-dict-fav" title="${_t('tipAddToVocab', '收藏到生词本')}">⭐</button>
+        <button class="readmate-dict-btn" id="readmate-dict-pron" title="${_t('tipPronounce', 'Pronounce')}">🔊</button>
+        <button class="readmate-dict-btn" id="readmate-dict-fav" title="${_t('tipAddToVocab', 'Save to Vocab Notebook')}">⭐</button>
       </div>
     </div>
-    <div class="readmate-dict-trans" id="readmate-dict-tr">${_t('dictSearching', '🔍 正在查询释义...')}</div>
+    <div class="readmate-dict-trans" id="readmate-dict-tr">${_t('dictSearching', '🔍 Looking up definition...')}</div>
     ${contextSentence ? `<div class="readmate-dict-context">"${contextSentence.substring(0, 120)}"</div>` : ''}
   `;
 
@@ -3076,7 +3076,7 @@ function showDictBubble(word, rect, contextSentence = '') {
       await saveStoredVocabList(list);
       favBtn.textContent = '⭐';
       favBtn.classList.remove('is-fav');
-      showTranslation(_t('toastVocabRemoved', '已从生词本移除'), true);
+      showTranslation(_t('toastVocabRemoved', 'Removed from Vocab Notebook'), true);
     } else {
       list.unshift({
         word,
@@ -3089,7 +3089,7 @@ function showDictBubble(word, rect, contextSentence = '') {
       await saveStoredVocabList(list);
       favBtn.textContent = '★';
       favBtn.classList.add('is-fav');
-      showTranslation(_t('toastVocabAdded', '⭐ 已收藏到生词本！'), true);
+      showTranslation(_t('toastVocabAdded', '⭐ Added to Vocab Notebook!'), true);
     }
     renderVocabDrawer();
   };
@@ -3100,7 +3100,7 @@ function showDictBubble(word, rect, contextSentence = '') {
     const phEl = dictBubble.querySelector('#readmate-dict-ph');
     const trEl = dictBubble.querySelector('#readmate-dict-tr');
     if (phEl) phEl.textContent = res.phonetic ? `[${res.phonetic}]` : '';
-    if (trEl) trEl.textContent = res.trans || _t('dictNoResult', '暂无释义');
+    if (trEl) trEl.textContent = res.trans || _t('dictNoResult', 'No definition found');
   });
 }
 
@@ -3147,7 +3147,7 @@ async function fetchWordDefinition(word, context) {
     result = {
       word: cleanWord,
       phonetic: result?.phonetic || '',
-      trans: aiTrans || _t('dictNoResult', '暂未查到中文释义'),
+      trans: aiTrans || _t('dictNoResult', 'No definition found'),
     };
   }
 
@@ -3166,14 +3166,14 @@ function ensureVocabDrawer() {
     <div class="readmate-vocab-header">
       <div class="readmate-vocab-title">
         <span>📚</span>
-        <span id="readmate-vocab-count-title">${_t('btnVocabNotebook', '我的生词本')}</span>
+        <span id="readmate-vocab-count-title">${_t('btnVocabNotebook', 'Vocab Notebook')}</span>
       </div>
-      <button class="readmate-dict-btn" id="readmate-vocab-close" title="${_t('tipClose', '关闭')}">✕</button>
+      <button class="readmate-dict-btn" id="readmate-vocab-close" title="${_t('tipClose', 'Close')}">✕</button>
     </div>
     <div class="readmate-vocab-list" id="readmate-vocab-list"></div>
     <div class="readmate-vocab-footer">
-      <button class="readmate-reader-btn" id="readmate-vocab-export">${_t('vocabExportMd', '📋 导出 Markdown')}</button>
-      <button class="readmate-reader-btn" id="readmate-vocab-clear" style="color:#ef4444;">${_t('vocabClearAll', '🗑️ 清空')}</button>
+      <button class="readmate-reader-btn" id="readmate-vocab-export">${_t('vocabExportMd', '📋 Export Markdown')}</button>
+      <button class="readmate-reader-btn" id="readmate-vocab-clear" style="color:#ef4444;">${_t('vocabClearAll', '🗑️ Clear All')}</button>
     </div>
   `;
 
@@ -3184,21 +3184,21 @@ function ensureVocabDrawer() {
   vocabDrawer.querySelector('#readmate-vocab-export').onclick = async () => {
     const list = await getStoredVocabList();
     if (list.length === 0) {
-      showTranslation(_t('toastVocabEmpty', '生词本为空'), true);
+      showTranslation(_t('toastVocabEmpty', 'Vocab notebook is empty'), true);
       return;
     }
-    const mdTitle = _t('btnVocabNotebook', '生词本');
-    const mdTransLbl = _t('modeTranslated', '释义');
+    const mdTitle = _t('btnVocabNotebook', 'Vocab Notebook');
+    const mdTransLbl = _t('modeTranslated', '🌐 Translated Only (Native broadcast)');
     const md = `# ReadMate ${mdTitle} (${list.length})\n\n` + list.map(item => `### ${item.word} ${item.phonetic}\n- **${mdTransLbl}**: ${item.trans}\n${item.context ? `- **Context**: *${item.context}*\n` : ''}`).join('\n');
     navigator.clipboard?.writeText(md);
-    showTranslation(_t('toastVocabExported', '✓ 已导出为 Markdown 并复制到剪贴板！'), true);
+    showTranslation(_t('toastVocabExported', '✓ Exported as Markdown to clipboard!'), true);
   };
 
   vocabDrawer.querySelector('#readmate-vocab-clear').onclick = async () => {
-    if (confirm(_t('confirmClearVocab', '确定要清空生词本中的所有单词吗？'))) {
+    if (confirm(_t('confirmClearVocab', 'Are you sure you want to clear all words in your vocab notebook?'))) {
       await saveStoredVocabList([]);
       renderVocabDrawer();
-      showTranslation(_t('toastVocabCleared', '生词本已清空'), true);
+      showTranslation(_t('toastVocabCleared', 'Vocab notebook cleared'), true);
     }
   };
 
@@ -3211,10 +3211,10 @@ async function renderVocabDrawer() {
   const titleEl = vocabDrawer.querySelector('#readmate-vocab-count-title');
   const container = vocabDrawer.querySelector('#readmate-vocab-list');
 
-  if (titleEl) titleEl.textContent = `${_t('btnVocabNotebook', '我的生词本')} (${list.length})`;
+  if (titleEl) titleEl.textContent = `${_t('btnVocabNotebook', 'Vocab Notebook')} (${list.length})`;
 
   if (list.length === 0) {
-    container.innerHTML = `<div class="readmate-vocab-empty">${_t('vocabEmptyPlaceholder', '📭 暂无收藏的生词<br>在净读模式下双击单词即可一键查词与收藏')}</div>`;
+    container.innerHTML = `<div class="readmate-vocab-empty">${_t('vocabEmptyPlaceholder', '📭 No words in your notebook yet<br>Double-click words in Reader Mode to lookup and star')}</div>`;
     return;
   }
 
@@ -3226,8 +3226,8 @@ async function renderVocabDrawer() {
           ${item.phonetic ? `<span class="readmate-vocab-card-phonetic">${item.phonetic}</span>` : ''}
         </div>
         <div>
-          <button class="readmate-dict-btn btn-vocab-pron" data-word="${item.word}" title="${_t('tipPronounce', '发音')}">🔊</button>
-          <button class="readmate-dict-btn btn-vocab-del" data-idx="${idx}" title="${_t('tipDelete', '删除')}">🗑️</button>
+          <button class="readmate-dict-btn btn-vocab-pron" data-word="${item.word}" title="${_t('tipPronounce', 'Pronounce')}">🔊</button>
+          <button class="readmate-dict-btn btn-vocab-del" data-idx="${idx}" title="${_t('tipDelete', 'Delete')}">🗑️</button>
         </div>
       </div>
       <div class="readmate-vocab-card-trans">${item.trans || ''}</div>
@@ -3320,13 +3320,13 @@ function openDonateModal() {
     <div class="readmate-donate-mask" id="readmate-donate-mask"></div>
     <div class="readmate-donate-card">
       <div class="readmate-donate-header">
-        <div class="readmate-donate-title">☕ ${_t('donateModalTitle', '支持独立开发者梁老师')}</div>
+        <div class="readmate-donate-title">☕ ${_t('donateModalTitle', 'Support Independent Developer Liang')}</div>
         <button class="readmate-dict-btn" id="readmate-donate-close">✕</button>
       </div>
 
       <div class="readmate-donate-tabs">
-        <button class="readmate-donate-tab active" data-tab="intl">🌍 ${_t('donateTabIntl', 'International / 海外')}</button>
-        <button class="readmate-donate-tab" data-tab="cn">🇨🇳 ${_t('donateTabCN', '中国大陆 / 微信支付宝')}</button>
+        <button class="readmate-donate-tab active" data-tab="intl">🌍 ${_t('donateTabIntl', 'International / Ko-fi & PayPal')}</button>
+        <button class="readmate-donate-tab" data-tab="cn">🇨🇳 ${_t('donateTabCN', 'China / WeChat & Alipay')}</button>
       </div>
 
       <div class="readmate-donate-body">
@@ -3346,7 +3346,7 @@ function openDonateModal() {
 
         <!-- 国内通道 -->
         <div class="readmate-donate-panel" id="donate-panel-cn" style="display:none;">
-          <p class="readmate-donate-desc">${_t('donateCNDesc', '感谢您对 ReadMate 的喜爱与认可！您的每一份赞赏与肯定，都是支持持续打磨优化工具的动力。')}</p>
+          <p class="readmate-donate-desc">${_t('donateCNDesc', 'Thank you for your warm support and recognition of ReadMate! Every contribution fuels ongoing improvements and independent maintenance.')}</p>
           <div class="readmate-qr-wrap">
             <img src="${qrImgUrl}" alt="WeChat/Alipay QR" class="readmate-qr-img">
             <span class="readmate-qr-tip">微信 / 支付宝扫码赞赏</span>
@@ -3373,7 +3373,7 @@ function openDonateModal() {
 
   donateModal.querySelector('#btn-copy-paypal').onclick = () => {
     navigator.clipboard?.writeText('gzjliang@gmail.com');
-    showTranslation(_t('toastCopied', '✓ 已复制到剪贴板'), true);
+    showTranslation(_t('toastCopied', '✓ Copied to clipboard'), true);
   };
 }
 document.addEventListener('dblclick', (e) => {
@@ -3772,7 +3772,7 @@ function showTranslation(text, isToast = false, targetRect = null, opts = {}) {
     closeBtn.className = 'readmate-toast-close';
     closeBtn.type = 'button';
     closeBtn.textContent = '✕';
-    closeBtn.title = _t('tipClose', '关闭');
+    closeBtn.title = _t('tipClose', 'Close');
     closeBtn.addEventListener('click', (ev) => {
       ev.stopPropagation();
       ev.preventDefault();
@@ -3828,10 +3828,10 @@ function hideTranslationCard() {
 }
 
 async function translateAndShow(text, targetRect = null) {
-  showTranslation(_t('toastTranslatingSelection', '🌐 正在进行深度 AI 语境翻译...'), true, targetRect);
+  showTranslation(_t('toastTranslatingSelection', '🌐 Translating selection with AI...'), true, targetRect);
   const trans = await fetchTranslation(text);
   if (trans) showTranslation(trans, true, targetRect, { sticky: true, duration: 30000 });
-  else showTranslation(_t('toastTranslateFailed', '❌ 翻译失败，请检查 AI 配置'), true, targetRect);
+  else showTranslation(_t('toastTranslateFailed', '❌ Translation failed, please check AI config'), true, targetRect);
 }
 
 // ====== 初始化监听 ======

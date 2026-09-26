@@ -752,5 +752,25 @@
   "bubbleTranslateTip": {
     "message": "Traducir esta frase",
     "description": "Tooltip: traducir la frase"
+  },
+  "lblEngineOpenAI": {
+    "message": "🎙️ Voz IA",
+    "description": "Opción: voz IA genérica"
+  },
+  "btnCancel": {
+    "message": "Cancelar",
+    "description": "Botón: cancelar"
+  },
+  "optCloudTransAuto": {
+    "message": "Selección automática de la voz nativa",
+    "description": "Voz de traducción en la nube: automático"
+  },
+  "stopBtnTip": {
+    "message": "Detener la lectura (Ctrl+Shift+S)",
+    "description": "Tooltip: botón detener"
+  },
+  "injectBtnTip": {
+    "message": "Volver a detectar / inyectar la extensión",
+    "description": "Tooltip: reinyectar"
   }
 }

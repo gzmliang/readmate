@@ -752,5 +752,25 @@
   "bubbleTranslateTip": {
     "message": "Перевести это предложение",
     "description": "Подсказка: перевести предложение"
+  },
+  "lblEngineOpenAI": {
+    "message": "🎙️ ИИ-голос",
+    "description": "Опция: универсальный ИИ-голос"
+  },
+  "btnCancel": {
+    "message": "Отмена",
+    "description": "Кнопка: отмена"
+  },
+  "optCloudTransAuto": {
+    "message": "Автоматический подбор голоса по языку",
+    "description": "Голос перевода: авто"
+  },
+  "stopBtnTip": {
+    "message": "Остановить чтение (Ctrl+Shift+S)",
+    "description": "Подсказка: кнопка остановки"
+  },
+  "injectBtnTip": {
+    "message": "Повторно проверить / внедрить расширение",
+    "description": "Подсказка: повторное внедрение"
   }
 }

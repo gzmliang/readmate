@@ -752,5 +752,25 @@
   "bubbleTranslateTip": {
     "message": "이 문장 번역",
     "description": "버블: 이 문장 번역"
+  },
+  "lblEngineOpenAI": {
+    "message": "🎙️ AI 음성",
+    "description": "옵션: 범용 AI 음성"
+  },
+  "btnCancel": {
+    "message": "취소",
+    "description": "버튼: 취소"
+  },
+  "optCloudTransAuto": {
+    "message": "모국어 최적 음성 자동 선택 (한국어는 자동)",
+    "description": "클라우드 번역 음성: 모국어 자동 매칭"
+  },
+  "stopBtnTip": {
+    "message": "읽기 중지 (Ctrl+Shift+S)",
+    "description": "툴팁: 중지 버튼"
+  },
+  "injectBtnTip": {
+    "message": "확장 다시 감지/주입",
+    "description": "툴팁: 재주입 버튼"
   }
 }

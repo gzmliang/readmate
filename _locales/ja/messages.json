@@ -802,5 +802,25 @@
   "bubbleTranslateTip": {
     "message": "この文を翻訳",
     "description": "バブル：この文を翻訳"
+  },
+  "lblEngineOpenAI": {
+    "message": "🎙️ AI 音声",
+    "description": "オプション：汎用 AI 音声"
+  },
+  "btnCancel": {
+    "message": "キャンセル",
+    "description": "ボタン：キャンセル"
+  },
+  "optCloudTransAuto": {
+    "message": "母語に最適な音声を自動選択（日本語は Nanami など）",
+    "description": "クラウド翻訳音声：母語自動マッチ"
+  },
+  "stopBtnTip": {
+    "message": "読み上げを停止 (Ctrl+Shift+S)",
+    "description": "ツールチップ：停止ボタン"
+  },
+  "injectBtnTip": {
+    "message": "拡張を再検出／再注入",
+    "description": "ツールチップ：再注入ボタン"
   }
 }

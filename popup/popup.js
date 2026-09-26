@@ -79,10 +79,18 @@ function setText(id, text) {
   if (el) el.textContent = text;
 }
 
+// title / placeholder 这类属性无法用 textContent 替换，必须单独设，否则语言切换后会残留旧语言
+function setAttr(id, attr, text) {
+  const el = document.getElementById(id);
+  if (el) el.setAttribute(attr, text);
+}
+
 function localize() {
   document.title = _('appName');
   setText('readPageBtn', _('btnReadPage'));
   setText('stopBtn', _('btnStop'));
+  setAttr('stopBtn', 'title', _('stopBtnTip'));
+  setAttr('injectBtn', 'title', _('injectBtnTip'));
   setText('lblShortcutTip', _('shortcutTip'));
   setText('lblRefreshTip', _('refreshTip'));
 

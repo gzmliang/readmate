@@ -810,5 +810,21 @@
   "bubbleTranslateTip": {
     "message": "翻译这一句",
     "description": "气泡：译这句"
+  },
+  "lblEngineOpenAI": {
+    "message": "🎙️ 通用 AI 语音",
+    "description": "选项：通用 AI 语音引擎"
+  },
+  "btnCancel": {
+    "message": "取消",
+    "description": "按钮：取消"
+  },
+  "stopBtnTip": {
+    "message": "停止朗读 (Ctrl+Shift+S)",
+    "description": "提示：停止按钮"
+  },
+  "injectBtnTip": {
+    "message": "重新检测/注入插件",
+    "description": "提示：重新注入按钮"
   }
 }

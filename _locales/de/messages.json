@@ -752,5 +752,25 @@
   "bubbleTranslateTip": {
     "message": "Diesen Satz übersetzen",
     "description": "Tooltip: Satz übersetzen"
+  },
+  "lblEngineOpenAI": {
+    "message": "🎙️ KI-Stimme",
+    "description": "Option: generische KI-Stimme"
+  },
+  "btnCancel": {
+    "message": "Abbrechen",
+    "description": "Schaltfläche: Abbrechen"
+  },
+  "optCloudTransAuto": {
+    "message": "Stimme passend zur Muttersprache automatisch wählen",
+    "description": "Cloud-Übersetzungsstimme: automatisch"
+  },
+  "stopBtnTip": {
+    "message": "Vorlesen stoppen (Ctrl+Shift+S)",
+    "description": "Tooltip: Stopp-Schaltfläche"
+  },
+  "injectBtnTip": {
+    "message": "Erweiterung erneut erkennen / injizieren",
+    "description": "Tooltip: Erneut injizieren"
   }
 }

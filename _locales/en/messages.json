@@ -810,5 +810,21 @@
   "bubbleTranslateTip": {
     "message": "Translate this sentence",
     "description": "Tooltip: translate this sentence"
+  },
+  "lblEngineOpenAI": {
+    "message": "🎙️ AI Voice",
+    "description": "Option: generic AI voice engine"
+  },
+  "btnCancel": {
+    "message": "Cancel",
+    "description": "Button: cancel"
+  },
+  "stopBtnTip": {
+    "message": "Stop reading (Ctrl+Shift+S)",
+    "description": "Tooltip: stop button"
+  },
+  "injectBtnTip": {
+    "message": "Re-detect / inject the extension",
+    "description": "Tooltip: re-inject button"
   }
 }
