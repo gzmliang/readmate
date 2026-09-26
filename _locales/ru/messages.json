@@ -772,5 +772,378 @@
   "injectBtnTip": {
     "message": "Повторно проверить / внедрить расширение",
     "description": "Подсказка: повторное внедрение"
+  },
+  "btnOpenReader": {
+    "message": "📚 Мои книги (импорт txt / epub / PDF)"
+  },
+  "lblOpenReaderTip": {
+    "message": "Откройте страницу ReadMate Reader, импортируйте свои файлы и слушайте их тем же движком."
+  },
+  "menuOpenInReader": {
+    "message": "Открыть в ReadMate Reader"
+  },
+  "rdrReaderTitle": {
+    "message": "ReadMate Reader"
+  },
+  "rdrToc": {
+    "message": "Содержание"
+  },
+  "rdrTocTitle": {
+    "message": "Содержание"
+  },
+  "rdrThemeSepia": {
+    "message": "Сепия"
+  },
+  "rdrThemeLight": {
+    "message": "Белый"
+  },
+  "rdrThemeGreen": {
+    "message": "Зелёный для глаз"
+  },
+  "rdrThemeEink": {
+    "message": "Серый для E-Ink"
+  },
+  "rdrThemeMidnight": {
+    "message": "Полуночно-синий"
+  },
+  "rdrThemeDark": {
+    "message": "Ночной чёрный"
+  },
+  "rdrTypo": {
+    "message": "Типографика"
+  },
+  "rdrTypoTitle": {
+    "message": "Типографика"
+  },
+  "rdrBilingual": {
+    "message": "Двуязычный"
+  },
+  "rdrExport": {
+    "message": "Экспорт"
+  },
+  "rdrLibrary": {
+    "message": "Библиотека"
+  },
+  "rdrLandingTitle": {
+    "message": "Читайте свои книги"
+  },
+  "rdrLandingDesc": {
+    "message": "Импортируйте текстовую книгу (txt / md) — ReadMate сверстает её в красивую страницу: те же естественные голоса, подсветка предложений, словарь и двуязычные инструменты теперь для ваших файлов."
+  },
+  "rdrDropHint": {
+    "message": "Перетащите файл .txt / .md сюда (epub и PDF — на следующем шаге)"
+  },
+  "rdrChooseFile": {
+    "message": "Выбрать файл…"
+  },
+  "rdrRecent": {
+    "message": "Продолжить чтение"
+  },
+  "rdrRecentNote": {
+    "message": "Текст книги не сохраняется (ради приватности) — выберите тот же файл снова, чтобы вернуться к последнему месту."
+  },
+  "rdrPrevChapter": {
+    "message": "Назад"
+  },
+  "rdrNextChapter": {
+    "message": "Вперёд"
+  },
+  "rdrFontSize": {
+    "message": "Размер шрифта"
+  },
+  "rdrLineHeight": {
+    "message": "Межстрочный интервал"
+  },
+  "rdrMeasure": {
+    "message": "Ширина строки"
+  },
+  "rdrParaGap": {
+    "message": "Отступ между абзацами"
+  },
+  "rdrIndentLabel": {
+    "message": "Отступ"
+  },
+  "rdrFontLabel": {
+    "message": "Шрифт"
+  },
+  "rdrFontSong": {
+    "message": "С засечками"
+  },
+  "rdrFontHei": {
+    "message": "Без засечек"
+  },
+  "rdrFontKai": {
+    "message": "Кайти"
+  },
+  "rdrFontSans": {
+    "message": "Системный"
+  },
+  "rdrAlignLabel": {
+    "message": "Выравнивание"
+  },
+  "rdrAlignJustify": {
+    "message": "По ширине"
+  },
+  "rdrAlignLeft": {
+    "message": "По левому краю"
+  },
+  "rdrModeLabel": {
+    "message": "Двуязычный"
+  },
+  "rdrModeOriginal": {
+    "message": "Только оригинал"
+  },
+  "rdrModeStacked": {
+    "message": "Друг под другом"
+  },
+  "rdrModeColumns": {
+    "message": "Рядом"
+  },
+  "rdrModeTranslated": {
+    "message": "Только перевод"
+  },
+  "rdrOtherLabel": {
+    "message": "Ещё"
+  },
+  "rdrIndentToggle": {
+    "message": "Отступ первой строки"
+  },
+  "rdrAutoTranslate": {
+    "message": "Автоперевод"
+  },
+  "rdrPrintPreview": {
+    "message": "Предпросмотр печати"
+  },
+  "rdrReset": {
+    "message": "Сброс"
+  },
+  "rdrPanelHint": {
+    "message": "Эти настройки запоминаются. Страница книги и режим чтения используют одну типографику."
+  },
+  "rdrDropAnywhere": {
+    "message": "Отпустите файл, чтобы открыть книгу"
+  },
+  "rdrChars": {
+    "message": "симв."
+  },
+  "rdrCharsUnit": {
+    "message": "{n} симв."
+  },
+  "rdrDelete": {
+    "message": "Удалить"
+  },
+  "rdrRecentMeta": {
+    "message": "{chapter} · {pct}% · {date}"
+  },
+  "rdrChapterNo": {
+    "message": "Глава {n}"
+  },
+  "rdrPickSameFile": {
+    "message": "Выберите тот же файл снова: {name}"
+  },
+  "rdrNoText": {
+    "message": "В этом файле нет текста для чтения"
+  },
+  "rdrResumed": {
+    "message": "Продолжено с главы {n}"
+  },
+  "rdrEncoding": {
+    "message": "Определена кодировка: {enc}"
+  },
+  "rdrFileMismatch": {
+    "message": "Это другой файл — начнём с начала"
+  },
+  "rdrPlanned": {
+    "message": "Поддержка {ext} появится на следующем шаге"
+  },
+  "rdrUnsupported": {
+    "message": "Формат не поддерживается: .{ext}"
+  },
+  "rdrParseFailed": {
+    "message": "Не удалось прочитать этот файл"
+  },
+  "rdrDownloading": {
+    "message": "Загрузка {name}…"
+  },
+  "rdrDownloadFailed": {
+    "message": "Ошибка загрузки"
+  },
+  "rdrSectionNo": {
+    "message": "Раздел {n}"
+  },
+  "rdrFrontMatter": {
+    "message": "Предисловие"
+  },
+  "rdrTranslating": {
+    "message": "Перевод… {done}/{total}"
+  },
+  "rdrTranslateDone": {
+    "message": "Перевод готов"
+  },
+  "rdrTranslateFailed": {
+    "message": "Сервис перевода недоступен"
+  },
+  "rdrTapToTranslate": {
+    "message": "Нажмите 🌐, чтобы перевести эту главу"
+  },
+  "rdrExportTitle": {
+    "message": "Экспорт"
+  },
+  "rdrExportSub": {
+    "message": "Текущая глава: {name}"
+  },
+  "rdrExportChapterPdf": {
+    "message": "Эта глава → PDF"
+  },
+  "rdrExportChapterPdfDesc": {
+    "message": "Открывает печать в текущем двуязычном макете"
+  },
+  "rdrExportBookHtml": {
+    "message": "Вся книга → двуязычный HTML"
+  },
+  "rdrExportBookHtmlDesc": {
+    "message": "Один офлайн-файл с оригиналом и переводом всех глав. Откройте и нажмите Ctrl+P для PDF всей книги."
+  },
+  "rdrCancel": {
+    "message": "Отмена"
+  },
+  "rdrExportGo": {
+    "message": "Экспортировать"
+  },
+  "rdrExportFailed": {
+    "message": "Ошибка экспорта"
+  },
+  "rdrExportProgress": {
+    "message": "{done} / {total} абзацев"
+  },
+  "rdrExportTranslatingBook": {
+    "message": "Перевод всей книги. Можно отменить — готовые главы сохранятся."
+  },
+  "rdrBusy": {
+    "message": "Другой экспорт уже выполняется"
+  },
+  "rdrSaved": {
+    "message": "Сохранено: {name}"
+  },
+  "rdrExportMeta": {
+    "message": "{chapters} глав · {chars} символов"
+  },
+  "rdrStandaloneHint": {
+    "message": "Нажмите Ctrl+P / Cmd+P, чтобы сохранить всю книгу как двуязычный PDF."
+  },
+  "rdrResetDone": {
+    "message": "Типографика сброшена"
+  },
+  "rdrDocTitle": {
+    "message": "ReadMate Reader",
+    "description": "读伴书页"
+  },
+  "rdrChapter": {
+    "message": "Глава {n}",
+    "description": "读伴书页"
+  },
+  "rdrChapterOf": {
+    "message": "Глава {cur} из {total}",
+    "description": "读伴书页"
+  },
+  "rdrUnitChars": {
+    "message": "{n} симв.",
+    "description": "读伴书页"
+  },
+  "rdrUntitled": {
+    "message": "Без названия",
+    "description": "读伴书页"
+  },
+  "rdrReadPct": {
+    "message": "прочитано {n}%",
+    "description": "读伴书页"
+  },
+  "rdrImporting": {
+    "message": "Импорт и вёрстка…",
+    "description": "读伴书页"
+  },
+  "rdrImported": {
+    "message": "Импорт завершён",
+    "description": "读伴书页"
+  },
+  "rdrImportEmpty": {
+    "message": "В файле не найден текст для чтения",
+    "description": "读伴书页"
+  },
+  "rdrImportFailed": {
+    "message": "Не удалось импортировать, попробуйте другой файл",
+    "description": "读伴书页"
+  },
+  "rdrFormatPlanned": {
+    "message": "Поддержка {ext} скоро появится",
+    "description": "读伴书页"
+  },
+  "rdrFormatUnsupported": {
+    "message": "Формат {ext} пока не поддерживается",
+    "description": "读伴书页"
+  },
+  "rdrNeedReimport": {
+    "message": "выберите тот же файл, чтобы продолжить",
+    "description": "读伴书页"
+  },
+  "rdrRemove": {
+    "message": "Удалить из истории",
+    "description": "读伴书页"
+  },
+  "rdrReadTip": {
+    "message": "Нажмите ▶ справа внизу, чтобы прочитать главу вслух",
+    "description": "读伴书页"
+  },
+  "rdrTransProgress": {
+    "message": "Переводим главу ({done}/{total} абзацев)…",
+    "description": "读伴书页"
+  },
+  "rdrTransDone": {
+    "message": "Перевод главы готов",
+    "description": "读伴书页"
+  },
+  "rdrTransFailed": {
+    "message": "Перевод сейчас недоступен, попробуйте позже",
+    "description": "读伴书页"
+  },
+  "rdrExportPdfT": {
+    "message": "Печать / Сохранить в PDF",
+    "description": "读伴书页"
+  },
+  "rdrExportPdfD": {
+    "message": "Создаёт PDF с текущей типографикой и двуязычной вёрсткой (выберите «Сохранить как PDF»)",
+    "description": "读伴书页"
+  },
+  "rdrExportHtmlT": {
+    "message": "Двуязычный HTML (один файл)",
+    "description": "读伴书页"
+  },
+  "rdrExportHtmlD": {
+    "message": "Один офлайн-файл с оригиналом и переводом, открывается где угодно",
+    "description": "读伴书页"
+  },
+  "rdrExportPlainT": {
+    "message": "HTML только оригинал (один файл)",
+    "description": "读伴书页"
+  },
+  "rdrExportPlainD": {
+    "message": "Только оригинал, без сети, мгновенно",
+    "description": "读伴书页"
+  },
+  "rdrExportWorking": {
+    "message": "Подготовка… ({done}/{total})",
+    "description": "读伴书页"
+  },
+  "rdrExportDone": {
+    "message": "Экспортировано: {name}",
+    "description": "读伴书页"
+  },
+  "rdrOpenFirst": {
+    "message": "Сначала импортируйте или откройте книгу",
+    "description": "读伴书页"
+  },
+  "rdrModeTip": {
+    "message": "Двуязычная вёрстка",
+    "description": "读伴书页"
   }
 }

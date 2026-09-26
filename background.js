@@ -59,6 +59,13 @@ function updateContextMenus(lang) {
       title: chrome.i18n.getMessage('menuTranslateSelection') || 'Translate Selection',
       contexts: ['selection'],
     });
+    // 读伴书页：右键一个书稿链接（txt/md/epub/pdf）直接导入阅读
+    chrome.contextMenus.create({
+      id: 'open-in-reader',
+      title: chrome.i18n.getMessage('menuOpenInReader') || 'Open in ReadMate Reader',
+      contexts: ['link'],
+      targetUrlPatterns: ['*://*/*.txt', '*://*/*.md', '*://*/*.markdown', '*://*/*.epub', '*://*/*.pdf', 'file:///*.txt', 'file:///*.epub', 'file:///*.pdf'],
+    });
   });
 }
 
@@ -82,6 +89,13 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     case 'read-page':
       chrome.tabs.sendMessage(tab.id, { action: 'readPage' });
       break;
+    case 'open-in-reader': {
+      const linkUrl = info.linkUrl || '';
+      if (linkUrl) {
+        chrome.tabs.create({ url: chrome.runtime.getURL('reader.html') + '?src=' + encodeURIComponent(linkUrl) });
+      }
+      break;
+    }
     case 'translate-selection':
       chrome.tabs.sendMessage(tab.id, {
         action: 'translateSelection',

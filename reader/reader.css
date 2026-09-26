@@ -1,0 +1,324 @@
+/* ============================================================
+   读伴书页 (ReadMate Reader) — 排版与界面样式
+   · 6 套主题与净读模式同源（sepia / light / green / eink / midnight / dark）
+   · 中文书籍排版：每行 40~45 字的黄金页宽、首行缩进 2 字符、行距 1.9
+   · 所有文案均由 reader.js 走 i18n 注入，本文件不含任何中文界面文案
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  --fs: 19px;          /* 正文字号 */
+  --lh: 1.90;          /* 行距 */
+  --measure: 42;       /* 每行字数（黄金阅读宽度 40~45） */
+  --gap: 1.05;         /* 段间距（em） */
+  --indent: 2;         /* 首行缩进（字符） */
+  --ls: 0.01;          /* 字距 */
+  --align: justify;    /* 对齐 */
+  --font-body: "Songti SC","Source Han Serif SC","Noto Serif CJK SC","SimSun",Georgia,serif;
+  --font-en: Georgia,"Times New Roman",serif;
+  --accent: #3b82f6;
+}
+
+/* ---------- 6 套主题（与净读模式配色完全一致） ---------- */
+html[data-theme="sepia"]    { --bg:#F4ECD8; --fg:#382B22; --dim:#7a6a58; --line:rgba(120,95,70,.22);  --ui:rgba(255,252,246,.90); --hl:rgba(254,240,138,.8);  --panel:rgba(255,253,248,.96); }
+html[data-theme="light"]    { --bg:#FFFFFF; --fg:#1E293B; --dim:#64748b; --line:rgba(0,0,0,.10);      --ui:rgba(255,255,255,.92); --hl:rgba(254,240,138,.75); --panel:rgba(255,255,255,.97); }
+html[data-theme="green"]    { --bg:#CCE8CF; --fg:#1B382B; --dim:#4b6b57; --line:rgba(27,56,43,.18);   --ui:rgba(240,250,242,.92); --hl:rgba(255,246,153,.8);  --panel:rgba(245,252,247,.97); }
+html[data-theme="eink"]     { --bg:#E7E7E7; --fg:#111111; --dim:#5b5b5b; --line:rgba(0,0,0,.14);      --ui:rgba(244,244,244,.94); --hl:#d8d8d8;               --panel:rgba(248,248,248,.98); }
+html[data-theme="midnight"] { --bg:#0F172A; --fg:#E2E8F0; --dim:#93a3ba; --line:rgba(255,255,255,.14);--ui:rgba(23,35,56,.94);    --hl:rgba(234,179,8,.85);   --panel:rgba(20,31,50,.97); }
+html[data-theme="dark"]     { --bg:#121212; --fg:#E5E7EB; --dim:#9aa0a6; --line:rgba(255,255,255,.13);--ui:rgba(28,28,28,.94);    --hl:rgba(234,179,8,.85);   --panel:rgba(26,26,26,.97); }
+
+html, body { margin:0; padding:0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  transition: background-color .25s ease, color .25s ease;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+html[data-theme="sepia"] body {
+  background-image: radial-gradient(rgba(0,0,0,.035) 1px, transparent 0), radial-gradient(rgba(0,0,0,.018) 1px, transparent 0);
+  background-size: 24px 24px, 48px 48px;
+  background-position: 0 0, 12px 12px;
+}
+
+/* ---------- 顶部阅读进度细线 ---------- */
+#rdr-progress { position:fixed; top:0; left:0; height:3px; width:100%; background:transparent; z-index:60; pointer-events:none; }
+#rdr-progress i { display:block; height:100%; width:0; background:linear-gradient(90deg,#60a5fa,#3b82f6); transition:width .15s linear; }
+
+/* ---------- 顶部工具条 ---------- */
+#rdr-topbar {
+  position:sticky; top:0; z-index:50;
+  display:flex; align-items:center; gap:10px;
+  padding:9px 18px; min-height:54px;
+  background:var(--ui); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+  font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:14px;
+}
+#rdr-topbar .rdr-bookname { font-weight:600; opacity:.95; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:30ch; }
+#rdr-topbar .rdr-chapnow { color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:26ch; }
+#rdr-topbar .rdr-spacer { flex:1; }
+
+.rdr-btn {
+  border:1px solid var(--line); background:transparent; color:inherit;
+  border-radius:999px; padding:6px 13px; font-size:13.5px; cursor:pointer;
+  font-family:inherit; transition:background .18s, transform .18s;
+  white-space:nowrap; flex:none;
+}
+.rdr-btn:hover { background:rgba(127,127,127,.12); }
+.rdr-btn.on { background:rgba(59,130,246,.14); border-color:rgba(59,130,246,.4); color:var(--accent); }
+.rdr-btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+.rdr-btn.primary:hover { background:#2563eb; }
+.rdr-btn:disabled { opacity:.45; cursor:not-allowed; }
+
+.rdr-dots { display:flex; gap:7px; align-items:center; flex:none; }
+.rdr-dot { width:20px; height:20px; border-radius:50%; cursor:pointer; border:2px solid rgba(0,0,0,.18); transition:transform .18s; }
+.rdr-dot:hover { transform:scale(1.14); }
+.rdr-dot.active { border-color:var(--accent); box-shadow:0 0 0 3px rgba(59,130,246,.22); }
+.d-sepia{background:#F4ECD8} .d-light{background:#fff} .d-green{background:#CCE8CF}
+.d-eink{background:#E7E7E7} .d-midnight{background:#0F172A} .d-dark{background:#121212}
+
+/* ---------- 目录抽屉 ---------- */
+#rdr-toc {
+  position:fixed; top:0; left:0; bottom:0; width:320px; max-width:86vw; z-index:70;
+  background:var(--panel); backdrop-filter:blur(14px);
+  border-right:1px solid var(--line);
+  transform:translateX(-102%); transition:transform .28s cubic-bezier(.4,0,.2,1);
+  overflow-y:auto; padding:26px 20px 60px;
+  font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+#rdr-toc.open { transform:none; }
+#rdr-toc h4 { margin:0 0 16px; font-size:13px; letter-spacing:.16em; color:var(--dim); text-transform:uppercase; }
+#rdr-toc a { display:block; padding:9px 10px; border-radius:8px; color:inherit; text-decoration:none; font-size:14.5px; line-height:1.5; }
+#rdr-toc a:hover { background:rgba(127,127,127,.14); }
+#rdr-toc a.cur { background:rgba(59,130,246,.14); color:var(--accent); }
+#rdr-toc a .n { color:var(--dim); font-size:12px; margin-right:8px; }
+
+/* ---------- 书库（首页） ---------- */
+.rdr-view[hidden] { display:none !important; }
+#rdr-library {
+  min-height:calc(100vh - 54px);
+  display:flex; align-items:flex-start; justify-content:center;
+  padding:48px 20px 80px;
+  font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+#rdr-library .rdr-hero { width:100%; max-width:660px; text-align:center; }
+#rdr-library .rdr-logo { font-size:44px; line-height:1; margin-bottom:14px; }
+#rdr-library h1 { font-size:25px; margin:0 0 10px; letter-spacing:.01em; }
+#rdr-library .rdr-lead { color:var(--dim); font-size:14.5px; line-height:1.9; margin:0 auto 28px; max-width:52ch; }
+
+.rdr-dropzone {
+  border:2px dashed var(--line); border-radius:18px; padding:30px 22px 26px;
+  transition:background .2s, border-color .2s; background:rgba(127,127,127,.04);
+}
+.rdr-dropzone.hot { border-color:var(--accent); background:rgba(59,130,246,.1); }
+.rdr-dropzone .rdr-dropicon { font-size:30px; margin-bottom:8px; }
+.rdr-dropzone .rdr-droptext { color:var(--dim); font-size:13.5px; margin-bottom:16px; line-height:1.8; }
+
+.rdr-recent { margin-top:34px; text-align:left; }
+.rdr-recent h4 { font-size:12.5px; letter-spacing:.14em; color:var(--dim); text-transform:uppercase; margin:0 0 12px; }
+.rdr-recent-item {
+  display:flex; align-items:center; gap:12px; padding:11px 13px; border:1px solid var(--line);
+  border-radius:12px; margin-bottom:9px; cursor:pointer; transition:background .18s, border-color .18s;
+}
+.rdr-recent-item:hover { background:rgba(127,127,127,.1); border-color:rgba(59,130,246,.35); }
+.rdr-recent-item .rdr-ri-icon { font-size:19px; flex:none; }
+.rdr-recent-item .rdr-ri-main { flex:1; min-width:0; }
+.rdr-recent-item .rdr-ri-title { font-size:14.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rdr-recent-item .rdr-ri-meta { font-size:12px; color:var(--dim); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rdr-recent-item .rdr-ri-del { flex:none; opacity:.5; font-size:14px; padding:4px 7px; border-radius:8px; }
+.rdr-recent-item .rdr-ri-del:hover { opacity:1; background:rgba(239,68,68,.14); }
+.rdr-hint { color:var(--dim); font-size:12px; line-height:1.8; margin-top:6px; }
+
+/* ---------- 书页主体 ---------- */
+#rdr-stage {
+  max-width: calc(var(--fs) * var(--measure));
+  margin:0 auto;
+  padding: 44px 24px 180px;
+  font-size: var(--fs);
+  line-height: var(--lh);
+  letter-spacing: var(--ls);
+}
+.rdr-chaphead { text-align:center; }
+.rdr-chnum {
+  font-size:.74em; letter-spacing:.44em; color:var(--dim); margin-bottom:12px;
+  font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+  text-indent:.44em;
+}
+.rdr-ornament { text-align:center; color:var(--accent); opacity:.45; letter-spacing:.9em; margin:0 0 34px; font-size:.8em; }
+
+#rdr-body {
+  font-size: var(--fs);
+  line-height: var(--lh);
+  letter-spacing: var(--ls);
+  text-align: var(--align);
+}
+#rdr-body h1 {
+  text-align:center; font-size:1.62em; font-weight:700; letter-spacing:.06em;
+  margin:.4em 0 1.9em; line-height:1.35;
+}
+#rdr-body p { margin:0 0 calc(var(--gap) * 1em); }
+#rdr-body.rdr-indent p { text-indent: calc(var(--indent) * 1em); }
+#rdr-body p.rdr-en { text-indent:0 !important; font-family:var(--font-en); text-align:left; }
+
+/* 段落基座（朗读中的段落） — 覆盖净读通用样式，跟随主题 */
+#rdr-body p.readmate-active-paragraph {
+  background-color: rgba(59,130,246,.10) !important;
+  box-shadow: inset 3.5px 0 0 var(--accent) !important;
+  border-radius:4px !important;
+}
+html[data-theme="midnight"] #rdr-body p.readmate-active-paragraph,
+html[data-theme="dark"] #rdr-body p.readmate-active-paragraph { background-color: rgba(96,165,250,.16) !important; }
+::highlight(readmate-highlight) { background-color: rgba(254,240,138,.62); color: inherit; }
+
+/* ---------- 双语呈现 ---------- */
+.rdr-pair { margin:0 0 calc(var(--gap) * 1em); }
+.rdr-pair p { margin:0; }
+.rdr-pair p.rdr-tgt {
+  color:var(--dim); font-size:.9em; line-height:1.75;
+  border-left:2px solid rgba(59,130,246,.42); padding-left:12px; margin-top:.5em;
+  font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+  text-indent:0;
+}
+.rdr-pair p.rdr-tgt.rdr-pending { opacity:.45; font-style:italic; }
+html[data-mode="original"] .rdr-pair p.rdr-tgt { display:none; }
+html[data-mode="translated"] .rdr-pair p.rdr-orig { display:none; }
+html[data-mode="translated"] .rdr-pair p.rdr-tgt {
+  color:inherit; font-size:1em; border-left:0; padding-left:0; margin-top:0; line-height:inherit;
+  font-family:var(--font-body);
+}
+/* 源语言==目标语言：没有对照的必要，只显示原文 */
+html[data-mode="stacked"] .rdr-pair.rdr-same p.rdr-tgt,
+html[data-mode="columns"] .rdr-pair.rdr-same p.rdr-tgt { display:none; }
+html[data-mode="translated"] .rdr-pair.rdr-same p.rdr-orig { display:block; }
+html[data-mode="columns"] .rdr-pair { display:grid; grid-template-columns:1fr 1fr; gap:1.6em; align-items:start; }
+/* 导出 / 打印里的章节分隔标题 */
+#rdr-body h2.rdr-chap-sep {
+  text-align:center; font-size:1.28em; font-weight:700; letter-spacing:.04em;
+  margin:2.4em 0 1.4em; padding-top:.2em; break-before:page;
+}
+#rdr-body h2.rdr-chap-sep:first-of-type { break-before:auto; }
+html[data-mode="columns"] .rdr-pair p.rdr-tgt { margin-top:0; }
+@media (max-width:780px) {
+  html[data-mode="columns"] .rdr-pair { grid-template-columns:1fr; gap:.2em; }
+}
+
+/* ---------- 章节底部导航 ---------- */
+.rdr-chapnav {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  margin-top:64px; padding-top:26px; border-top:1px solid var(--line);
+  font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:13.5px;
+}
+.rdr-chapnav .rdr-navpos { color:var(--dim); font-size:12.5px; }
+
+/* ---------- 排版设置面板 ---------- */
+#rdr-panel {
+  position:fixed; right:18px; bottom:96px; width:322px; max-width:92vw; z-index:65;
+  background:var(--panel); backdrop-filter:blur(14px);
+  border:1px solid var(--line); border-radius:16px;
+  box-shadow:0 16px 44px rgba(0,0,0,.2);
+  padding:16px 18px 18px; display:none;
+  font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:13.5px; max-height:74vh; overflow-y:auto;
+}
+#rdr-panel.open { display:block; }
+#rdr-panel h5 { margin:0 0 12px; font-size:12px; letter-spacing:.16em; color:var(--dim); text-transform:uppercase; }
+#rdr-panel .rdr-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+#rdr-panel .rdr-row > label { width:64px; color:var(--dim); flex:none; }
+#rdr-panel .rdr-row input[type=range] { flex:1; accent-color:#3b82f6; min-width:0; }
+#rdr-panel .rdr-row .rdr-val { width:50px; text-align:right; font-variant-numeric:tabular-nums; color:var(--dim); }
+#rdr-panel .rdr-seg { display:flex; flex-wrap:wrap; gap:6px; }
+#rdr-panel .rdr-seg button {
+  border:1px solid var(--line); background:transparent; color:inherit; cursor:pointer;
+  border-radius:8px; padding:5px 9px; font-size:12.5px; font-family:inherit;
+}
+#rdr-panel .rdr-seg button.on { background:rgba(59,130,246,.15); border-color:rgba(59,130,246,.42); color:var(--accent); }
+#rdr-panel hr { border:0; border-top:1px solid var(--line); margin:13px 0; }
+#rdr-panel .rdr-hint { color:var(--dim); font-size:11.5px; line-height:1.75; }
+
+/* ---------- 弹窗（导出 / 进度） ---------- */
+#rdr-modal {
+  position:fixed; inset:0; z-index:90; display:flex; align-items:center; justify-content:center;
+  background:rgba(15,23,42,.45); backdrop-filter:blur(3px);
+  font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+  padding:20px;
+}
+#rdr-modal[hidden] { display:none !important; }
+#rdr-modal .rdr-card {
+  background:var(--panel); color:var(--fg); border:1px solid var(--line); border-radius:18px;
+  box-shadow:0 24px 60px rgba(0,0,0,.32); padding:22px 22px 18px; width:100%; max-width:460px;
+}
+#rdr-modal .rdr-card h3 { margin:0 0 6px; font-size:17px; }
+#rdr-modal .rdr-card .rdr-cardsub { color:var(--dim); font-size:13px; line-height:1.8; margin:0 0 16px; }
+#rdr-modal .rdr-opt {
+  display:flex; gap:12px; align-items:flex-start; padding:12px 13px; border:1px solid var(--line);
+  border-radius:12px; margin-bottom:10px; cursor:pointer; transition:background .18s, border-color .18s;
+}
+#rdr-modal .rdr-opt:hover { background:rgba(127,127,127,.1); }
+#rdr-modal .rdr-opt.on { border-color:rgba(59,130,246,.5); background:rgba(59,130,246,.1); }
+#rdr-modal .rdr-opt .rdr-opt-t { font-size:14px; font-weight:600; margin-bottom:3px; }
+#rdr-modal .rdr-opt .rdr-opt-d { font-size:12px; color:var(--dim); line-height:1.7; }
+#rdr-modal .rdr-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:16px; }
+#rdr-modal .rdr-bar { height:8px; border-radius:999px; background:rgba(127,127,127,.22); overflow:hidden; margin:14px 0 6px; }
+#rdr-modal .rdr-bar i { display:block; height:100%; width:0; background:linear-gradient(90deg,#60a5fa,#3b82f6); transition:width .2s; }
+#rdr-modal .rdr-progtext { font-size:12.5px; color:var(--dim); }
+
+/* ---------- 全屏拖放提示 ---------- */
+#rdr-drop-overlay {
+  position:fixed; inset:0; z-index:95; display:flex; align-items:center; justify-content:center;
+  background:rgba(59,130,246,.14); border:3px dashed var(--accent);
+  font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:19px; color:var(--accent); font-weight:600; pointer-events:none;
+}
+#rdr-drop-overlay[hidden] { display:none !important; }
+
+/* ---------- 轻提示 ---------- */
+#rdr-toast {
+  position:fixed; left:50%; bottom:112px; transform:translateX(-50%) translateY(8px);
+  background:rgba(30,30,30,.93); color:#fff; padding:9px 16px; border-radius:999px;
+  font-size:13px; opacity:0; transition:opacity .25s, transform .25s; pointer-events:none; z-index:98;
+  font-family:-apple-system,"Segoe UI",Roboto,sans-serif; max-width:86vw; text-align:center; line-height:1.6;
+}
+#rdr-toast.on { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ---------- 书库视图：隐藏朗读悬浮球与书页专属控件 ---------- */
+html[data-view="library"] #readmate-fab-container,
+html[data-view="library"] #readmate-bar { display:none !important; }
+html[data-view="library"] #rdr-progress,
+html[data-view="library"] #rdr-toc-btn,
+html[data-view="library"] #rdr-panel-btn,
+html[data-view="library"] #rdr-bilingual-btn,
+html[data-view="library"] #rdr-export-btn,
+html[data-view="library"] #rdr-book-name,
+html[data-view="library"] #rdr-chap-now,
+html[data-view="library"] .rdr-dots { display:none !important; }
+html[data-view="library"] #rdr-library-btn { margin-left:auto; }
+
+/* ---------- 窄屏适配 ---------- */
+@media (max-width:720px) {
+  #rdr-topbar { padding:8px 10px; gap:7px; }
+  #rdr-topbar .rdr-bookname { display:none; }
+  #rdr-topbar .rdr-chapnow { font-size:12.5px; max-width:14ch; }
+  #rdr-topbar .rdr-btn { padding:6px 9px; font-size:12.5px; }
+  #rdr-topbar .rdr-btn .rdr-lbl { display:none; }
+  .rdr-dots { gap:5px; }
+  .rdr-dot { width:16px; height:16px; }
+  #rdr-stage { padding:28px 16px 170px; }
+  #rdr-panel { right:8px; left:8px; width:auto; bottom:84px; }
+  #rdr-library { padding:28px 14px 60px; }
+  #rdr-library h1 { font-size:21px; }
+}
+
+/* ---------- 打印（直接 Ctrl+P 或导出本章 PDF） ---------- */
+@media print {
+  #rdr-topbar, #rdr-toc, #rdr-panel, #rdr-progress, #rdr-toast, #rdr-modal, #rdr-drop-overlay { display:none !important; }
+  #rdr-stage { max-width:none; padding:0; font-size:12.5pt; line-height:1.75; }
+  html[data-mode="original"] .rdr-pair p.rdr-tgt { display:none !important; }
+  html[data-mode="translated"] .rdr-pair p.rdr-orig { display:none !important; }
+  body { background:#fff !important; color:#000 !important; }
+  .rdr-pair { break-inside:avoid; page-break-inside:avoid; }
+  #rdr-body p { orphans:2; widows:2; }
+}

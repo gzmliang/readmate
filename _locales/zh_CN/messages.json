@@ -826,5 +826,378 @@
   "injectBtnTip": {
     "message": "重新检测/注入插件",
     "description": "提示：重新注入按钮"
+  },
+  "btnOpenReader": {
+    "message": "📚 我的书库（导入 txt / epub / PDF）"
+  },
+  "lblOpenReaderTip": {
+    "message": "打开「读伴书页」，导入您自己的文件，用同一套朗读引擎听读。"
+  },
+  "menuOpenInReader": {
+    "message": "用读伴书页打开"
+  },
+  "rdrReaderTitle": {
+    "message": "读伴书页"
+  },
+  "rdrToc": {
+    "message": "目录"
+  },
+  "rdrTocTitle": {
+    "message": "目录"
+  },
+  "rdrThemeSepia": {
+    "message": "米黄书卷"
+  },
+  "rdrThemeLight": {
+    "message": "纯白"
+  },
+  "rdrThemeGreen": {
+    "message": "护眼绿"
+  },
+  "rdrThemeEink": {
+    "message": "墨水屏灰"
+  },
+  "rdrThemeMidnight": {
+    "message": "午夜蓝"
+  },
+  "rdrThemeDark": {
+    "message": "夜间黑"
+  },
+  "rdrTypo": {
+    "message": "排版"
+  },
+  "rdrTypoTitle": {
+    "message": "排版设置"
+  },
+  "rdrBilingual": {
+    "message": "双语"
+  },
+  "rdrExport": {
+    "message": "导出"
+  },
+  "rdrLibrary": {
+    "message": "书库"
+  },
+  "rdrLandingTitle": {
+    "message": "读您自己的书"
+  },
+  "rdrLandingDesc": {
+    "message": "导入一份纯文本（txt / md），读伴就把它排成一张精美的书页：同样的自然音色、逐句高亮、划词词典与双语研读工具，全部用在您自己的文件上。"
+  },
+  "rdrDropHint": {
+    "message": "把 .txt / .md 文件拖到这里（epub 与 PDF 下一步支持）"
+  },
+  "rdrChooseFile": {
+    "message": "选择文件…"
+  },
+  "rdrRecent": {
+    "message": "继续阅读"
+  },
+  "rdrRecentNote": {
+    "message": "出于隐私考虑，书稿本身不保存 —— 重新选一次同一个文件，就会自动跳回您上次停下的位置。"
+  },
+  "rdrPrevChapter": {
+    "message": "上一章"
+  },
+  "rdrNextChapter": {
+    "message": "下一章"
+  },
+  "rdrFontSize": {
+    "message": "字号"
+  },
+  "rdrLineHeight": {
+    "message": "行距"
+  },
+  "rdrMeasure": {
+    "message": "页宽（每行字数）"
+  },
+  "rdrParaGap": {
+    "message": "段距"
+  },
+  "rdrIndentLabel": {
+    "message": "缩进"
+  },
+  "rdrFontLabel": {
+    "message": "字体"
+  },
+  "rdrFontSong": {
+    "message": "宋体"
+  },
+  "rdrFontHei": {
+    "message": "黑体"
+  },
+  "rdrFontKai": {
+    "message": "楷体"
+  },
+  "rdrFontSans": {
+    "message": "无衬线"
+  },
+  "rdrAlignLabel": {
+    "message": "对齐"
+  },
+  "rdrAlignJustify": {
+    "message": "两端对齐"
+  },
+  "rdrAlignLeft": {
+    "message": "左对齐"
+  },
+  "rdrModeLabel": {
+    "message": "双语"
+  },
+  "rdrModeOriginal": {
+    "message": "仅原文"
+  },
+  "rdrModeStacked": {
+    "message": "上下对照"
+  },
+  "rdrModeColumns": {
+    "message": "左右对照"
+  },
+  "rdrModeTranslated": {
+    "message": "仅译文"
+  },
+  "rdrOtherLabel": {
+    "message": "其他"
+  },
+  "rdrIndentToggle": {
+    "message": "首行缩进"
+  },
+  "rdrAutoTranslate": {
+    "message": "自动翻译本章"
+  },
+  "rdrPrintPreview": {
+    "message": "打印预览"
+  },
+  "rdrReset": {
+    "message": "恢复默认"
+  },
+  "rdrPanelHint": {
+    "message": "这里的设置会记住；书页与网页净读共用同一套排版偏好。"
+  },
+  "rdrDropAnywhere": {
+    "message": "松手即可打开这本书"
+  },
+  "rdrChars": {
+    "message": "字"
+  },
+  "rdrCharsUnit": {
+    "message": "{n} 字"
+  },
+  "rdrDelete": {
+    "message": "移除记录"
+  },
+  "rdrRecentMeta": {
+    "message": "{chapter} · 已读 {pct}% · {date}"
+  },
+  "rdrChapterNo": {
+    "message": "第 {n} 章"
+  },
+  "rdrPickSameFile": {
+    "message": "请再选一次同一个文件：{name}"
+  },
+  "rdrNoText": {
+    "message": "这个文件里没有可朗读的正文"
+  },
+  "rdrResumed": {
+    "message": "已跳回第 {n} 章"
+  },
+  "rdrEncoding": {
+    "message": "已识别文件编码：{enc}"
+  },
+  "rdrFileMismatch": {
+    "message": "这不是同一个文件，将从开头开始读"
+  },
+  "rdrPlanned": {
+    "message": "{ext} 将在下一步支持"
+  },
+  "rdrUnsupported": {
+    "message": "暂不支持这种格式：.{ext}"
+  },
+  "rdrParseFailed": {
+    "message": "这个文件读不出来"
+  },
+  "rdrDownloading": {
+    "message": "正在下载 {name}…"
+  },
+  "rdrDownloadFailed": {
+    "message": "下载失败"
+  },
+  "rdrSectionNo": {
+    "message": "第 {n} 节"
+  },
+  "rdrFrontMatter": {
+    "message": "卷首"
+  },
+  "rdrTranslating": {
+    "message": "正在翻译… {done}/{total}"
+  },
+  "rdrTranslateDone": {
+    "message": "翻译完成"
+  },
+  "rdrTranslateFailed": {
+    "message": "翻译服务暂时用不了"
+  },
+  "rdrTapToTranslate": {
+    "message": "点上面的 🌐 按钮翻译本章"
+  },
+  "rdrExportTitle": {
+    "message": "导出"
+  },
+  "rdrExportSub": {
+    "message": "当前章节：{name}"
+  },
+  "rdrExportChapterPdf": {
+    "message": "本章导出 PDF"
+  },
+  "rdrExportChapterPdfDesc": {
+    "message": "按当前的双语版式打开打印对话框（存为 PDF）"
+  },
+  "rdrExportBookHtml": {
+    "message": "整本导出双语 HTML"
+  },
+  "rdrExportBookHtmlDesc": {
+    "message": "一个离线单文件，全书每一章都带原文与译文。打开它按 Ctrl+P 就能存成整本 PDF。"
+  },
+  "rdrCancel": {
+    "message": "取消"
+  },
+  "rdrExportGo": {
+    "message": "开始导出"
+  },
+  "rdrExportFailed": {
+    "message": "导出失败"
+  },
+  "rdrExportProgress": {
+    "message": "{done} / {total} 段"
+  },
+  "rdrExportTranslatingBook": {
+    "message": "正在翻译整本书。可以随时取消，已翻好的章节会保留。"
+  },
+  "rdrBusy": {
+    "message": "已有一个导出任务在跑"
+  },
+  "rdrSaved": {
+    "message": "已保存：{name}"
+  },
+  "rdrExportMeta": {
+    "message": "{chapters} 章 · {chars} 字"
+  },
+  "rdrStandaloneHint": {
+    "message": "按 Ctrl+P（Mac 为 Cmd+P）即可把整本书存成双语 PDF。"
+  },
+  "rdrResetDone": {
+    "message": "排版已恢复默认"
+  },
+  "rdrDocTitle": {
+    "message": "读伴书页",
+    "description": "读伴书页"
+  },
+  "rdrChapter": {
+    "message": "第 {n} 章",
+    "description": "读伴书页"
+  },
+  "rdrChapterOf": {
+    "message": "第 {cur} / {total} 章",
+    "description": "读伴书页"
+  },
+  "rdrUnitChars": {
+    "message": "{n} 字",
+    "description": "读伴书页"
+  },
+  "rdrUntitled": {
+    "message": "未命名文稿",
+    "description": "读伴书页"
+  },
+  "rdrReadPct": {
+    "message": "已读 {n}%",
+    "description": "读伴书页"
+  },
+  "rdrImporting": {
+    "message": "正在导入并排版…",
+    "description": "读伴书页"
+  },
+  "rdrImported": {
+    "message": "导入成功",
+    "description": "读伴书页"
+  },
+  "rdrImportEmpty": {
+    "message": "这个文件里没有找到可朗读的正文",
+    "description": "读伴书页"
+  },
+  "rdrImportFailed": {
+    "message": "导入失败，请换一个文件试试",
+    "description": "读伴书页"
+  },
+  "rdrFormatPlanned": {
+    "message": "{ext} 格式还在路上，敬请期待",
+    "description": "读伴书页"
+  },
+  "rdrFormatUnsupported": {
+    "message": "暂不支持 {ext} 格式",
+    "description": "读伴书页"
+  },
+  "rdrNeedReimport": {
+    "message": "重新选择同一个文件即可接着读",
+    "description": "读伴书页"
+  },
+  "rdrRemove": {
+    "message": "从记录里移除",
+    "description": "读伴书页"
+  },
+  "rdrReadTip": {
+    "message": "点右下角 ▶ 圆球即可开口朗读本章",
+    "description": "读伴书页"
+  },
+  "rdrTransProgress": {
+    "message": "正在翻译本章（{done}/{total} 段）…",
+    "description": "读伴书页"
+  },
+  "rdrTransDone": {
+    "message": "本章译文已就绪",
+    "description": "读伴书页"
+  },
+  "rdrTransFailed": {
+    "message": "翻译暂时不可用，稍后可再试",
+    "description": "读伴书页"
+  },
+  "rdrExportPdfT": {
+    "message": "打印 / 存为 PDF",
+    "description": "读伴书页"
+  },
+  "rdrExportPdfD": {
+    "message": "按当前字体、页宽与双语版式出 PDF（在弹出的打印窗口里选「另存为 PDF」）",
+    "description": "读伴书页"
+  },
+  "rdrExportHtmlT": {
+    "message": "双语 HTML 单文件",
+    "description": "读伴书页"
+  },
+  "rdrExportHtmlD": {
+    "message": "一个文件装下原文与译文，离线可读，手机电脑都能打开",
+    "description": "读伴书页"
+  },
+  "rdrExportPlainT": {
+    "message": "原文 HTML 单文件",
+    "description": "读伴书页"
+  },
+  "rdrExportPlainD": {
+    "message": "只带原文，不联网，秒出",
+    "description": "读伴书页"
+  },
+  "rdrExportWorking": {
+    "message": "正在准备…（{done}/{total}）",
+    "description": "读伴书页"
+  },
+  "rdrExportDone": {
+    "message": "已导出：{name}",
+    "description": "读伴书页"
+  },
+  "rdrOpenFirst": {
+    "message": "请先导入或打开一本书",
+    "description": "读伴书页"
+  },
+  "rdrModeTip": {
+    "message": "双语版式",
+    "description": "读伴书页"
   }
 }

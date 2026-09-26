@@ -93,6 +93,8 @@ function localize() {
   setAttr('injectBtn', 'title', _('injectBtnTip'));
   setText('lblShortcutTip', _('shortcutTip'));
   setText('lblRefreshTip', _('refreshTip'));
+  setText('openReaderBtn', _('btnOpenReader'));
+  setText('lblOpenReaderTip', _('lblOpenReaderTip'));
 
   setText('lblSectionVoiceStream', _('sectionVoiceStream'));
   setText('lblVoiceMode', _('lblVoiceMode'));
@@ -324,6 +326,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   document.getElementById('readPageBtn').addEventListener('click', readCurrentPage);
+  document.getElementById('openReaderBtn').addEventListener('click', () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('reader.html') });
+    window.close();
+  });
   document.getElementById('stopBtn')?.addEventListener('click', stopAllReading);
   document.getElementById('injectBtn').addEventListener('click', async () => {
     if (!currentTabId) return;

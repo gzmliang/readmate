@@ -822,5 +822,378 @@
   "injectBtnTip": {
     "message": "拡張を再検出／再注入",
     "description": "ツールチップ：再注入ボタン"
+  },
+  "btnOpenReader": {
+    "message": "📚 マイ本棚（txt / epub / PDF を取り込む）"
+  },
+  "lblOpenReaderTip": {
+    "message": "「ReadMate リーダーページ」を開き、自分のファイルを取り込んで同じ読み上げエンジンで聴けます。"
+  },
+  "menuOpenInReader": {
+    "message": "ReadMate リーダーで開く"
+  },
+  "rdrReaderTitle": {
+    "message": "ReadMate リーダー"
+  },
+  "rdrToc": {
+    "message": "目次"
+  },
+  "rdrTocTitle": {
+    "message": "目次"
+  },
+  "rdrThemeSepia": {
+    "message": "セピア"
+  },
+  "rdrThemeLight": {
+    "message": "ホワイト"
+  },
+  "rdrThemeGreen": {
+    "message": "アイケアグリーン"
+  },
+  "rdrThemeEink": {
+    "message": "電子ペーパーグレー"
+  },
+  "rdrThemeMidnight": {
+    "message": "ミッドナイトブルー"
+  },
+  "rdrThemeDark": {
+    "message": "ナイトブラック"
+  },
+  "rdrTypo": {
+    "message": "組版"
+  },
+  "rdrTypoTitle": {
+    "message": "組版設定"
+  },
+  "rdrBilingual": {
+    "message": "バイリンガル"
+  },
+  "rdrExport": {
+    "message": "書き出し"
+  },
+  "rdrLibrary": {
+    "message": "本棚"
+  },
+  "rdrLandingTitle": {
+    "message": "自分の本を読む"
+  },
+  "rdrLandingDesc": {
+    "message": "テキスト（txt / md）を取り込むと、ReadMate が美しいページに組版します。同じ自然な音声、文単位のハイライト、辞書、バイリンガル学習ツールが自分のファイルで使えます。"
+  },
+  "rdrDropHint": {
+    "message": "ここに .txt / .md ファイルをドロップ（epub と PDF は次のステップ）"
+  },
+  "rdrChooseFile": {
+    "message": "ファイルを選択…"
+  },
+  "rdrRecent": {
+    "message": "続きを読む"
+  },
+  "rdrRecentNote": {
+    "message": "プライバシーのため本文は保存しません。同じファイルをもう一度選ぶと、前回の位置に戻ります。"
+  },
+  "rdrPrevChapter": {
+    "message": "前へ"
+  },
+  "rdrNextChapter": {
+    "message": "次へ"
+  },
+  "rdrFontSize": {
+    "message": "文字サイズ"
+  },
+  "rdrLineHeight": {
+    "message": "行間"
+  },
+  "rdrMeasure": {
+    "message": "行幅（1行の文字数）"
+  },
+  "rdrParaGap": {
+    "message": "段落間隔"
+  },
+  "rdrIndentLabel": {
+    "message": "インデント"
+  },
+  "rdrFontLabel": {
+    "message": "書体"
+  },
+  "rdrFontSong": {
+    "message": "明朝体"
+  },
+  "rdrFontHei": {
+    "message": "ゴシック体"
+  },
+  "rdrFontKai": {
+    "message": "楷書体"
+  },
+  "rdrFontSans": {
+    "message": "システム"
+  },
+  "rdrAlignLabel": {
+    "message": "揃え"
+  },
+  "rdrAlignJustify": {
+    "message": "両端揃え"
+  },
+  "rdrAlignLeft": {
+    "message": "左揃え"
+  },
+  "rdrModeLabel": {
+    "message": "バイリンガル"
+  },
+  "rdrModeOriginal": {
+    "message": "原文のみ"
+  },
+  "rdrModeStacked": {
+    "message": "上下対照"
+  },
+  "rdrModeColumns": {
+    "message": "左右対照"
+  },
+  "rdrModeTranslated": {
+    "message": "訳文のみ"
+  },
+  "rdrOtherLabel": {
+    "message": "その他"
+  },
+  "rdrIndentToggle": {
+    "message": "1行目の字下げ"
+  },
+  "rdrAutoTranslate": {
+    "message": "自動翻訳"
+  },
+  "rdrPrintPreview": {
+    "message": "印刷プレビュー"
+  },
+  "rdrReset": {
+    "message": "リセット"
+  },
+  "rdrPanelHint": {
+    "message": "この設定は保存されます。ブックページと没入リーダーモードは同じ組版設定を共有します。"
+  },
+  "rdrDropAnywhere": {
+    "message": "本のファイルをドロップして開く"
+  },
+  "rdrChars": {
+    "message": "文字"
+  },
+  "rdrCharsUnit": {
+    "message": "{n} 文字"
+  },
+  "rdrDelete": {
+    "message": "記録を削除"
+  },
+  "rdrRecentMeta": {
+    "message": "{chapter} · {pct}% · {date}"
+  },
+  "rdrChapterNo": {
+    "message": "第 {n} 章"
+  },
+  "rdrPickSameFile": {
+    "message": "同じファイルをもう一度選択してください：{name}"
+  },
+  "rdrNoText": {
+    "message": "このファイルには読み上げられる本文がありません"
+  },
+  "rdrResumed": {
+    "message": "第 {n} 章から再開"
+  },
+  "rdrEncoding": {
+    "message": "文字コードを判別しました：{enc}"
+  },
+  "rdrFileMismatch": {
+    "message": "別のファイルです — 最初から始めます"
+  },
+  "rdrPlanned": {
+    "message": "{ext} は次のステップで対応します"
+  },
+  "rdrUnsupported": {
+    "message": "未対応の形式です：.{ext}"
+  },
+  "rdrParseFailed": {
+    "message": "このファイルを読み込めませんでした"
+  },
+  "rdrDownloading": {
+    "message": "{name} をダウンロード中…"
+  },
+  "rdrDownloadFailed": {
+    "message": "ダウンロードに失敗しました"
+  },
+  "rdrSectionNo": {
+    "message": "第 {n} 節"
+  },
+  "rdrFrontMatter": {
+    "message": "巻頭"
+  },
+  "rdrTranslating": {
+    "message": "翻訳中… {done}/{total}"
+  },
+  "rdrTranslateDone": {
+    "message": "翻訳が完了しました"
+  },
+  "rdrTranslateFailed": {
+    "message": "翻訳サービスを利用できません"
+  },
+  "rdrTapToTranslate": {
+    "message": "上部の 🌐 ボタンでこの章を翻訳します"
+  },
+  "rdrExportTitle": {
+    "message": "書き出し"
+  },
+  "rdrExportSub": {
+    "message": "現在の章：{name}"
+  },
+  "rdrExportChapterPdf": {
+    "message": "この章を PDF に"
+  },
+  "rdrExportChapterPdfDesc": {
+    "message": "現在のバイリンガル組版で印刷ダイアログを開きます"
+  },
+  "rdrExportBookHtml": {
+    "message": "全书をバイリンガル HTML に"
+  },
+  "rdrExportBookHtmlDesc": {
+    "message": "全章の原文＋訳文を1つのオフラインファイルに。開いて Ctrl+P で本全体の PDF になります。"
+  },
+  "rdrCancel": {
+    "message": "キャンセル"
+  },
+  "rdrExportGo": {
+    "message": "書き出す"
+  },
+  "rdrExportFailed": {
+    "message": "書き出しに失敗しました"
+  },
+  "rdrExportProgress": {
+    "message": "{done} / {total} 段落"
+  },
+  "rdrExportTranslatingBook": {
+    "message": "本全体を翻訳しています。途中で中止できます（完了した章は保持されます）。"
+  },
+  "rdrBusy": {
+    "message": "別の書き出しを実行中です"
+  },
+  "rdrSaved": {
+    "message": "保存しました：{name}"
+  },
+  "rdrExportMeta": {
+    "message": "{chapters} 章 · {chars} 文字"
+  },
+  "rdrStandaloneHint": {
+    "message": "Ctrl+P（Mac は Cmd+P）で本全体をバイリンガル PDF として保存できます。"
+  },
+  "rdrResetDone": {
+    "message": "組版を初期値に戻しました"
+  },
+  "rdrDocTitle": {
+    "message": "ReadMate リーダー",
+    "description": "读伴书页"
+  },
+  "rdrChapter": {
+    "message": "第 {n} 章",
+    "description": "读伴书页"
+  },
+  "rdrChapterOf": {
+    "message": "第 {cur} / {total} 章",
+    "description": "读伴书页"
+  },
+  "rdrUnitChars": {
+    "message": "{n} 字",
+    "description": "读伴书页"
+  },
+  "rdrUntitled": {
+    "message": "無題",
+    "description": "读伴书页"
+  },
+  "rdrReadPct": {
+    "message": "{n}% 読了",
+    "description": "读伴书页"
+  },
+  "rdrImporting": {
+    "message": "読み込みと組版中…",
+    "description": "读伴书页"
+  },
+  "rdrImported": {
+    "message": "読み込み完了",
+    "description": "读伴书页"
+  },
+  "rdrImportEmpty": {
+    "message": "読み上げ可能な本文が見つかりません",
+    "description": "读伴书页"
+  },
+  "rdrImportFailed": {
+    "message": "読み込みに失敗しました。別のファイルをお試しください",
+    "description": "读伴书页"
+  },
+  "rdrFormatPlanned": {
+    "message": "{ext} は近日対応予定です",
+    "description": "读伴书页"
+  },
+  "rdrFormatUnsupported": {
+    "message": "{ext} 形式は未対応です",
+    "description": "读伴书页"
+  },
+  "rdrNeedReimport": {
+    "message": "同じファイルを選ぶと続きから読めます",
+    "description": "读伴书页"
+  },
+  "rdrRemove": {
+    "message": "履歴から削除",
+    "description": "读伴书页"
+  },
+  "rdrReadTip": {
+    "message": "右下の ▶ を押すと本章を読み上げます",
+    "description": "读伴书页"
+  },
+  "rdrTransProgress": {
+    "message": "本章を翻訳中（{done}/{total} 段落）…",
+    "description": "读伴书页"
+  },
+  "rdrTransDone": {
+    "message": "本章の訳文ができました",
+    "description": "读伴书页"
+  },
+  "rdrTransFailed": {
+    "message": "翻訳サービスに接続できません。しばらくして再試行してください",
+    "description": "读伴书页"
+  },
+  "rdrExportPdfT": {
+    "message": "印刷 / PDF 保存",
+    "description": "读伴书页"
+  },
+  "rdrExportPdfD": {
+    "message": "現在の書体・一行字数・対訳レイアウトで PDF を作ります（印刷画面で「PDF に保存」を選択）",
+    "description": "读伴书页"
+  },
+  "rdrExportHtmlT": {
+    "message": "対訳 HTML（1ファイル）",
+    "description": "读伴书页"
+  },
+  "rdrExportHtmlD": {
+    "message": "原文と訳文を 1 ファイルに。オフラインで読め、スマホでも PC でも開けます",
+    "description": "读伴书页"
+  },
+  "rdrExportPlainT": {
+    "message": "原文 HTML（1ファイル）",
+    "description": "读伴书页"
+  },
+  "rdrExportPlainD": {
+    "message": "原文のみ。通信不要で即時に書き出します",
+    "description": "读伴书页"
+  },
+  "rdrExportWorking": {
+    "message": "準備中…（{done}/{total}）",
+    "description": "读伴书页"
+  },
+  "rdrExportDone": {
+    "message": "書き出しました：{name}",
+    "description": "读伴书页"
+  },
+  "rdrOpenFirst": {
+    "message": "先に本を読み込んでください",
+    "description": "读伴书页"
+  },
+  "rdrModeTip": {
+    "message": "対訳レイアウト",
+    "description": "读伴书页"
   }
 }

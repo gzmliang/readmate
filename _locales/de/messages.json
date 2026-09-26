@@ -772,5 +772,378 @@
   "injectBtnTip": {
     "message": "Erweiterung erneut erkennen / injizieren",
     "description": "Tooltip: Erneut injizieren"
+  },
+  "btnOpenReader": {
+    "message": "📚 Meine Bücher (txt / epub / PDF importieren)"
+  },
+  "lblOpenReaderTip": {
+    "message": "Öffne die ReadMate-Reader-Seite, importiere eigene Dateien und lass sie mit derselben Engine vorlesen."
+  },
+  "menuOpenInReader": {
+    "message": "In ReadMate Reader öffnen"
+  },
+  "rdrReaderTitle": {
+    "message": "ReadMate Reader"
+  },
+  "rdrToc": {
+    "message": "Inhalt"
+  },
+  "rdrTocTitle": {
+    "message": "Inhalt"
+  },
+  "rdrThemeSepia": {
+    "message": "Sepia"
+  },
+  "rdrThemeLight": {
+    "message": "Weiß"
+  },
+  "rdrThemeGreen": {
+    "message": "Augengrün"
+  },
+  "rdrThemeEink": {
+    "message": "E-Ink-Grau"
+  },
+  "rdrThemeMidnight": {
+    "message": "Mitternachtsblau"
+  },
+  "rdrThemeDark": {
+    "message": "Nachtsschwarz"
+  },
+  "rdrTypo": {
+    "message": "Typografie"
+  },
+  "rdrTypoTitle": {
+    "message": "Typografie"
+  },
+  "rdrBilingual": {
+    "message": "Zweisprachig"
+  },
+  "rdrExport": {
+    "message": "Exportieren"
+  },
+  "rdrLibrary": {
+    "message": "Bibliothek"
+  },
+  "rdrLandingTitle": {
+    "message": "Lies deine eigenen Bücher"
+  },
+  "rdrLandingDesc": {
+    "message": "Importiere ein Textbuch (txt / md) und ReadMate setzt es in eine schön gesetzte Seite: dieselben natürlichen Stimmen, Satz-Hervorhebung, Wörterbuch und zweisprachige Lernwerkzeuge — jetzt für deine eigenen Dateien."
+  },
+  "rdrDropHint": {
+    "message": "Ziehe eine .txt-/.md-Datei hierher (epub und PDF folgen)"
+  },
+  "rdrChooseFile": {
+    "message": "Datei auswählen…"
+  },
+  "rdrRecent": {
+    "message": "Weiterlesen"
+  },
+  "rdrRecentNote": {
+    "message": "Aus Datenschutzgründen wird der Buchtext nicht gespeichert — wähle dieselbe Datei erneut und du springst an die letzte Stelle."
+  },
+  "rdrPrevChapter": {
+    "message": "Zurück"
+  },
+  "rdrNextChapter": {
+    "message": "Weiter"
+  },
+  "rdrFontSize": {
+    "message": "Schriftgröße"
+  },
+  "rdrLineHeight": {
+    "message": "Zeilenhöhe"
+  },
+  "rdrMeasure": {
+    "message": "Zeilenbreite"
+  },
+  "rdrParaGap": {
+    "message": "Absatzabstand"
+  },
+  "rdrIndentLabel": {
+    "message": "Einzug"
+  },
+  "rdrFontLabel": {
+    "message": "Schrift"
+  },
+  "rdrFontSong": {
+    "message": "Serif"
+  },
+  "rdrFontHei": {
+    "message": "Sans"
+  },
+  "rdrFontKai": {
+    "message": "Kai"
+  },
+  "rdrFontSans": {
+    "message": "System"
+  },
+  "rdrAlignLabel": {
+    "message": "Ausrichtung"
+  },
+  "rdrAlignJustify": {
+    "message": "Blocksatz"
+  },
+  "rdrAlignLeft": {
+    "message": "Links"
+  },
+  "rdrModeLabel": {
+    "message": "Zweisprachig"
+  },
+  "rdrModeOriginal": {
+    "message": "Nur Original"
+  },
+  "rdrModeStacked": {
+    "message": "Untereinander"
+  },
+  "rdrModeColumns": {
+    "message": "Nebeneinander"
+  },
+  "rdrModeTranslated": {
+    "message": "Nur Übersetzung"
+  },
+  "rdrOtherLabel": {
+    "message": "Mehr"
+  },
+  "rdrIndentToggle": {
+    "message": "Erstzeileneinzug"
+  },
+  "rdrAutoTranslate": {
+    "message": "Auto-Übersetzung"
+  },
+  "rdrPrintPreview": {
+    "message": "Druckvorschau"
+  },
+  "rdrReset": {
+    "message": "Zurücksetzen"
+  },
+  "rdrPanelHint": {
+    "message": "Diese Einstellungen werden gespeichert. Buchseite und Lesemodus teilen dieselben Typografie-Einstellungen."
+  },
+  "rdrDropAnywhere": {
+    "message": "Buchdatei hier ablegen zum Öffnen"
+  },
+  "rdrChars": {
+    "message": "Zeichen"
+  },
+  "rdrCharsUnit": {
+    "message": "{n} Zeichen"
+  },
+  "rdrDelete": {
+    "message": "Entfernen"
+  },
+  "rdrRecentMeta": {
+    "message": "{chapter} · {pct}% · {date}"
+  },
+  "rdrChapterNo": {
+    "message": "Kapitel {n}"
+  },
+  "rdrPickSameFile": {
+    "message": "Bitte dieselbe Datei erneut wählen: {name}"
+  },
+  "rdrNoText": {
+    "message": "In dieser Datei wurde kein lesbarer Text gefunden"
+  },
+  "rdrResumed": {
+    "message": "Bei Kapitel {n} fortgesetzt"
+  },
+  "rdrEncoding": {
+    "message": "Erkannte Kodierung: {enc}"
+  },
+  "rdrFileMismatch": {
+    "message": "Das ist eine andere Datei — Start von vorn"
+  },
+  "rdrPlanned": {
+    "message": "{ext}-Unterstützung folgt im nächsten Schritt"
+  },
+  "rdrUnsupported": {
+    "message": "Nicht unterstütztes Format: .{ext}"
+  },
+  "rdrParseFailed": {
+    "message": "Diese Datei konnte nicht gelesen werden"
+  },
+  "rdrDownloading": {
+    "message": "{name} wird geladen…"
+  },
+  "rdrDownloadFailed": {
+    "message": "Download fehlgeschlagen"
+  },
+  "rdrSectionNo": {
+    "message": "Abschnitt {n}"
+  },
+  "rdrFrontMatter": {
+    "message": "Vorspann"
+  },
+  "rdrTranslating": {
+    "message": "Übersetze… {done}/{total}"
+  },
+  "rdrTranslateDone": {
+    "message": "Übersetzung fertig"
+  },
+  "rdrTranslateFailed": {
+    "message": "Übersetzungsdienst nicht erreichbar"
+  },
+  "rdrTapToTranslate": {
+    "message": "Tippe oben auf 🌐, um dieses Kapitel zu übersetzen"
+  },
+  "rdrExportTitle": {
+    "message": "Exportieren"
+  },
+  "rdrExportSub": {
+    "message": "Aktuelles Kapitel: {name}"
+  },
+  "rdrExportChapterPdf": {
+    "message": "Dieses Kapitel → PDF"
+  },
+  "rdrExportChapterPdfDesc": {
+    "message": "Öffnet den Druckdialog im aktuellen zweisprachigen Layout"
+  },
+  "rdrExportBookHtml": {
+    "message": "Ganzes Buch → zweisprachiges HTML"
+  },
+  "rdrExportBookHtmlDesc": {
+    "message": "Eine Offline-Datei mit Original und Übersetzung für jedes Kapitel. Öffnen und Ctrl+P für ein Gesamt-PDF."
+  },
+  "rdrCancel": {
+    "message": "Abbrechen"
+  },
+  "rdrExportGo": {
+    "message": "Exportieren"
+  },
+  "rdrExportFailed": {
+    "message": "Export fehlgeschlagen"
+  },
+  "rdrExportProgress": {
+    "message": "{done} / {total} Absätze"
+  },
+  "rdrExportTranslatingBook": {
+    "message": "Das ganze Buch wird übersetzt. Abbruch möglich — fertige Kapitel bleiben erhalten."
+  },
+  "rdrBusy": {
+    "message": "Ein anderer Export läuft bereits"
+  },
+  "rdrSaved": {
+    "message": "Gespeichert: {name}"
+  },
+  "rdrExportMeta": {
+    "message": "{chapters} Kapitel · {chars} Zeichen"
+  },
+  "rdrStandaloneHint": {
+    "message": "Mit Ctrl+P / Cmd+P das ganze Buch als zweisprachiges PDF speichern."
+  },
+  "rdrResetDone": {
+    "message": "Typografie auf Standard zurückgesetzt"
+  },
+  "rdrDocTitle": {
+    "message": "ReadMate Reader",
+    "description": "读伴书页"
+  },
+  "rdrChapter": {
+    "message": "Kapitel {n}",
+    "description": "读伴书页"
+  },
+  "rdrChapterOf": {
+    "message": "Kapitel {cur} von {total}",
+    "description": "读伴书页"
+  },
+  "rdrUnitChars": {
+    "message": "{n} Zeichen",
+    "description": "读伴书页"
+  },
+  "rdrUntitled": {
+    "message": "Ohne Titel",
+    "description": "读伴书页"
+  },
+  "rdrReadPct": {
+    "message": "{n}% gelesen",
+    "description": "读伴书页"
+  },
+  "rdrImporting": {
+    "message": "Wird importiert und gesetzt…",
+    "description": "读伴书页"
+  },
+  "rdrImported": {
+    "message": "Import abgeschlossen",
+    "description": "读伴书页"
+  },
+  "rdrImportEmpty": {
+    "message": "Kein lesbarer Text in dieser Datei gefunden",
+    "description": "读伴书页"
+  },
+  "rdrImportFailed": {
+    "message": "Import fehlgeschlagen, bitte eine andere Datei versuchen",
+    "description": "读伴书页"
+  },
+  "rdrFormatPlanned": {
+    "message": "{ext} folgt in Kürze",
+    "description": "读伴书页"
+  },
+  "rdrFormatUnsupported": {
+    "message": "{ext}-Dateien werden noch nicht unterstützt",
+    "description": "读伴书页"
+  },
+  "rdrNeedReimport": {
+    "message": "dieselbe Datei erneut wählen, um fortzufahren",
+    "description": "读伴书页"
+  },
+  "rdrRemove": {
+    "message": "Aus Verlauf entfernen",
+    "description": "读伴书页"
+  },
+  "rdrReadTip": {
+    "message": "▶ unten rechts liest dieses Kapitel vor",
+    "description": "读伴书页"
+  },
+  "rdrTransProgress": {
+    "message": "Kapitel wird übersetzt ({done}/{total} Absätze)…",
+    "description": "读伴书页"
+  },
+  "rdrTransDone": {
+    "message": "Kapitelübersetzung fertig",
+    "description": "读伴书页"
+  },
+  "rdrTransFailed": {
+    "message": "Übersetzung derzeit nicht verfügbar, bitte später erneut versuchen",
+    "description": "读伴书页"
+  },
+  "rdrExportPdfT": {
+    "message": "Drucken / als PDF speichern",
+    "description": "读伴书页"
+  },
+  "rdrExportPdfD": {
+    "message": "Erzeugt ein PDF mit Ihrer aktuellen Typografie und zweisprachigen Ansicht (im Druckdialog „Als PDF speichern“ wählen)",
+    "description": "读伴书页"
+  },
+  "rdrExportHtmlT": {
+    "message": "Zweisprachiges HTML (eine Datei)",
+    "description": "读伴书页"
+  },
+  "rdrExportHtmlD": {
+    "message": "Eine Offline-Datei mit Original und Übersetzung, öffnet auf jedem Gerät",
+    "description": "读伴书页"
+  },
+  "rdrExportPlainT": {
+    "message": "HTML nur Original (eine Datei)",
+    "description": "读伴书页"
+  },
+  "rdrExportPlainD": {
+    "message": "Nur Originaltext, ohne Netzwerk, sofort fertig",
+    "description": "读伴书页"
+  },
+  "rdrExportWorking": {
+    "message": "Wird vorbereitet… ({done}/{total})",
+    "description": "读伴书页"
+  },
+  "rdrExportDone": {
+    "message": "Exportiert: {name}",
+    "description": "读伴书页"
+  },
+  "rdrOpenFirst": {
+    "message": "Bitte zuerst ein Buch importieren oder öffnen",
+    "description": "读伴书页"
+  },
+  "rdrModeTip": {
+    "message": "Zweisprachige Ansicht",
+    "description": "读伴书页"
   }
 }

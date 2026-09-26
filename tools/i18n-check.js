@@ -21,8 +21,8 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 const LOCALES = ['en', 'zh_CN', 'zh_TW', 'ja', 'ko', 'de', 'fr', 'es', 'ru'];
-const JS_FILES = ['content.js', 'background.js', 'options/options.js', 'popup/popup.js'];
-const HTML_FILES = ['options/options.html', 'popup/popup.html'];
+const JS_FILES = ['content.js', 'background.js', 'options/options.js', 'popup/popup.js', 'reader/reader.js', 'reader/importer.js'];
+const HTML_FILES = ['options/options.html', 'popup/popup.html', 'reader.html'];
 const BASE_LOCALE = 'en';
 
 const CJK = /[\u4e00-\u9fff\u3400-\u4dbf]/;
@@ -50,7 +50,7 @@ const baseKeys = Object.keys(dicts[BASE_LOCALE]);
 log(`词典：${available.join(', ')}   基准(en)键数：${baseKeys.length}`);
 
 // ---------- 1) 代码引用的键必须存在 ----------
-const KEY_CALL = /(?:\b_t|\b_)\(\s*['"]([A-Za-z0-9_]+)['"]/g;
+const KEY_CALL = /(?:\b_t|\b_|\bmsg)\(\s*['"]([A-Za-z0-9_]+)['"]/g;
 const referenced = new Map(); // key -> Set(file)
 for (const f of JS_FILES) {
   const p = path.join(ROOT, f);
@@ -82,8 +82,8 @@ for (const loc of available) {
 
 // ---------- 3) JS 严禁中文兜底 ----------
 const FALLBACK_PATTERNS = [
-  /(?:\b_t|\b_)\(\s*'([A-Za-z0-9_]+)'\s*,\s*'((?:[^'\\]|\\.)*)'/g,
-  /(?:\b_t|\b_)\(\s*"([A-Za-z0-9_]+)"\s*,\s*"((?:[^"\\]|\\.)*)"/g,
+  /(?:\b_t|\b_|\bmsg)\(\s*'([A-Za-z0-9_]+)'\s*,\s*'((?:[^'\\]|\\.)*)'/g,
+  /(?:\b_t|\b_|\bmsg)\(\s*"([A-Za-z0-9_]+)"\s*,\s*"((?:[^"\\]|\\.)*)"/g,
 ];
 let fallbackHits = 0;
 for (const f of JS_FILES) {

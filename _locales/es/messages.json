@@ -772,5 +772,378 @@
   "injectBtnTip": {
     "message": "Volver a detectar / inyectar la extensión",
     "description": "Tooltip: reinyectar"
+  },
+  "btnOpenReader": {
+    "message": "📚 Mis libros (importar txt / epub / PDF)"
+  },
+  "lblOpenReaderTip": {
+    "message": "Abre la página ReadMate Reader para importar tus archivos y escucharlos con el mismo motor."
+  },
+  "menuOpenInReader": {
+    "message": "Abrir en ReadMate Reader"
+  },
+  "rdrReaderTitle": {
+    "message": "ReadMate Reader"
+  },
+  "rdrToc": {
+    "message": "Índice"
+  },
+  "rdrTocTitle": {
+    "message": "Índice"
+  },
+  "rdrThemeSepia": {
+    "message": "Sepia"
+  },
+  "rdrThemeLight": {
+    "message": "Blanco"
+  },
+  "rdrThemeGreen": {
+    "message": "Verde descanso"
+  },
+  "rdrThemeEink": {
+    "message": "Gris tinta electrónica"
+  },
+  "rdrThemeMidnight": {
+    "message": "Azul medianoche"
+  },
+  "rdrThemeDark": {
+    "message": "Negro noche"
+  },
+  "rdrTypo": {
+    "message": "Tipografía"
+  },
+  "rdrTypoTitle": {
+    "message": "Tipografía"
+  },
+  "rdrBilingual": {
+    "message": "Bilingüe"
+  },
+  "rdrExport": {
+    "message": "Exportar"
+  },
+  "rdrLibrary": {
+    "message": "Biblioteca"
+  },
+  "rdrLandingTitle": {
+    "message": "Lee tus propios libros"
+  },
+  "rdrLandingDesc": {
+    "message": "Importa un libro de texto plano (txt / md) y ReadMate lo compondrá en una página cuidada: las mismas voces naturales, resaltado por frase, diccionario y herramientas bilingües — ahora en tus propios archivos."
+  },
+  "rdrDropHint": {
+    "message": "Arrastra un archivo .txt / .md aquí (epub y PDF, próximamente)"
+  },
+  "rdrChooseFile": {
+    "message": "Elegir un archivo…"
+  },
+  "rdrRecent": {
+    "message": "Seguir leyendo"
+  },
+  "rdrRecentNote": {
+    "message": "Por privacidad no se guarda el texto — vuelve a elegir el mismo archivo para regresar al punto donde lo dejaste."
+  },
+  "rdrPrevChapter": {
+    "message": "Anterior"
+  },
+  "rdrNextChapter": {
+    "message": "Siguiente"
+  },
+  "rdrFontSize": {
+    "message": "Tamaño"
+  },
+  "rdrLineHeight": {
+    "message": "Interlineado"
+  },
+  "rdrMeasure": {
+    "message": "Ancho de línea"
+  },
+  "rdrParaGap": {
+    "message": "Espacio de párrafo"
+  },
+  "rdrIndentLabel": {
+    "message": "Sangría"
+  },
+  "rdrFontLabel": {
+    "message": "Fuente"
+  },
+  "rdrFontSong": {
+    "message": "Serif"
+  },
+  "rdrFontHei": {
+    "message": "Sans"
+  },
+  "rdrFontKai": {
+    "message": "Kai"
+  },
+  "rdrFontSans": {
+    "message": "Sistema"
+  },
+  "rdrAlignLabel": {
+    "message": "Alineación"
+  },
+  "rdrAlignJustify": {
+    "message": "Justificado"
+  },
+  "rdrAlignLeft": {
+    "message": "Izquierda"
+  },
+  "rdrModeLabel": {
+    "message": "Bilingüe"
+  },
+  "rdrModeOriginal": {
+    "message": "Solo original"
+  },
+  "rdrModeStacked": {
+    "message": "Apilado"
+  },
+  "rdrModeColumns": {
+    "message": "Lado a lado"
+  },
+  "rdrModeTranslated": {
+    "message": "Solo traducción"
+  },
+  "rdrOtherLabel": {
+    "message": "Más"
+  },
+  "rdrIndentToggle": {
+    "message": "Sangría inicial"
+  },
+  "rdrAutoTranslate": {
+    "message": "Traducción automática"
+  },
+  "rdrPrintPreview": {
+    "message": "Vista previa"
+  },
+  "rdrReset": {
+    "message": "Restablecer"
+  },
+  "rdrPanelHint": {
+    "message": "Estos ajustes se recuerdan. La página del libro y el modo lectura inmersiva comparten la misma tipografía."
+  },
+  "rdrDropAnywhere": {
+    "message": "Suelta el archivo para abrirlo"
+  },
+  "rdrChars": {
+    "message": "car."
+  },
+  "rdrCharsUnit": {
+    "message": "{n} car."
+  },
+  "rdrDelete": {
+    "message": "Quitar"
+  },
+  "rdrRecentMeta": {
+    "message": "{chapter} · {pct}% · {date}"
+  },
+  "rdrChapterNo": {
+    "message": "Capítulo {n}"
+  },
+  "rdrPickSameFile": {
+    "message": "Vuelve a elegir el mismo archivo: {name}"
+  },
+  "rdrNoText": {
+    "message": "No se encontró texto legible en este archivo"
+  },
+  "rdrResumed": {
+    "message": "Reanudado en el capítulo {n}"
+  },
+  "rdrEncoding": {
+    "message": "Codificación detectada: {enc}"
+  },
+  "rdrFileMismatch": {
+    "message": "Es otro archivo — empezando desde el principio"
+  },
+  "rdrPlanned": {
+    "message": "Compatibilidad con {ext} en el próximo paso"
+  },
+  "rdrUnsupported": {
+    "message": "Formato no compatible: .{ext}"
+  },
+  "rdrParseFailed": {
+    "message": "No se pudo leer este archivo"
+  },
+  "rdrDownloading": {
+    "message": "Descargando {name}…"
+  },
+  "rdrDownloadFailed": {
+    "message": "Error de descarga"
+  },
+  "rdrSectionNo": {
+    "message": "Sección {n}"
+  },
+  "rdrFrontMatter": {
+    "message": "Preliminares"
+  },
+  "rdrTranslating": {
+    "message": "Traduciendo… {done}/{total}"
+  },
+  "rdrTranslateDone": {
+    "message": "Traducción lista"
+  },
+  "rdrTranslateFailed": {
+    "message": "Servicio de traducción no disponible"
+  },
+  "rdrTapToTranslate": {
+    "message": "Pulsa 🌐 para traducir este capítulo"
+  },
+  "rdrExportTitle": {
+    "message": "Exportar"
+  },
+  "rdrExportSub": {
+    "message": "Capítulo actual: {name}"
+  },
+  "rdrExportChapterPdf": {
+    "message": "Este capítulo → PDF"
+  },
+  "rdrExportChapterPdfDesc": {
+    "message": "Abre el diálogo de impresión con el diseño bilingüe actual"
+  },
+  "rdrExportBookHtml": {
+    "message": "Libro completo → HTML bilingüe"
+  },
+  "rdrExportBookHtmlDesc": {
+    "message": "Un solo archivo sin conexión con original + traducción de cada capítulo. Ábrelo y pulsa Ctrl+P para un PDF completo."
+  },
+  "rdrCancel": {
+    "message": "Cancelar"
+  },
+  "rdrExportGo": {
+    "message": "Exportar"
+  },
+  "rdrExportFailed": {
+    "message": "Error al exportar"
+  },
+  "rdrExportProgress": {
+    "message": "{done} / {total} párrafos"
+  },
+  "rdrExportTranslatingBook": {
+    "message": "Traduciendo el libro completo. Puedes cancelar: los capítulos ya traducidos se conservan."
+  },
+  "rdrBusy": {
+    "message": "Ya hay otra exportación en curso"
+  },
+  "rdrSaved": {
+    "message": "Guardado: {name}"
+  },
+  "rdrExportMeta": {
+    "message": "{chapters} capítulos · {chars} caracteres"
+  },
+  "rdrStandaloneHint": {
+    "message": "Pulsa Ctrl+P / Cmd+P para guardar el libro completo como PDF bilingüe."
+  },
+  "rdrResetDone": {
+    "message": "Tipografía restablecida"
+  },
+  "rdrDocTitle": {
+    "message": "ReadMate Reader",
+    "description": "读伴书页"
+  },
+  "rdrChapter": {
+    "message": "Capítulo {n}",
+    "description": "读伴书页"
+  },
+  "rdrChapterOf": {
+    "message": "Capítulo {cur} de {total}",
+    "description": "读伴书页"
+  },
+  "rdrUnitChars": {
+    "message": "{n} caracteres",
+    "description": "读伴书页"
+  },
+  "rdrUntitled": {
+    "message": "Sin título",
+    "description": "读伴书页"
+  },
+  "rdrReadPct": {
+    "message": "{n}% leído",
+    "description": "读伴书页"
+  },
+  "rdrImporting": {
+    "message": "Importando y maquetando…",
+    "description": "读伴书页"
+  },
+  "rdrImported": {
+    "message": "Importación completada",
+    "description": "读伴书页"
+  },
+  "rdrImportEmpty": {
+    "message": "No se encontró texto legible en este archivo",
+    "description": "读伴书页"
+  },
+  "rdrImportFailed": {
+    "message": "Error al importar, prueba con otro archivo",
+    "description": "读伴书页"
+  },
+  "rdrFormatPlanned": {
+    "message": "El formato {ext} llegará pronto",
+    "description": "读伴书页"
+  },
+  "rdrFormatUnsupported": {
+    "message": "El formato {ext} aún no es compatible",
+    "description": "读伴书页"
+  },
+  "rdrNeedReimport": {
+    "message": "elige el mismo archivo para continuar",
+    "description": "读伴书页"
+  },
+  "rdrRemove": {
+    "message": "Quitar del historial",
+    "description": "读伴书页"
+  },
+  "rdrReadTip": {
+    "message": "Pulsa el ▶ para leer este capítulo en voz alta",
+    "description": "读伴书页"
+  },
+  "rdrTransProgress": {
+    "message": "Traduciendo el capítulo ({done}/{total} párrafos)…",
+    "description": "读伴书页"
+  },
+  "rdrTransDone": {
+    "message": "Traducción del capítulo lista",
+    "description": "读伴书页"
+  },
+  "rdrTransFailed": {
+    "message": "La traducción no está disponible ahora, inténtalo más tarde",
+    "description": "读伴书页"
+  },
+  "rdrExportPdfT": {
+    "message": "Imprimir / Guardar como PDF",
+    "description": "读伴书页"
+  },
+  "rdrExportPdfD": {
+    "message": "Genera un PDF con tu tipografía y diseño bilingüe actuales (elige «Guardar como PDF»)",
+    "description": "读伴书页"
+  },
+  "rdrExportHtmlT": {
+    "message": "HTML bilingüe (archivo único)",
+    "description": "读伴书页"
+  },
+  "rdrExportHtmlD": {
+    "message": "Un solo archivo sin conexión con el original y su traducción, se abre en cualquier equipo",
+    "description": "读伴书页"
+  },
+  "rdrExportPlainT": {
+    "message": "HTML solo original (archivo único)",
+    "description": "读伴书页"
+  },
+  "rdrExportPlainD": {
+    "message": "Solo el original, sin conexión, al instante",
+    "description": "读伴书页"
+  },
+  "rdrExportWorking": {
+    "message": "Preparando… ({done}/{total})",
+    "description": "读伴书页"
+  },
+  "rdrExportDone": {
+    "message": "Exportado: {name}",
+    "description": "读伴书页"
+  },
+  "rdrOpenFirst": {
+    "message": "Primero importa o abre un libro",
+    "description": "读伴书页"
+  },
+  "rdrModeTip": {
+    "message": "Diseño bilingüe",
+    "description": "读伴书页"
   }
 }

@@ -72,6 +72,10 @@ const ContentExtractor = (() => {
   function shouldStrip(el) {
     const tag = el.tagName.toLowerCase();
 
+    // 显式豁免标记：读伴书页等自渲染页面用它声明「这里不是正文」
+    // （双语译文块、章节页眉页脚、工具条等，避免被当成正文朗读）
+    if (el.hasAttribute && el.hasAttribute('data-readmate-skip')) return true;
+
     // 针对 <header> 标签的智能判断：
     // 如果包含 h1/h2 标题，或位于 article/main 内，或具有文章头部特征类名，则作为文章标题区域保留；
     // 纯全站顶部导航 header 则剔除

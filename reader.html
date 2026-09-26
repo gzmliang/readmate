@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="sepia" data-mode="stacked" data-view="library">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReadMate Reader</title>
+<link rel="stylesheet" href="content.css">
+<link rel="stylesheet" href="reader/reader.css">
+</head>
+<body>
+
+<div id="rdr-progress"><i></i></div>
+
+<header id="rdr-topbar" data-readmate-skip>
+  <button class="rdr-btn" id="rdr-toc-btn">☰ <span class="rdr-lbl" data-i18n="rdrToc"></span></button>
+  <span class="rdr-bookname" id="rdr-book-name"></span>
+  <span class="rdr-chapnow" id="rdr-chap-now"></span>
+  <span class="rdr-spacer"></span>
+  <div class="rdr-dots" id="rdr-dots">
+    <span class="rdr-dot d-sepia"    data-theme="sepia"    data-i18n-title="rdrThemeSepia"></span>
+    <span class="rdr-dot d-light"    data-theme="light"    data-i18n-title="rdrThemeLight"></span>
+    <span class="rdr-dot d-green"    data-theme="green"    data-i18n-title="rdrThemeGreen"></span>
+    <span class="rdr-dot d-eink"     data-theme="eink"     data-i18n-title="rdrThemeEink"></span>
+    <span class="rdr-dot d-midnight" data-theme="midnight" data-i18n-title="rdrThemeMidnight"></span>
+    <span class="rdr-dot d-dark"     data-theme="dark"     data-i18n-title="rdrThemeDark"></span>
+  </div>
+  <button class="rdr-btn" id="rdr-panel-btn">Aa <span class="rdr-lbl" data-i18n="rdrTypo"></span></button>
+  <button class="rdr-btn" id="rdr-bilingual-btn">🌐 <span class="rdr-lbl" data-i18n="rdrBilingual"></span></button>
+  <button class="rdr-btn" id="rdr-export-btn">📄 <span class="rdr-lbl" data-i18n="rdrExport"></span></button>
+  <button class="rdr-btn" id="rdr-library-btn">📚 <span class="rdr-lbl" data-i18n="rdrLibrary"></span></button>
+</header>
+
+<aside id="rdr-toc" data-readmate-skip>
+  <h4 data-i18n="rdrTocTitle"></h4>
+  <div id="rdr-toc-list"></div>
+</aside>
+
+<!-- ============ 书库（首页） ============ -->
+<div id="rdr-library" class="rdr-view" data-readmate-skip>
+  <div class="rdr-hero">
+    <div class="rdr-logo">📚</div>
+    <h2 data-i18n="rdrLandingTitle"></h2>
+    <p class="rdr-lead" data-i18n="rdrLandingDesc"></p>
+
+    <div class="rdr-dropzone" id="rdr-dropzone">
+      <div class="rdr-dropicon">📥</div>
+      <div class="rdr-droptext" data-i18n="rdrDropHint"></div>
+      <button class="rdr-btn primary" id="rdr-choose-btn" data-i18n="rdrChooseFile"></button>
+      <input type="file" id="rdr-file-input" accept=".txt,.md,.markdown,.text,.log,.epub,.pdf" hidden>
+    </div>
+
+    <div class="rdr-recent" id="rdr-recent-wrap">
+      <h4 data-i18n="rdrRecent"></h4>
+      <div id="rdr-recent-list"></div>
+      <div class="rdr-hint" data-i18n="rdrRecentNote"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 书页 ============ -->
+<div id="rdr-reader" class="rdr-view" hidden>
+  <div id="rdr-stage">
+    <div class="rdr-chaphead" data-readmate-skip>
+      <div class="rdr-chnum" id="rdr-chnum"></div>
+      <div class="rdr-ornament">❋ ❋ ❋</div>
+    </div>
+    <article id="rdr-body" class="rdr-body rdr-indent">
+      <h1 id="rdr-chap-title"></h1>
+    </article>
+    <div class="rdr-chapnav" data-readmate-skip>
+      <button class="rdr-btn" id="rdr-prev">‹ <span data-i18n="rdrPrevChapter"></span></button>
+      <span class="rdr-navpos" id="rdr-nav-pos"></span>
+      <button class="rdr-btn" id="rdr-next"><span data-i18n="rdrNextChapter"></span> ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 排版设置面板 ============ -->
+<div id="rdr-panel" data-readmate-skip>
+  <h5 data-i18n="rdrTypoTitle"></h5>
+  <div class="rdr-row"><label data-i18n="rdrFontSize"></label><input type="range" id="rdr-fs" min="15" max="28" step="1"><span class="rdr-val" id="rdr-fs-v"></span></div>
+  <div class="rdr-row"><label data-i18n="rdrLineHeight"></label><input type="range" id="rdr-lh" min="1.5" max="2.4" step="0.05"><span class="rdr-val" id="rdr-lh-v"></span></div>
+  <div class="rdr-row"><label data-i18n="rdrMeasure"></label><input type="range" id="rdr-ms" min="28" max="60" step="1"><span class="rdr-val" id="rdr-ms-v"></span></div>
+  <div class="rdr-row"><label data-i18n="rdrParaGap"></label><input type="range" id="rdr-gp" min="0" max="2" step="0.05"><span class="rdr-val" id="rdr-gp-v"></span></div>
+  <div class="rdr-row"><label data-i18n="rdrIndentLabel"></label><input type="range" id="rdr-in" min="0" max="4" step="0.5"><span class="rdr-val" id="rdr-in-v"></span></div>
+  <hr>
+  <div class="rdr-row" style="align-items:flex-start"><label data-i18n="rdrFontLabel"></label>
+    <div class="rdr-seg" id="rdr-seg-font">
+      <button data-font="song" data-i18n="rdrFontSong"></button>
+      <button data-font="hei" data-i18n="rdrFontHei"></button>
+      <button data-font="kai" data-i18n="rdrFontKai"></button>
+      <button data-font="sans" data-i18n="rdrFontSans"></button>
+    </div>
+  </div>
+  <div class="rdr-row" style="align-items:flex-start"><label data-i18n="rdrAlignLabel"></label>
+    <div class="rdr-seg" id="rdr-seg-align">
+      <button data-align="justify" data-i18n="rdrAlignJustify"></button>
+      <button data-align="left" data-i18n="rdrAlignLeft"></button>
+    </div>
+  </div>
+  <div class="rdr-row" style="align-items:flex-start"><label data-i18n="rdrModeLabel"></label>
+    <div class="rdr-seg" id="rdr-seg-mode">
+      <button data-mode="original" data-i18n="rdrModeOriginal"></button>
+      <button data-mode="stacked" data-i18n="rdrModeStacked"></button>
+      <button data-mode="columns" data-i18n="rdrModeColumns"></button>
+      <button data-mode="translated" data-i18n="rdrModeTranslated"></button>
+    </div>
+  </div>
+  <hr>
+  <div class="rdr-row" style="align-items:flex-start"><label data-i18n="rdrOtherLabel"></label>
+    <div class="rdr-seg">
+      <button id="rdr-tg-indent" data-i18n="rdrIndentToggle"></button>
+      <button id="rdr-tg-auto" data-i18n="rdrAutoTranslate"></button>
+      <button id="rdr-tg-print" data-i18n="rdrPrintPreview"></button>
+      <button id="rdr-tg-reset" data-i18n="rdrReset"></button>
+    </div>
+  </div>
+  <hr>
+  <div class="rdr-hint" data-i18n="rdrPanelHint"></div>
+</div>
+
+<!-- ============ 弹窗 ============ -->
+<div id="rdr-modal" hidden data-readmate-skip></div>
+
+<div id="rdr-drop-overlay" hidden data-i18n="rdrDropAnywhere"></div>
+<div id="rdr-toast"></div>
+
+<!-- 依赖顺序与 manifest 保持一致：number-normalizer.js 必须排在 content.js 之前 -->
+<script src="content-extractor.js"></script>
+<script src="text-utils.js"></script>
+<script src="number-normalizer.js"></script>
+<script src="reading-stats.js"></script>
+<script src="content.js"></script>
+<script src="reader/importer.js"></script>
+<script src="reader/reader.js"></script>
+</body>
+</html>

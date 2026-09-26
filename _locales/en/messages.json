@@ -826,5 +826,378 @@
   "injectBtnTip": {
     "message": "Re-detect / inject the extension",
     "description": "Tooltip: re-inject button"
+  },
+  "btnOpenReader": {
+    "message": "📚 My Books (import txt / epub / PDF)"
+  },
+  "lblOpenReaderTip": {
+    "message": "Open the ReadMate Reader page to import your own files and read them aloud with the same engine."
+  },
+  "menuOpenInReader": {
+    "message": "Open in ReadMate Reader"
+  },
+  "rdrReaderTitle": {
+    "message": "ReadMate Reader"
+  },
+  "rdrToc": {
+    "message": "Contents"
+  },
+  "rdrTocTitle": {
+    "message": "Contents"
+  },
+  "rdrThemeSepia": {
+    "message": "Sepia"
+  },
+  "rdrThemeLight": {
+    "message": "White"
+  },
+  "rdrThemeGreen": {
+    "message": "Eye-care green"
+  },
+  "rdrThemeEink": {
+    "message": "E-ink gray"
+  },
+  "rdrThemeMidnight": {
+    "message": "Midnight blue"
+  },
+  "rdrThemeDark": {
+    "message": "Night black"
+  },
+  "rdrTypo": {
+    "message": "Typography"
+  },
+  "rdrTypoTitle": {
+    "message": "Typography"
+  },
+  "rdrBilingual": {
+    "message": "Bilingual"
+  },
+  "rdrExport": {
+    "message": "Export"
+  },
+  "rdrLibrary": {
+    "message": "Library"
+  },
+  "rdrLandingTitle": {
+    "message": "Read your own books"
+  },
+  "rdrLandingDesc": {
+    "message": "Import a plain-text book (txt / md) and ReadMate turns it into a beautifully typeset page: the same natural voices, sentence highlighting, dictionaries and bilingual study tools — now on your own files."
+  },
+  "rdrDropHint": {
+    "message": "Drop a .txt / .md file here (epub and PDF come next)"
+  },
+  "rdrChooseFile": {
+    "message": "Choose a file…"
+  },
+  "rdrRecent": {
+    "message": "Continue reading"
+  },
+  "rdrRecentNote": {
+    "message": "For privacy, the book text is not stored — pick the same file again to jump back to where you stopped."
+  },
+  "rdrPrevChapter": {
+    "message": "Previous"
+  },
+  "rdrNextChapter": {
+    "message": "Next"
+  },
+  "rdrFontSize": {
+    "message": "Font size"
+  },
+  "rdrLineHeight": {
+    "message": "Line height"
+  },
+  "rdrMeasure": {
+    "message": "Line width"
+  },
+  "rdrParaGap": {
+    "message": "Paragraph gap"
+  },
+  "rdrIndentLabel": {
+    "message": "Indent"
+  },
+  "rdrFontLabel": {
+    "message": "Font"
+  },
+  "rdrFontSong": {
+    "message": "Serif"
+  },
+  "rdrFontHei": {
+    "message": "Sans"
+  },
+  "rdrFontKai": {
+    "message": "Kai"
+  },
+  "rdrFontSans": {
+    "message": "System"
+  },
+  "rdrAlignLabel": {
+    "message": "Align"
+  },
+  "rdrAlignJustify": {
+    "message": "Justified"
+  },
+  "rdrAlignLeft": {
+    "message": "Left"
+  },
+  "rdrModeLabel": {
+    "message": "Bilingual"
+  },
+  "rdrModeOriginal": {
+    "message": "Original"
+  },
+  "rdrModeStacked": {
+    "message": "Stacked"
+  },
+  "rdrModeColumns": {
+    "message": "Side by side"
+  },
+  "rdrModeTranslated": {
+    "message": "Translation"
+  },
+  "rdrOtherLabel": {
+    "message": "More"
+  },
+  "rdrIndentToggle": {
+    "message": "First-line indent"
+  },
+  "rdrAutoTranslate": {
+    "message": "Auto-translate"
+  },
+  "rdrPrintPreview": {
+    "message": "Print preview"
+  },
+  "rdrReset": {
+    "message": "Reset"
+  },
+  "rdrPanelHint": {
+    "message": "These settings are remembered. The book page and the immersive reader mode share one set of typography preferences."
+  },
+  "rdrDropAnywhere": {
+    "message": "Drop your book file to open it"
+  },
+  "rdrChars": {
+    "message": "chars"
+  },
+  "rdrCharsUnit": {
+    "message": "{n} chars"
+  },
+  "rdrDelete": {
+    "message": "Remove"
+  },
+  "rdrRecentMeta": {
+    "message": "{chapter} · {pct}% · {date}"
+  },
+  "rdrChapterNo": {
+    "message": "Chapter {n}"
+  },
+  "rdrPickSameFile": {
+    "message": "Please pick the same file again: {name}"
+  },
+  "rdrNoText": {
+    "message": "No readable text found in this file"
+  },
+  "rdrResumed": {
+    "message": "Resumed at chapter {n}"
+  },
+  "rdrEncoding": {
+    "message": "Encoding detected: {enc}"
+  },
+  "rdrFileMismatch": {
+    "message": "That is a different file — starting from the beginning"
+  },
+  "rdrPlanned": {
+    "message": "{ext} support is coming in the next step"
+  },
+  "rdrUnsupported": {
+    "message": "Unsupported format: .{ext}"
+  },
+  "rdrParseFailed": {
+    "message": "Could not read this file"
+  },
+  "rdrDownloading": {
+    "message": "Downloading {name}…"
+  },
+  "rdrDownloadFailed": {
+    "message": "Download failed"
+  },
+  "rdrSectionNo": {
+    "message": "Section {n}"
+  },
+  "rdrFrontMatter": {
+    "message": "Front matter"
+  },
+  "rdrTranslating": {
+    "message": "Translating… {done}/{total}"
+  },
+  "rdrTranslateDone": {
+    "message": "Translation ready"
+  },
+  "rdrTranslateFailed": {
+    "message": "Translation service unavailable"
+  },
+  "rdrTapToTranslate": {
+    "message": "Tap the globe button to translate this chapter"
+  },
+  "rdrExportTitle": {
+    "message": "Export"
+  },
+  "rdrExportSub": {
+    "message": "Current chapter: {name}"
+  },
+  "rdrExportChapterPdf": {
+    "message": "This chapter → PDF"
+  },
+  "rdrExportChapterPdfDesc": {
+    "message": "Opens the print dialog using the current bilingual layout"
+  },
+  "rdrExportBookHtml": {
+    "message": "Whole book → bilingual HTML"
+  },
+  "rdrExportBookHtmlDesc": {
+    "message": "One offline file with original + translation for every chapter. Open it and press Ctrl+P for a whole-book PDF."
+  },
+  "rdrCancel": {
+    "message": "Cancel"
+  },
+  "rdrExportGo": {
+    "message": "Export"
+  },
+  "rdrExportFailed": {
+    "message": "Export failed"
+  },
+  "rdrExportProgress": {
+    "message": "{done} / {total} paragraphs"
+  },
+  "rdrExportTranslatingBook": {
+    "message": "Translating the whole book. You can cancel — finished chapters are kept."
+  },
+  "rdrBusy": {
+    "message": "Another export is running"
+  },
+  "rdrSaved": {
+    "message": "Saved: {name}"
+  },
+  "rdrExportMeta": {
+    "message": "{chapters} chapters · {chars} characters"
+  },
+  "rdrStandaloneHint": {
+    "message": "Press Ctrl+P / Cmd+P to save this whole book as a bilingual PDF."
+  },
+  "rdrResetDone": {
+    "message": "Typography reset to defaults"
+  },
+  "rdrDocTitle": {
+    "message": "ReadMate Reader",
+    "description": "读伴书页"
+  },
+  "rdrChapter": {
+    "message": "Chapter {n}",
+    "description": "读伴书页"
+  },
+  "rdrChapterOf": {
+    "message": "Chapter {cur} of {total}",
+    "description": "读伴书页"
+  },
+  "rdrUnitChars": {
+    "message": "{n} chars",
+    "description": "读伴书页"
+  },
+  "rdrUntitled": {
+    "message": "Untitled",
+    "description": "读伴书页"
+  },
+  "rdrReadPct": {
+    "message": "{n}% read",
+    "description": "读伴书页"
+  },
+  "rdrImporting": {
+    "message": "Importing and typesetting…",
+    "description": "读伴书页"
+  },
+  "rdrImported": {
+    "message": "Import complete",
+    "description": "读伴书页"
+  },
+  "rdrImportEmpty": {
+    "message": "No readable text found in this file",
+    "description": "读伴书页"
+  },
+  "rdrImportFailed": {
+    "message": "Import failed, please try another file",
+    "description": "读伴书页"
+  },
+  "rdrFormatPlanned": {
+    "message": "{ext} support is on the way",
+    "description": "读伴书页"
+  },
+  "rdrFormatUnsupported": {
+    "message": "{ext} files are not supported yet",
+    "description": "读伴书页"
+  },
+  "rdrNeedReimport": {
+    "message": "pick the same file again to continue",
+    "description": "读伴书页"
+  },
+  "rdrRemove": {
+    "message": "Remove from history",
+    "description": "读伴书页"
+  },
+  "rdrReadTip": {
+    "message": "Tap the ▶ bubble to read this chapter aloud",
+    "description": "读伴书页"
+  },
+  "rdrTransProgress": {
+    "message": "Translating this chapter ({done}/{total} paragraphs)…",
+    "description": "读伴书页"
+  },
+  "rdrTransDone": {
+    "message": "Chapter translation ready",
+    "description": "读伴书页"
+  },
+  "rdrTransFailed": {
+    "message": "Translation is unavailable right now, please try again later",
+    "description": "读伴书页"
+  },
+  "rdrExportPdfT": {
+    "message": "Print / Save as PDF",
+    "description": "读伴书页"
+  },
+  "rdrExportPdfD": {
+    "message": "Exports a PDF with your current typography and bilingual layout (choose “Save as PDF” in the print dialog)",
+    "description": "读伴书页"
+  },
+  "rdrExportHtmlT": {
+    "message": "Bilingual HTML (single file)",
+    "description": "读伴书页"
+  },
+  "rdrExportHtmlD": {
+    "message": "One offline file with the original text and its translation, opens on any device",
+    "description": "读伴书页"
+  },
+  "rdrExportPlainT": {
+    "message": "Plain HTML (single file)",
+    "description": "读伴书页"
+  },
+  "rdrExportPlainD": {
+    "message": "Original text only, no network needed, exported instantly",
+    "description": "读伴书页"
+  },
+  "rdrExportWorking": {
+    "message": "Preparing… ({done}/{total})",
+    "description": "读伴书页"
+  },
+  "rdrExportDone": {
+    "message": "Exported: {name}",
+    "description": "读伴书页"
+  },
+  "rdrOpenFirst": {
+    "message": "Import or open a book first",
+    "description": "读伴书页"
+  },
+  "rdrModeTip": {
+    "message": "Bilingual layout",
+    "description": "读伴书页"
   }
 }
