@@ -68,6 +68,11 @@ function localize() {
   setText('optModeBilingual', _('modeBilingual'));
   setText('lblBilingualSubtitles', _('lblBilingualSubtitles'));
   setText('lblChkShowSubtitles', _('chkShowSubtitles'));
+  setText('lblSectionClickRead', _('sectionClickRead'));
+  setText('lblParagraphClickMode', _('lblParagraphClickMode'));
+  setText('lblClickModeBubble', _('clickModeBubble'));
+  setText('lblClickModeDirect', _('clickModeDirect'));
+  setText('hintClickMode', _('hintClickMode'));
 
   setText('lblTtsSection', _('ttsEngineSection'));
   setText('lblEngineBrowser', _('engineBrowser'));
@@ -205,6 +210,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     document.getElementById('readVoiceMode').value = settings.readVoiceMode || 'original';
+
+    // 网页点读交互方式（默认气泡确认，防误触）
+    const clickMode = settings.paragraphClickMode || 'bubble';
+    const clickRadio = document.querySelector(`input[name="paragraphClickMode"][value="${clickMode}"]`);
+    if (clickRadio) clickRadio.checked = true;
+    document.querySelectorAll('input[name="paragraphClickMode"]').forEach(r => {
+      r.addEventListener('change', () => saveSettings(true));
+    });
     document.getElementById('enableBilingual').checked = !!settings.enableBilingual;
     document.getElementById('showBilingualSubtitles').checked = settings.showBilingualSubtitles !== false;
 
@@ -420,6 +433,7 @@ function saveSettings(silent) {
     ttsSpeed: parseFloat(document.getElementById('ttsSpeed').value),
     ttsVoice: document.getElementById('ttsVoice').value || '',
     readVoiceMode: document.getElementById('readVoiceMode')?.value || 'original',
+    paragraphClickMode: document.querySelector('input[name="paragraphClickMode"]:checked')?.value || 'bubble',
     enableBilingual: document.getElementById('enableBilingual')?.checked || false,
     showBilingualSubtitles: document.getElementById('showBilingualSubtitles')?.checked !== false,
     cloudTtsEndpoint: document.getElementById('cloudTtsEndpoint').value,

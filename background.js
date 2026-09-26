@@ -194,6 +194,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         highlightParagraphEnabled: true,
         highlightOffset: 0,
         showFab: true,
+        paragraphClickMode: 'bubble', // 'bubble' = 单击段落先弹气泡确认（防误触，默认）；'direct' = 直接朗读（旧行为）
         autoTranslate: false,
         uiLanguage: 'auto',
         enableShortcuts: true,

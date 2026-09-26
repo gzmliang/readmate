@@ -48,6 +48,8 @@ let translationPrefetchQueue = [];
 let readVoiceMode = 'original';
 let enableBilingual = false; // 默认不开启双语翻译（省Token模式）
 let showBilingualSubtitles = true;
+// 网页点读交互模式：'bubble' = 单击段落先弹气泡确认（默认，防误触）；'direct' = 直接朗读（旧行为）
+let paragraphClickMode = 'bubble';
 
 // ====== 语种与 Edge TTS 顶级音色映射表 ======
 const VOICE_MAP = {
@@ -200,6 +202,7 @@ function loadSettings() {
       readVoiceMode = settings.readVoiceMode || 'original';
       enableBilingual = !!settings.enableBilingual;
       showBilingualSubtitles = settings.showBilingualSubtitles !== false;
+      paragraphClickMode = settings.paragraphClickMode || 'bubble';
       await loadContentI18n(settings.uiLanguage);
       DebugLog.add(`Settings loaded: mode=${readVoiceMode}, bilingual=${enableBilingual}, speed=${settings.ttsSpeed}x, lang=${settings.uiLanguage}`);
       resolve(settings);
@@ -251,6 +254,7 @@ let currentSelectionRange = null;
 
 function showSelectionBtn(x, y, rect = null) {
   currentSelectionRect = rect;
+  hideSentenceBubble(); // 划词气泡与句子气泡互斥，避免两个气泡叠在一起
   createSelectionPlayBtn();
   const pad = 10;
   let left = x + pad;
@@ -1654,6 +1658,7 @@ async function playSentencesFlow(sentences, startIndex = 0) {
 async function startReading(text, forceLang = null, voiceModeOverride = null, startIndex = 0) {
   if (!text || !text.trim()) return;
   DebugLog.add('== startReading v2.0 ==');
+  hideSentenceBubble();
   await loadSettings();
 
   if (voiceModeOverride) {
@@ -2457,7 +2462,7 @@ function ensureReaderOverlay() {
 
   // “指哪读哪”：防抖 220ms，若 220ms 内触发了双击查词，此定时器被即刻取消，绝不误触朗读！
   bodyEl.addEventListener('click', (e) => {
-    if (e.target.closest('#readmate-dict-bubble') || e.target.closest('#readmate-vocab-drawer')) return;
+    if (e.target.closest('#readmate-dict-bubble') || e.target.closest('#readmate-vocab-drawer') || e.target.closest('#readmate-sent-btn-group')) return;
 
     if (dictBubble) {
       hideDictBubble();
@@ -2491,12 +2496,26 @@ function ensureReaderOverlay() {
       const sel = window.getSelection();
       if (sel && !sel.isCollapsed && sel.toString().trim().length > 0) return;
 
-      DebugLog.add(`Single click confirmed on sentence #${sIdx}`);
-      if (!isPlaying) {
-        await playReaderModeSentences(sIdx);
-      } else {
+      // 正在朗读时单击句子 → 直接跳句（与旧版完全一致，体验零变化）
+      if (isPlaying) {
+        DebugLog.add(`Single click confirmed on sentence #${sIdx}`);
         jumpToSentence(sIdx);
+        return;
       }
+
+      // ★ 防误触：默认先弹气泡确认，绝不自动开口
+      if (paragraphClickMode === 'bubble') {
+        let cx = e.clientX, cy = e.clientY;
+        try {
+          const r = sEl.getBoundingClientRect();
+          if (r && r.height > 0) { cx = r.left + Math.min(20, r.width / 2); cy = r.top + r.height / 2; }
+        } catch (err) {}
+        showSentenceBubble({ mode: 'reader', idx: sIdx, text: (sEl.textContent || '').trim(), x: cx, y: cy, el: sEl });
+        return;
+      }
+
+      DebugLog.add(`Single click confirmed on sentence #${sIdx}`);
+      await playReaderModeSentences(sIdx);
     }, 220);
   });
 
@@ -2638,6 +2657,7 @@ function closeReaderMode() {
   }
   closeVocabDrawer();
   hideDictBubble();
+  hideSentenceBubble();
 
   document.body.style.overflow = '';
   showFAB();
@@ -3381,17 +3401,170 @@ document.addEventListener('dblclick', (e) => {
 });
 
 // 点击空白关闭查词小气泡 / 划词翻译常驻卡片
-const READMATE_UI_SELECTOR = '#readmate-sel-btn-group, #readmate-bar, #readmate-fab-container, #readmate-summary-dialog, #readmate-reader-overlay, #readmate-pdf-modal, #readmate-dict-bubble, #readmate-vocab-drawer, #readmate-donate-modal, #readmate-donate-toast, #readmate-toast, #readmate-debug-panel';
+const READMATE_UI_SELECTOR = '#readmate-sent-btn-group, #readmate-sel-btn-group, #readmate-bar, #readmate-fab-container, #readmate-summary-dialog, #readmate-reader-overlay, #readmate-pdf-modal, #readmate-dict-bubble, #readmate-vocab-drawer, #readmate-donate-modal, #readmate-donate-toast, #readmate-toast, #readmate-debug-panel';
 
 document.addEventListener('mousedown', (e) => {
   if (dictBubble && !dictBubble.contains(e.target)) {
     hideDictBubble();
+  }
+  // 点气泡以外的任何地方 → 立刻收起句子气泡（不朗读）
+  if (sentenceBubble && !sentenceBubble.contains(e.target)) {
+    hideSentenceBubble();
   }
   const stickyToast = document.getElementById('readmate-toast');
   if (stickyToast && stickyToast.classList.contains('readmate-toast-sticky') && !stickyToast.contains(e.target)) {
     hideTranslationCard();
   }
 });
+
+// ====== ★ 句子操作气泡：单击段落先确认，杜绝「一点就开口」的误触 ======
+// 静默状态下单击正文 → 只在点击处弹出「▶ 读这句 / 🌐 译这句」小气泡（4 秒自动消失），
+// 由用户点头才开始朗读；正在朗读时单击段落仍然直接跳句，行为完全不变。
+let sentenceBubble = null;
+let sentenceBubbleTimer = null;
+let sentenceBubbleCtx = null; // { mode: 'page' | 'reader', idx, text, x, y, el }
+const SENTENCE_BUBBLE_TTL = 4000;
+
+function isSentenceBubbleOpen() {
+  return !!(sentenceBubble && sentenceBubble.style.display !== 'none');
+}
+
+function updateSentenceBubbleI18n() {
+  if (!sentenceBubble) return;
+  const playBtn = sentenceBubble.querySelector('#readmate-sent-play-btn');
+  if (playBtn) playBtn.title = _t('bubbleReadTip', 'Read this sentence');
+  const transBtn = sentenceBubble.querySelector('#readmate-sent-trans-btn');
+  if (transBtn) transBtn.title = _t('bubbleTranslateTip', 'Translate this sentence');
+}
+
+function createSentenceBubble() {
+  if (sentenceBubble) return;
+  sentenceBubble = document.createElement('div');
+  sentenceBubble.id = 'readmate-sent-btn-group';
+  sentenceBubble.innerHTML = `
+    <button class="readmate-sel-btn readmate-sel-play" id="readmate-sent-play-btn" title="${_t('bubbleReadTip', 'Read this sentence')}">▶</button>
+    <button class="readmate-sel-btn readmate-sel-translate" id="readmate-sent-trans-btn" title="${_t('bubbleTranslateTip', 'Translate this sentence')}">🌐</button>
+  `;
+  document.body.appendChild(sentenceBubble);
+
+  sentenceBubble.querySelector('#readmate-sent-play-btn').onclick = async (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const ctx = sentenceBubbleCtx;
+    hideSentenceBubble();
+    if (!ctx) return;
+    DebugLog.add(`句子气泡确认朗读：第 ${ctx.idx + 1} 句（${ctx.mode}）`);
+    if (ctx.mode === 'reader') {
+      if (!isPlaying) await playReaderModeSentences(ctx.idx);
+      else jumpToSentence(ctx.idx);
+    } else {
+      currentMode = 'page';
+      const canonical = getCanonicalArticle();
+      await startReading((canonical && canonical.text) || ctx.text || '', null, null, ctx.idx);
+    }
+  };
+
+  sentenceBubble.querySelector('#readmate-sent-trans-btn').onclick = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const ctx = sentenceBubbleCtx;
+    const rect = (ctx && ctx.el && ctx.el.isConnected) ? ctx.el.getBoundingClientRect() : null;
+    hideSentenceBubble();
+    if (!ctx || !ctx.text) return;
+    DebugLog.add(`句子气泡确认翻译：${ctx.text.slice(0, 24)}`);
+    translateAndShow(ctx.text, rect);
+  };
+}
+
+function hideSentenceBubble() {
+  if (sentenceBubbleTimer) { clearTimeout(sentenceBubbleTimer); sentenceBubbleTimer = null; }
+  if (sentenceBubble) sentenceBubble.style.display = 'none';
+  sentenceBubbleCtx = null;
+}
+
+// 取鼠标所在那一行的真实行框（整行，含行尾位置）
+// 坑：document.caretRangeFromPoint 返回的是 collapsed range，getClientRects 只有 1px 宽，
+//     拿它去判断「行尾还有没有空间」永远会误判。正解：换成「整个文本节点」的 range，
+//     浏览器会逐行返回每一行的完整行框，再挑离鼠标最近的那一行。
+function measureClickLine(x, y) {
+  const pickNearest = (rects, ty) => {
+    let best = null, bd = Infinity;
+    for (const q of rects) {
+      if (!q || q.height <= 0) continue;
+      const d = Math.abs((q.top + q.bottom) / 2 - ty);
+      if (d < bd) { bd = d; best = q; }
+    }
+    return best;
+  };
+  try {
+    let range = null;
+    if (document.caretRangeFromPoint) range = document.caretRangeFromPoint(x, y);
+    else if (document.caretPositionFromPoint) {
+      const pos = document.caretPositionFromPoint(x, y);
+      if (pos) { range = document.createRange(); range.setStart(pos.offsetNode, pos.offset); range.collapse(true); }
+    }
+    if (!range) return null;
+
+    const node = range.startContainer;
+    if (node && node.nodeType === 3 && node.textContent && node.textContent.length > 0) {
+      try {
+        const lineRange = document.createRange();
+        lineRange.setStart(node, 0);
+        lineRange.setEnd(node, node.textContent.length);
+        const rects = [];
+        for (const q of lineRange.getClientRects()) rects.push(q);
+        const hit = pickNearest(rects, y);
+        if (hit) return hit;
+      } catch (e) {}
+    }
+
+    // 读不出文本节点时退而求其次：用元素整体行框
+    const el = node && (node.nodeType === 1 ? node : node.parentElement);
+    const block = el && el.closest ? (el.closest('p, li, blockquote, h1, h2, h3, h4, div') || el) : null;
+    const q = block ? block.getBoundingClientRect() : null;
+    return (q && q.height > 0) ? q : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function showSentenceBubble(ctx) {
+  createSentenceBubble();
+  updateSentenceBubbleI18n();
+  sentenceBubbleCtx = ctx;
+  sentenceBubble.style.display = 'flex';
+
+  const w = sentenceBubble.offsetWidth || 80;
+  const h = sentenceBubble.offsetHeight || 40;
+  const line = measureClickLine(ctx.x, ctx.y); // 鼠标所在那一行的真实行框（不是整段并集框）
+  let left, top;
+
+  if (line && line.right + w + 10 <= window.innerWidth - 6) {
+    // 行尾右侧有空间（绝大多数正文排版都是窄栏）→ 贴在行旁边，一个字都不遮
+    left = line.right + 10;
+    top = line.top + (line.height - h) / 2;
+  } else {
+    // 整行占满屏幕宽度 → 退到该行下方，优先不压住刚点的那一行
+    const anchorBottom = line ? line.bottom : ctx.y;
+    left = ctx.x - 12;
+    top = anchorBottom + 8;
+    if (top + h > window.innerHeight - 6) {
+      top = Math.max(6, (line ? line.top : ctx.y) - h - 8);
+    }
+  }
+  if (left + w > window.innerWidth - 6) left = window.innerWidth - w - 6;
+  if (left < 6) left = 6;
+  if (top < 6) top = 6;
+  sentenceBubble.style.left = `${left}px`;
+  sentenceBubble.style.top = `${top}px`;
+
+  if (sentenceBubbleTimer) clearTimeout(sentenceBubbleTimer);
+  sentenceBubbleTimer = setTimeout(() => { hideSentenceBubble(); }, SENTENCE_BUBBLE_TTL);
+  DebugLog.add(`句子气泡已弹出：第 ${ctx.idx + 1} 句（等您确认，不自动朗读）`);
+}
+
+// 页面滚动时气泡位置会过期 → 直接收起，避免气泡“飘”在原地误导用户
+window.addEventListener('scroll', () => { if (isSentenceBubbleOpen()) hideSentenceBubble(); }, true);
 
 // ====== ★ 指哪读哪（原网页）：单击任意段落，就从该段开始朗读 ======
 let pageReadClickTimer = null;
@@ -3553,15 +3726,28 @@ document.addEventListener('click', (e) => {
       return;
     }
 
-    DebugLog.add(`指哪读哪（原网页）：从第 ${idx + 1} 句开播`);
+    // 正在整篇朗读 → 直接跳句，不断流（与旧版完全一致）
     if (isPlaying && (currentMode === 'page' || currentMode === 'reader')) {
-      // 正在整篇朗读 → 直接跳句，不断流
+      DebugLog.add(`指哪读哪（原网页）：播放中直接跳句 → 第 ${idx + 1} 句`);
       jumpToSentence(idx);
-    } else {
-      currentMode = 'page';
-      const canonical = getCanonicalArticle();
-      await startReading((canonical && canonical.text) || el.textContent || '', null, null, idx);
+      return;
     }
+
+    // ★ 防误触：默认先弹气泡确认，绝不自动开口
+    if (paragraphClickMode === 'bubble') {
+      const canonical = getCanonicalArticle();
+      const sentText = (canonical && canonical.sentences && canonical.sentences[idx])
+        ? canonical.sentences[idx]
+        : (el.textContent || '').trim();
+      hideSelectionBtn();
+      showSentenceBubble({ mode: 'page', idx, text: sentText, x: pt.x, y: pt.y, el });
+      return;
+    }
+
+    DebugLog.add(`指哪读哪（原网页）：从第 ${idx + 1} 句开播`);
+    currentMode = 'page';
+    const canonicalDirect = getCanonicalArticle();
+    await startReading((canonicalDirect && canonicalDirect.text) || el.textContent || '', null, null, idx);
   }, 250);
 });
 
@@ -3658,6 +3844,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       if (msg.settings) {
         Object.assign(settings, msg.settings);
         if (msg.settings.readVoiceMode) readVoiceMode = msg.settings.readVoiceMode;
+        if (msg.settings.paragraphClickMode) paragraphClickMode = msg.settings.paragraphClickMode;
         if (msg.settings.enableBilingual !== undefined) {
           enableBilingual = msg.settings.enableBilingual;
           const biChk = floatingBar?.querySelector('#readmate-bilingual-chk');
@@ -3667,6 +3854,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           loadContentI18n(msg.settings.uiLanguage).then(() => {
             updateFABI18n();
             updateSelectionBtnI18n();
+            updateSentenceBubbleI18n();
             updateSummaryDialogI18n();
             updateFloatingBarI18n();
           });

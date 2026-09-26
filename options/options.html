@@ -55,6 +55,25 @@
       </div>
     </div>
 
+    <!-- 网页点读交互方式（防误触） -->
+    <div class="section">
+      <div class="section-title" id="lblSectionClickRead">Paragraph Click Action</div>
+      <div class="setting-row">
+        <label id="lblParagraphClickMode">When you click a paragraph</label>
+        <div class="engine-switch" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <label class="engine-option">
+            <input type="radio" name="paragraphClickMode" value="bubble" checked>
+            <span id="lblClickModeBubble">Show a confirm bubble (recommended)</span>
+          </label>
+          <label class="engine-option">
+            <input type="radio" name="paragraphClickMode" value="direct">
+            <span id="lblClickModeDirect">Read immediately</span>
+          </label>
+        </div>
+      </div>
+      <div id="hintClickMode" style="font-size:12.5px;color:#94a3b8;line-height:1.6;margin-top:2px;">Clicking a paragraph pops a small bubble (Read this sentence / Translate this sentence) instead of starting playback right away. While already reading, clicking a paragraph still jumps straight to it.</div>
+    </div>
+
     <!-- 引擎设置 -->
     <div class="section">
       <div class="section-title-wrap" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">

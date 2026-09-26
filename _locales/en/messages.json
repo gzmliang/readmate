@@ -782,5 +782,33 @@
   "lblViewTranslated": {
     "message": "Translation",
     "description": "View translated pill"
+  },
+  "sectionClickRead": {
+    "message": "Paragraph Click Action",
+    "description": "Section title for paragraph click behavior"
+  },
+  "lblParagraphClickMode": {
+    "message": "When you click a paragraph",
+    "description": "Label for paragraph click action"
+  },
+  "clickModeBubble": {
+    "message": "Show a confirm bubble (recommended)",
+    "description": "Option: show confirm bubble"
+  },
+  "clickModeDirect": {
+    "message": "Read immediately",
+    "description": "Option: read immediately on click"
+  },
+  "hintClickMode": {
+    "message": "Clicking a paragraph pops a small bubble (Read this sentence / Translate this sentence) instead of starting playback right away. While already reading, clicking a paragraph still jumps straight to it.",
+    "description": "Hint explaining paragraph click modes"
+  },
+  "bubbleReadTip": {
+    "message": "Read from this sentence",
+    "description": "Tooltip: read from this sentence"
+  },
+  "bubbleTranslateTip": {
+    "message": "Translate this sentence",
+    "description": "Tooltip: translate this sentence"
   }
 }

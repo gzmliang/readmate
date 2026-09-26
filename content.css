@@ -1,7 +1,9 @@
 /* ReadMate / 读伴 v2.0 — 现代化高质感 UI 样式表 */
 
-/* ====== 选中文字浮动播放/翻译按钮 ====== */
-#readmate-sel-btn-group {
+/* ====== 选中文字浮动播放/翻译按钮（#readmate-sel-btn-group）
+   + 单击段落确认气泡（#readmate-sent-btn-group）：共用同一套圆钮样式，保证观感一致 ====== */
+#readmate-sel-btn-group,
+#readmate-sent-btn-group {
   position: fixed;
   z-index: 2147483647;
   display: none;

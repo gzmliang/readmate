@@ -724,5 +724,33 @@
   "lblViewTranslated": {
     "message": "Translation",
     "description": "View translated pill"
+  },
+  "sectionClickRead": {
+    "message": "Action au clic sur un paragraphe",
+    "description": "Section du comportement au clic"
+  },
+  "lblParagraphClickMode": {
+    "message": "Lorsque vous cliquez sur un paragraphe",
+    "description": "Libellé du comportement au clic"
+  },
+  "clickModeBubble": {
+    "message": "Afficher une bulle de confirmation (recommandé)",
+    "description": "Option : bulle de confirmation"
+  },
+  "clickModeDirect": {
+    "message": "Lire immédiatement",
+    "description": "Option : lire immédiatement"
+  },
+  "hintClickMode": {
+    "message": "Un clic sur un paragraphe affiche une petite bulle (Lire cette phrase / Traduire cette phrase) au lieu de démarrer la lecture. Pendant la lecture, un clic saute directement au paragraphe.",
+    "description": "Explication des modes de clic"
+  },
+  "bubbleReadTip": {
+    "message": "Lire à partir de cette phrase",
+    "description": "Infobulle : lire la phrase"
+  },
+  "bubbleTranslateTip": {
+    "message": "Traduire cette phrase",
+    "description": "Infobulle : traduire la phrase"
   }
 }

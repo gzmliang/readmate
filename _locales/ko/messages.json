@@ -724,5 +724,33 @@
   "lblViewTranslated": {
     "message": "Translation",
     "description": "View translated pill"
+  },
+  "sectionClickRead": {
+    "message": "단락 클릭 동작",
+    "description": "단락 클릭 동작 섹션"
+  },
+  "lblParagraphClickMode": {
+    "message": "단락을 클릭하면",
+    "description": "단락 클릭 동작 라벨"
+  },
+  "clickModeBubble": {
+    "message": "확인 버블 표시 (권장)",
+    "description": "옵션: 확인 버블"
+  },
+  "clickModeDirect": {
+    "message": "즉시 읽기",
+    "description": "옵션: 즉시 읽기"
+  },
+  "hintClickMode": {
+    "message": "단락을 클릭하면 작은 버블(이 문장 읽기 / 이 문장 번역)만 표시되고 바로 재생되지 않습니다. 읽는 중에는 클릭한 단락으로 바로 이동합니다.",
+    "description": "단락 클릭 모드 설명"
+  },
+  "bubbleReadTip": {
+    "message": "이 문장부터 읽기",
+    "description": "버블: 이 문장 읽기"
+  },
+  "bubbleTranslateTip": {
+    "message": "이 문장 번역",
+    "description": "버블: 이 문장 번역"
   }
 }

@@ -782,5 +782,33 @@
   "lblViewTranslated": {
     "message": "译文",
     "description": "View translated pill"
+  },
+  "sectionClickRead": {
+    "message": "网页点读方式",
+    "description": "点读交互设置区标题"
+  },
+  "lblParagraphClickMode": {
+    "message": "单击段落时",
+    "description": "单击段落行为标签"
+  },
+  "clickModeBubble": {
+    "message": "先弹气泡确认（推荐，防误触）",
+    "description": "选项：先弹气泡确认"
+  },
+  "clickModeDirect": {
+    "message": "直接朗读（点哪读哪）",
+    "description": "选项：直接朗读"
+  },
+  "hintClickMode": {
+    "message": "单击段落只会弹出一个小气泡（读这句 / 译这句），不会立刻开始朗读；正在朗读时单击段落仍然是直接跳到该句。",
+    "description": "点读模式说明"
+  },
+  "bubbleReadTip": {
+    "message": "从这一句开始朗读",
+    "description": "气泡：读这句"
+  },
+  "bubbleTranslateTip": {
+    "message": "翻译这一句",
+    "description": "气泡：译这句"
   }
 }

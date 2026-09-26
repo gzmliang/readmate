@@ -774,5 +774,33 @@
   "lblViewTranslated": {
     "message": "Translation",
     "description": "View translated pill"
+  },
+  "sectionClickRead": {
+    "message": "段落クリック時の動作",
+    "description": "段落クリック動作のセクション"
+  },
+  "lblParagraphClickMode": {
+    "message": "段落をクリックしたとき",
+    "description": "段落クリック動作のラベル"
+  },
+  "clickModeBubble": {
+    "message": "確認バブルを表示（推奨）",
+    "description": "オプション：確認バブル"
+  },
+  "clickModeDirect": {
+    "message": "すぐに読み上げる",
+    "description": "オプション：すぐに読み上げ"
+  },
+  "hintClickMode": {
+    "message": "段落をクリックすると小さなバブル（この文を読む／この文を翻訳）が出るだけで、すぐには読み上げません。読み上げ中はクリックした段落へ直接ジャンプします。",
+    "description": "段落クリックモードの説明"
+  },
+  "bubbleReadTip": {
+    "message": "この文から読み上げる",
+    "description": "バブル：この文を読む"
+  },
+  "bubbleTranslateTip": {
+    "message": "この文を翻訳",
+    "description": "バブル：この文を翻訳"
   }
 }

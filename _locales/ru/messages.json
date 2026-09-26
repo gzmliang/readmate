@@ -724,5 +724,33 @@
   "lblViewTranslated": {
     "message": "Translation",
     "description": "View translated pill"
+  },
+  "sectionClickRead": {
+    "message": "Действие при клике на абзац",
+    "description": "Раздел поведения при клике"
+  },
+  "lblParagraphClickMode": {
+    "message": "При клике на абзац",
+    "description": "Подпись поведения при клике"
+  },
+  "clickModeBubble": {
+    "message": "Показывать пузырёк подтверждения (рекомендуется)",
+    "description": "Опция: пузырёк подтверждения"
+  },
+  "clickModeDirect": {
+    "message": "Читать сразу",
+    "description": "Опция: читать сразу"
+  },
+  "hintClickMode": {
+    "message": "Клик по абзацу показывает небольшой пузырёк (Прочитать предложение / Перевести предложение) вместо немедленного запуска. Во время чтения клик сразу переходит к абзацу.",
+    "description": "Пояснение режимов клика"
+  },
+  "bubbleReadTip": {
+    "message": "Читать с этого предложения",
+    "description": "Подсказка: прочитать предложение"
+  },
+  "bubbleTranslateTip": {
+    "message": "Перевести это предложение",
+    "description": "Подсказка: перевести предложение"
   }
 }

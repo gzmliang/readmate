@@ -724,5 +724,33 @@
   "lblViewTranslated": {
     "message": "Translation",
     "description": "View translated pill"
+  },
+  "sectionClickRead": {
+    "message": "Aktion beim Klick auf einen Absatz",
+    "description": "Abschnitt für Klickverhalten"
+  },
+  "lblParagraphClickMode": {
+    "message": "Wenn Sie auf einen Absatz klicken",
+    "description": "Beschriftung Klickverhalten"
+  },
+  "clickModeBubble": {
+    "message": "Bestätigungs-Bubble anzeigen (empfohlen)",
+    "description": "Option: Bestätigungs-Bubble"
+  },
+  "clickModeDirect": {
+    "message": "Sofort vorlesen",
+    "description": "Option: sofort vorlesen"
+  },
+  "hintClickMode": {
+    "message": "Ein Klick auf einen Absatz zeigt nur eine kleine Bubble (Satz vorlesen / Satz übersetzen), statt sofort zu starten. Während des Vorlesens springt ein Klick direkt zum Absatz.",
+    "description": "Erklärung der Klickmodi"
+  },
+  "bubbleReadTip": {
+    "message": "Ab diesem Satz vorlesen",
+    "description": "Tooltip: Satz vorlesen"
+  },
+  "bubbleTranslateTip": {
+    "message": "Diesen Satz übersetzen",
+    "description": "Tooltip: Satz übersetzen"
   }
 }
