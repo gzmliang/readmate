@@ -558,18 +558,23 @@
   // ============================================================
   // 双语：段落配对与翻译
   // ============================================================
+  /** 译文块的「待翻译」标记统一放在 .rdr-tgt 上（CSS 也按它变色） */
+  function tgOf(wrap) { return wrap.querySelector('.rdr-tgt'); }
+  function isPending(wrap) { var t = tgOf(wrap); return !!(t && t.classList.contains('rdr-pending')); }
+  function clearPending(wrap) { var t = tgOf(wrap); if (t) t.classList.remove('rdr-pending'); }
+
   function setupPair(wrap) {
     var tg = wrap.querySelector('.rdr-tgt');
     if (!needsTrans(wrap._orig)) {
       wrap.classList.add('rdr-same');
-      wrap.classList.remove('rdr-pending');
+      clearPending(wrap);
       tg.textContent = '';
       return;
     }
     var cached = transCache.get(transKey(wrap._orig));
     if (cached) {
       tg.textContent = cached;
-      wrap.classList.remove('rdr-pending');
+      clearPending(wrap);
     }
   }
 
@@ -577,7 +582,7 @@
     var tg = wrap.querySelector('.rdr-tgt');
     if (!tg) return;
     tg.textContent = text;
-    wrap.classList.remove('rdr-pending');
+    clearPending(wrap);
   }
 
   function pendingPairs() {
@@ -586,7 +591,7 @@
     for (var i = 0; i < pairs.length; i++) {
       var w = pairs[i];
       if (w.classList.contains('rdr-same')) continue;
-      if (w.classList.contains('rdr-pending')) out.push(w);
+      if (isPending(w)) out.push(w);
     }
     return out;
   }
@@ -637,7 +642,7 @@
   function enqueue(items) {
     if (!items || !items.length) return;
     items.forEach(function (w) {
-      if (transQueue.indexOf(w) < 0 && w.classList.contains('rdr-pending')) transQueue.push(w);
+      if (transQueue.indexOf(w) < 0 && isPending(w)) transQueue.push(w);
     });
     if (!transPumping) pumpQueue(transToken);
   }
@@ -649,7 +654,7 @@
     while (transQueue.length && batch.length < 8) {
       var w = transQueue.shift();
       if (!w.isConnected) continue;
-      if (!w.classList.contains('rdr-pending')) continue;
+      if (!isPending(w)) continue;
       batch.push(w);
     }
     if (!batch.length) { transPumping = false; onTranslationIdle(token); return; }
@@ -670,7 +675,7 @@
             fillPair(w, tr);
             okCount++;
           } else {
-            w.classList.remove('rdr-pending'); // 失败不再无限重试
+            clearPending(w); // 失败不再无限重试
           }
         });
         if (okCount) scheduleCacheSave();
@@ -684,7 +689,7 @@
       })
       .catch(function () {
         if (token !== transToken) { transPumping = false; return; }
-        batch.forEach(function (w) { w.classList.remove('rdr-pending'); });
+        batch.forEach(function (w) { clearPending(w); });
         transPumping = false;
         toast(T('rdrTransFailed'));
         onTranslationIdle(token);
