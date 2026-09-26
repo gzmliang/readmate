@@ -1801,3 +1801,53 @@ h6.readmate-active-paragraph {
   font-size: 12px;
   font-weight: 600;
 }
+
+/* ====== ★ v1.0.9 新增：划词翻译常驻卡片（30 秒兜底 + ✕ 关闭 + 点击别处关闭） ====== */
+#readmate-toast.readmate-toast-sticky {
+  pointer-events: auto;
+  user-select: text;
+  -webkit-user-select: text;
+  max-height: 45vh;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.55;
+  text-align: left;
+  padding: 10px 32px 10px 14px;
+  border-radius: 12px;
+}
+
+#readmate-toast .readmate-toast-close {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  line-height: 1;
+  font-size: 11px;
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.14);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background 0.15s ease;
+}
+
+#readmate-toast .readmate-toast-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+/* ====== ★ v1.0.9 新增：右下角悬浮球可自由拖动 ====== */
+#readmate-fab-container {
+  touch-action: none; /* 触屏拖动悬浮球时不跟页面抢滚动 */
+  cursor: grab;
+}
+
+#readmate-fab-container.readmate-fab-dragging {
+  transition: none !important;
+  cursor: grabbing;
+  opacity: 0.92;
+}

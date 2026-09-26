@@ -515,6 +515,9 @@ function createFAB() {
   `;
   document.body.appendChild(fabContainer);
 
+  // ★ 悬浮球可自由拖动（拖动 >4px 才判定为拖动，绝不误触发朗读；刷新后复位右下角）
+  makeFabDraggable(fabContainer);
+
   const readerBtn = fabContainer.querySelector('#readmate-fab-reader');
   readerBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -746,6 +749,9 @@ function updateSubtitleDisplay(original, translated) {
 }
 
 // ====== 拖拽移动支持（排除交互元素与标签，防止阻止复选框默认点击） ======
+// ★ 拖拽结束时间戳（悬浮球 / 控制条共用）：防拖拽松手时浏览器补发的 click 被「点段落就朗读」误接
+let lastUiDragEndAt = 0;
+
 function makeDraggable(el) {
   let isDragging = false, startX, startY, origLeft, origTop;
   const handle = el.querySelector('.readmate-bar-main');
@@ -773,7 +779,70 @@ function makeDraggable(el) {
     el.style.bottom = 'auto';
   });
 
-  document.addEventListener('mouseup', () => { isDragging = false; });
+  document.addEventListener('mouseup', () => {
+    if (isDragging) lastUiDragEndAt = Date.now();
+    isDragging = false;
+  });
+}
+
+/** 悬浮球自由拖动（与播放控制条同源思路，但用 Pointer 事件，兼容 Android Kiwi 触屏） */
+function makeFabDraggable(el) {
+  const DRAG_THRESHOLD = 4; // 位移小于 4px 视为点击，绝不误伤播放按钮
+  let pressing = false, moved = false, startX = 0, startY = 0, origLeft = 0, origTop = 0;
+
+  el.addEventListener('pointerdown', (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    pressing = true;
+    moved = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    const rect = el.getBoundingClientRect();
+    origLeft = rect.left;
+    origTop = rect.top;
+  });
+
+  window.addEventListener('pointermove', (e) => {
+    if (!pressing) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (!moved && Math.abs(dx) + Math.abs(dy) < DRAG_THRESHOLD) return;
+    if (!moved) {
+      moved = true;
+      el.classList.add('readmate-fab-dragging');
+      el.style.left = `${origLeft}px`;
+      el.style.top = `${origTop}px`;
+      el.style.right = 'auto';
+      el.style.bottom = 'auto';
+      el.style.transform = 'none';
+    }
+    const w = el.offsetWidth || 52;
+    const h = el.offsetHeight || 52;
+    const left = Math.max(4, Math.min(Math.max(4, window.innerWidth - w - 4), origLeft + dx));
+    const top = Math.max(4, Math.min(Math.max(4, window.innerHeight - h - 4), origTop + dy));
+    el.style.left = `${left}px`;
+    el.style.top = `${top}px`;
+    if (e.cancelable) e.preventDefault();
+  }, { passive: false });
+
+  const endDrag = () => {
+    if (!pressing) return;
+    pressing = false;
+    if (moved) {
+      el.classList.remove('readmate-fab-dragging');
+      lastUiDragEndAt = Date.now();
+      DebugLog.add('FAB dragged');
+    }
+  };
+  window.addEventListener('pointerup', endDrag);
+  window.addEventListener('pointercancel', endDrag);
+
+  // 拖动刚结束的 350ms 内，捕获阶段掐断 click，杜绝误触朗读/净读/摘要
+  el.addEventListener('click', (e) => {
+    if (Date.now() - lastUiDragEndAt < 350) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
 }
 
 // ====== 调试面板 ======
@@ -1361,12 +1430,13 @@ function playSpeechUtterance(text, lang, customVoiceName = '', onStart = null, o
 }
 
 // ====== 核心朗读执行调度器（多语种双核引擎 + 绝对可用保底 + 双重预读流水线） ======
-async function playSentencesFlow(sentences) {
+async function playSentencesFlow(sentences, startIndex = 0) {
   currentSentences = sentences;
   isPlaying = true;
   isPaused = false;
   pendingJumpIndex = null;
-  currentSentenceIndex = 0;
+  // ★ 指哪读哪：支持从指定句子开播（默认 0，原有"从头朗读"行为完全不变）
+  currentSentenceIndex = Math.max(0, Math.min((sentences && sentences.length ? sentences.length : 1) - 1, parseInt(startIndex, 10) || 0));
   showBar();
   updateReaderPlayButton();
   const playBtn = floatingBar?.querySelector('#readmate-play-btn');
@@ -1395,7 +1465,8 @@ async function playSentencesFlow(sentences) {
   DebugLog.add(`TTS Config: useCloud=${useCloud}, endpoint=${ttsEndpoint}, origVoice=${origVoice}, buffer=${bufferSize}`);
 
   // 1. 预先启动开篇几句的预读流水线
-  prefetchAhead(sentences, -1, bufferSize + 1, ttsEndpoint, origVoice, transVoice, currentSpeed, useCloud);
+  // ★ 从真实起始句开始预读（正常从头播放时即 -1，与旧行为完全一致；中途起播则不再干等下载）
+  prefetchAhead(sentences, currentSentenceIndex - 1, bufferSize + 1, ttsEndpoint, origVoice, transVoice, currentSpeed, useCloud);
 
   while (isPlaying && !stopImmediate && currentSentenceIndex < sentences.length) {
     if (pendingJumpIndex !== null) {
@@ -1578,7 +1649,7 @@ async function playSentencesFlow(sentences) {
 }
 
 // ====== 主入口：启动文章朗读 ======
-async function startReading(text, forceLang = null, voiceModeOverride = null) {
+async function startReading(text, forceLang = null, voiceModeOverride = null, startIndex = 0) {
   if (!text || !text.trim()) return;
   DebugLog.add('== startReading v2.0 ==');
   await loadSettings();
@@ -1662,8 +1733,8 @@ async function startReading(text, forceLang = null, voiceModeOverride = null) {
     }
   }
 
-  DebugLog.add(`Ready to play: ${sentences.length} sentences`);
-  playSentencesFlow(sentences);
+  DebugLog.add(`Ready to play: ${sentences.length} sentences (startIndex=${startIndex})`);
+  playSentencesFlow(sentences, startIndex);
 }
 
 // ====== ⚡ AI 双语核心要闻摘要系统 ======
@@ -2391,7 +2462,23 @@ function ensureReaderOverlay() {
       return;
     }
 
-    const sEl = e.target.closest('.readmate-reader-s');
+    // ★ 指哪读哪：优先命中句子；若点在句间空白或段落留白上，则按鼠标位置就近归属到最近的一句（只做加法，不改变原有命中逻辑）
+    let sEl = e.target.closest('.readmate-reader-s');
+    if (!sEl) {
+      const paraEl = e.target.closest('.readmate-reader-p');
+      if (paraEl) {
+        let best = null, bestDist = Infinity;
+        for (const sp of paraEl.querySelectorAll('.readmate-reader-s')) {
+          const r = sp.getBoundingClientRect();
+          if (!r || r.height <= 0) continue;
+          const dx = e.clientX < r.left ? (r.left - e.clientX) : (e.clientX > r.right ? (e.clientX - r.right) : 0);
+          const dy = Math.abs((r.top + r.bottom) / 2 - e.clientY);
+          const dist = dx * 3 + dy;
+          if (dist < bestDist) { bestDist = dist; best = sp; }
+        }
+        sEl = best;
+      }
+    }
     if (!sEl || sEl.dataset.sentenceIdx === undefined) return;
     const sIdx = parseInt(sEl.dataset.sentenceIdx, 10);
     if (isNaN(sIdx)) return;
@@ -2504,10 +2591,9 @@ async function playReaderModeSentences(startIdx = 0) {
   stopImmediate = false;
   userStopped = false;
 
-  if (startIdx > 0) {
-    pendingJumpIndex = startIdx;
-  }
-  await playSentencesFlow(canonical.sentences);
+  // ★ 指哪读哪：把真实起始句号直接交给播放流
+  //（旧写法是设 pendingJumpIndex，会被播放流开头的重置语句清掉 → 永远从第 1 句开始）
+  await playSentencesFlow(canonical.sentences, startIdx);
 }
 
 function openReaderMode() {
@@ -3274,6 +3360,11 @@ document.addEventListener('dblclick', (e) => {
     clearTimeout(readerClickTimer);
     readerClickTimer = null;
   }
+  // 同步掐断原网页的单击朗读定时器，保证双击永远只做选词/查词
+  if (pageReadClickTimer) {
+    clearTimeout(pageReadClickTimer);
+    pageReadClickTimer = null;
+  }
   if (!isReaderModeActive) return;
   const sel = window.getSelection();
   if (!sel || sel.isCollapsed) return;
@@ -3287,23 +3378,222 @@ document.addEventListener('dblclick', (e) => {
   }
 });
 
-// 点击空白关闭查词小气泡
+// 点击空白关闭查词小气泡 / 划词翻译常驻卡片
+const READMATE_UI_SELECTOR = '#readmate-sel-btn-group, #readmate-bar, #readmate-fab-container, #readmate-summary-dialog, #readmate-reader-overlay, #readmate-pdf-modal, #readmate-dict-bubble, #readmate-vocab-drawer, #readmate-donate-modal, #readmate-donate-toast, #readmate-toast, #readmate-debug-panel';
+
 document.addEventListener('mousedown', (e) => {
   if (dictBubble && !dictBubble.contains(e.target)) {
     hideDictBubble();
   }
+  const stickyToast = document.getElementById('readmate-toast');
+  if (stickyToast && stickyToast.classList.contains('readmate-toast-sticky') && !stickyToast.contains(e.target)) {
+    hideTranslationCard();
+  }
+});
+
+// ====== ★ 指哪读哪（原网页）：单击任意段落，就从该段开始朗读 ======
+let pageReadClickTimer = null;
+let pageReadClickPoint = null;
+
+/** 段落指纹：去掉空白与标点后归一化，用于 DOM 段落 ↔ 权威句子源比对 */
+function normalizeParaKey(t) {
+  return (t || '').replace(/\s+/g, '').replace(/[^\w\u4e00-\u9fff]+/g, '').toLowerCase();
+}
+
+/** 取鼠标位置处的精确插入点（文本节点 + 字符偏移），优先 caretRangeFromPoint */
+function getCaretAtPoint(x, y) {
+  try {
+    if (document.caretRangeFromPoint) {
+      const r = document.caretRangeFromPoint(x, y);
+      if (r && r.startContainer) return { node: r.startContainer, offset: r.startOffset };
+    }
+    if (document.caretPositionFromPoint) {
+      const p = document.caretPositionFromPoint(x, y);
+      if (p && p.offsetNode) return { node: p.offsetNode, offset: p.offset };
+    }
+  } catch (e) {}
+  return null;
+}
+
+/** 兼容旧调用：取鼠标处的精确文本节点 */
+function getTextNodeAtPoint(x, y) {
+  const c = getCaretAtPoint(x, y);
+  return c ? c.node : null;
+}
+
+/** 计算鼠标位置在指定元素文本中的绝对字符偏移（拿不到返回 -1） */
+function getClickOffsetInElement(el, x, y) {
+  const caret = getCaretAtPoint(x, y);
+  if (!caret || !caret.node || caret.node.nodeType !== 3 || typeof caret.offset !== 'number') return -1;
+  try {
+    const r = document.createRange();
+    r.setStart(el, 0);
+    r.setEnd(caret.node, caret.offset);
+    return r.toString().length;
+  } catch (e) {
+    return -1;
+  }
+}
+
+/** 求两个归一化字符串的最长共同前缀长度 */
+function commonPrefixLen(a, b) {
+  let n = 0;
+  const max = Math.min(a.length, b.length);
+  while (n < max && a[n] === b[n]) n++;
+  return n;
+}
+
+/**
+ * 在权威句子源中定位最匹配的一句（定位不到返回 -1）。
+ * 打分优先级：一方是另一方开头（最可靠）＞ 包含关系（点到句中片段）＞ 长共同前缀。
+ * 关键：不依赖段落边界，因此即使提取器把多段合并成一段，也能精确定位到具体哪一句。
+ */
+function findBestSentenceIndex(sentences, key) {
+  if (!sentences || !sentences.length || !key || key.length < 4) return -1;
+  let bestIdx = -1, bestScore = 0;
+  for (let i = 0; i < sentences.length; i++) {
+    const sKey = normalizeParaKey(sentences[i]);
+    if (!sKey) continue;
+    const n = commonPrefixLen(sKey, key);
+    const shorter = Math.min(sKey.length, key.length);
+    let score = 0;
+    if (n === shorter && n >= 4) score = 1000 + n;                              // 一方是另一方开头
+    else if (sKey.includes(key) && key.length >= 8) score = 500 + key.length;   // 点到的是某句中间片段
+    else if (key.includes(sKey) && sKey.length >= 8) score = 500 + sKey.length; // 点到的文本覆盖整句
+    else if (n >= 8) score = n;                                                 // 长共同前缀（容忍细微差异）
+    if (score > bestScore) { bestScore = score; bestIdx = i; }
+  }
+  return bestScore >= 4 ? bestIdx : -1;
+}
+
+/** 把点击位置映射到权威句子源中的句子号（无法定位返回 -1，宁可不朗读也不乱读） */
+function findSentenceIndexAtPoint(el, x, y) {
+  try {
+    const canonical = getCanonicalArticle();
+    const sentences = (canonical && canonical.sentences) ? canonical.sentences : [];
+    if (!sentences.length || !el) return -1;
+
+    const rawText = el.textContent || '';
+    const caret = getCaretAtPoint(x, y);
+    const nodeText = (caret && caret.node && caret.node.nodeType === 3) ? caret.node.textContent : '';
+
+    // 1. 最优：按鼠标在段落中的字符偏移，切出「鼠标正下方的那一句」，再与权威句子源比对
+    //（关键：整段常只是一个文本节点，只有按偏移切句才能区分段内第 1/2/3 句）
+    const offset = getClickOffsetInElement(el, x, y);
+    if (offset >= 0 && rawText.length > 0) {
+      let localSentences = [];
+      try { localSentences = TextUtils.splitSentences(rawText) || []; } catch (e) { localSentences = []; }
+      if (localSentences.length) {
+        let acc = 0, localHit = null;
+        for (const ls of localSentences) {
+          if (!ls) continue;
+          const pos = rawText.indexOf(ls, acc);
+          const s0 = pos >= 0 ? pos : acc;
+          const s1 = s0 + ls.length;
+          acc = Math.max(acc, s1);
+          if (offset < s1) { localHit = ls; break; }
+        }
+        if (!localHit) localHit = localSentences[localSentences.length - 1];
+        if (localHit) {
+          const hitByOffset = findBestSentenceIndex(sentences, normalizeParaKey(localHit));
+          if (hitByOffset >= 0) return hitByOffset;
+        }
+      }
+    }
+
+    // 2. 次优：鼠标正下方的整段文本节点指纹
+    if (nodeText && nodeText.trim().length >= 4) {
+      const hitNode = findBestSentenceIndex(sentences, normalizeParaKey(nodeText));
+      if (hitNode >= 0) return hitNode;
+    }
+
+    // 3. 兜底：整个被点中段落块的指纹（点到空白/图片等非文字处，则取该段首句）
+    const elKey = normalizeParaKey(rawText);
+    if (elKey.length >= 8) {
+      const hitEl = findBestSentenceIndex(sentences, elKey);
+      if (hitEl >= 0) return hitEl;
+    }
+    return -1;
+  } catch (e) {
+    DebugLog.add('findSentenceIndexAtPoint error: ' + e.message);
+    return -1;
+  }
+}
+
+/** 原网页单击段落 → 从该段开播（防抖 250ms，与双击选词/查词互不干扰） */
+document.addEventListener('click', (e) => {
+  if (isReaderModeActive) return;
+  if (e.button !== 0 || !e.isTrusted) return;
+  // 刚拖动过悬浮球/控制条 → 浏览器会在松手处补发 click，绝不能误判为「点段落朗读」
+  if (Date.now() - lastUiDragEndAt < 400) return;
+  if (e.target.closest(READMATE_UI_SELECTOR)) return;
+  // 交互元素（链接/按钮/输入框等）一律不劫持，尊重网页原有行为
+  if (e.target.closest('a, button, input, select, textarea, label, summary, [role="button"], [contenteditable="true"]')) return;
+
+  pageReadClickPoint = { x: e.clientX, y: e.clientY };
+  if (pageReadClickTimer) clearTimeout(pageReadClickTimer);
+  pageReadClickTimer = setTimeout(async () => {
+    pageReadClickTimer = null;
+    const pt = pageReadClickPoint;
+    if (!pt) return;
+
+    // 用户正在划词选择 → 交给划词朗读/翻译气泡，绝不抢戏
+    const sel = window.getSelection();
+    if (sel && !sel.isCollapsed && sel.toString().trim().length > 0) return;
+
+    const node = getTextNodeAtPoint(pt.x, pt.y);
+    const el = findParagraphContainer(node);
+    if (!el) return;
+
+    const idx = findSentenceIndexAtPoint(el, pt.x, pt.y);
+    if (idx < 0) {
+      DebugLog.add('指哪读哪（原网页）：未能定位到权威句子，已忽略本次点击');
+      return;
+    }
+
+    DebugLog.add(`指哪读哪（原网页）：从第 ${idx + 1} 句开播`);
+    if (isPlaying && (currentMode === 'page' || currentMode === 'reader')) {
+      // 正在整篇朗读 → 直接跳句，不断流
+      jumpToSentence(idx);
+    } else {
+      currentMode = 'page';
+      const canonical = getCanonicalArticle();
+      await startReading((canonical && canonical.text) || el.textContent || '', null, null, idx);
+    }
+  }, 250);
 });
 
 // ====== 提示与小气泡（Toast 就近智能定位） ======
-function showTranslation(text, isToast = false, targetRect = null) {
+function showTranslation(text, isToast = false, targetRect = null, opts = {}) {
   let toast = document.getElementById('readmate-toast');
   if (!toast) {
     toast = document.createElement('div');
     toast.id = 'readmate-toast';
     document.body.appendChild(toast);
   }
+  const sticky = !!opts.sticky;
+  const duration = (typeof opts.duration === 'number') ? opts.duration : 3500;
+
   toast.textContent = text;
   toast.style.display = 'block';
+
+  if (sticky) {
+    // ★ 划词翻译结果：常驻卡片（可选中复制），只在 ✕ / 点击别处 / 30 秒兜底时才消失
+    toast.classList.add('readmate-toast-sticky');
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'readmate-toast-close';
+    closeBtn.type = 'button';
+    closeBtn.textContent = '✕';
+    closeBtn.title = _t('tipClose', '关闭');
+    closeBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      ev.preventDefault();
+      hideTranslationCard();
+    });
+    toast.appendChild(closeBtn);
+  } else {
+    toast.classList.remove('readmate-toast-sticky');
+  }
 
   if (targetRect) {
     // 划选翻译：就近显示在划词文本的下方或上方，绝不跑偏到底部控制栏！
@@ -3322,7 +3612,7 @@ function showTranslation(text, isToast = false, targetRect = null) {
     }
     toast.style.top = `${top}px`;
     toast.style.left = `${left}px`;
-    toast.style.maxWidth = '360px';
+    toast.style.maxWidth = sticky ? '520px' : '360px';
   } else {
     // 全局通知默认居中在底部
     toast.style.position = 'fixed';
@@ -3336,13 +3626,23 @@ function showTranslation(text, isToast = false, targetRect = null) {
   clearTimeout(toast._timer);
   toast._timer = setTimeout(() => {
     toast.style.display = 'none';
-  }, 3500);
+    toast.classList.remove('readmate-toast-sticky');
+  }, duration);
+}
+
+/** 主动关闭划词翻译常驻卡片 */
+function hideTranslationCard() {
+  const toast = document.getElementById('readmate-toast');
+  if (!toast) return;
+  clearTimeout(toast._timer);
+  toast.classList.remove('readmate-toast-sticky');
+  toast.style.display = 'none';
 }
 
 async function translateAndShow(text, targetRect = null) {
   showTranslation(_t('toastTranslatingSelection', '🌐 正在进行深度 AI 语境翻译...'), true, targetRect);
   const trans = await fetchTranslation(text);
-  if (trans) showTranslation(trans, true, targetRect);
+  if (trans) showTranslation(trans, true, targetRect, { sticky: true, duration: 30000 });
   else showTranslation(_t('toastTranslateFailed', '❌ 翻译失败，请检查 AI 配置'), true, targetRect);
 }
 
