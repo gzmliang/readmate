@@ -878,10 +878,10 @@
     "message": "自分の本を読む"
   },
   "rdrLandingDesc": {
-    "message": "テキスト（txt / md）を取り込むと、ReadMate が美しいページに組版します。同じ自然な音声、文単位のハイライト、辞書、バイリンガル学習ツールが自分のファイルで使えます。"
+    "message": "txt / Markdown / epub / PDF をドロップするだけで、美しく組版された一冊に。朗読・対訳・書き出しまでこれ一つで。スキャン版 PDF と DRM 付き電子書は未対応です。"
   },
   "rdrDropHint": {
-    "message": "ここに .txt / .md ファイルをドロップ（epub と PDF は次のステップ）"
+    "message": "ここに .txt / .md / .epub / .pdf をドロップ"
   },
   "rdrChooseFile": {
     "message": "ファイルを選択…"
@@ -1195,5 +1195,32 @@
   "rdrModeTip": {
     "message": "対訳レイアウト",
     "description": "读伴书页"
+  },
+  "rdrImportProgress": {
+    "message": "ファイルを読み込み中…（{done}/{total}）"
+  },
+  "rdrEpubDrm": {
+    "message": "この epub は DRM 保護されているため開けません"
+  },
+  "rdrEpubInvalid": {
+    "message": "epub ファイルが壊れているか不完全です"
+  },
+  "rdrEpubNoText": {
+    "message": "この epub には読める本文がありません"
+  },
+  "rdrPdfEncrypted": {
+    "message": "この PDF はパスワード保護されているため開けません"
+  },
+  "rdrPdfInvalid": {
+    "message": "PDF ファイルが壊れているため読み込めません"
+  },
+  "rdrPdfNoText": {
+    "message": "スキャン版 PDF（画像のみ・テキスト層なし）のため、書ページに変換できません"
+  },
+  "rdrPdfTooLarge": {
+    "message": "PDF が大きすぎます（300MB 超）"
+  },
+  "rdrPdfLibFailed": {
+    "message": "PDF エンジンの読み込みに失敗しました。拡張機能を再読み込みしてください"
   }
 }

@@ -828,10 +828,10 @@
     "message": "Lee tus propios libros"
   },
   "rdrLandingDesc": {
-    "message": "Importa un libro de texto plano (txt / md) y ReadMate lo compondrá en una página cuidada: las mismas voces naturales, resaltado por frase, diccionario y herramientas bilingües — ahora en tus propios archivos."
+    "message": "Suelta un archivo txt, Markdown, epub o PDF y se convertirá en un libro bien maquetado: lectura en voz alta, vista bilingüe y exportación. Los PDF escaneados y los ebooks con DRM no son compatibles."
   },
   "rdrDropHint": {
-    "message": "Arrastra un archivo .txt / .md aquí (epub y PDF, próximamente)"
+    "message": "Suelta aquí un archivo .txt / .md / .epub / .pdf"
   },
   "rdrChooseFile": {
     "message": "Elegir un archivo…"
@@ -1145,5 +1145,32 @@
   "rdrModeTip": {
     "message": "Diseño bilingüe",
     "description": "读伴书页"
+  },
+  "rdrImportProgress": {
+    "message": "Leyendo el archivo… ({done}/{total})"
+  },
+  "rdrEpubDrm": {
+    "message": "Este epub tiene DRM y no se puede abrir"
+  },
+  "rdrEpubInvalid": {
+    "message": "Este archivo epub está dañado o incompleto"
+  },
+  "rdrEpubNoText": {
+    "message": "No se encontró texto legible en este epub"
+  },
+  "rdrPdfEncrypted": {
+    "message": "Este PDF está protegido con contraseña y no se puede abrir"
+  },
+  "rdrPdfInvalid": {
+    "message": "Este archivo PDF está dañado y no se puede leer"
+  },
+  "rdrPdfNoText": {
+    "message": "Es un PDF escaneado (solo imágenes, sin capa de texto): no se puede convertir en página de libro"
+  },
+  "rdrPdfTooLarge": {
+    "message": "Este PDF es demasiado grande (más de 300 MB)"
+  },
+  "rdrPdfLibFailed": {
+    "message": "No se pudo cargar el motor PDF: recarga la extensión e inténtalo de nuevo"
   }
 }

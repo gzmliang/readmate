@@ -882,10 +882,10 @@
     "message": "读您自己的书"
   },
   "rdrLandingDesc": {
-    "message": "导入一份纯文本（txt / md），读伴就把它排成一张精美的书页：同样的自然音色、逐句高亮、划词词典与双语研读工具，全部用在您自己的文件上。"
+    "message": "把 txt / Markdown / epub / PDF 拖进来，就是一页排版精美的书——朗读、双语对照、导出一步到位。扫描版 PDF 与带 DRM 的电子书暂不支持。"
   },
   "rdrDropHint": {
-    "message": "把 .txt / .md 文件拖到这里（epub 与 PDF 下一步支持）"
+    "message": "把 .txt / .md / .epub / .pdf 文件拖到这里"
   },
   "rdrChooseFile": {
     "message": "选择文件…"
@@ -1199,5 +1199,32 @@
   "rdrModeTip": {
     "message": "双语版式",
     "description": "读伴书页"
+  },
+  "rdrImportProgress": {
+    "message": "正在读取文件…（{done}/{total}）"
+  },
+  "rdrEpubDrm": {
+    "message": "这本 epub 带数字版权保护（DRM），无法解析"
+  },
+  "rdrEpubInvalid": {
+    "message": "epub 文件损坏或格式不完整"
+  },
+  "rdrEpubNoText": {
+    "message": "这本 epub 里没有可读的正文文字"
+  },
+  "rdrPdfEncrypted": {
+    "message": "这份 PDF 有密码保护，无法打开"
+  },
+  "rdrPdfInvalid": {
+    "message": "PDF 文件损坏，无法读取"
+  },
+  "rdrPdfNoText": {
+    "message": "这是扫描版 PDF（只有图片、没有文字层），暂时无法转成书页"
+  },
+  "rdrPdfTooLarge": {
+    "message": "PDF 太大（超过 300MB），暂不支持"
+  },
+  "rdrPdfLibFailed": {
+    "message": "PDF 引擎加载失败，请重新加载扩展后再试"
   }
 }

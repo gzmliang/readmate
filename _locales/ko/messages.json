@@ -828,10 +828,10 @@
     "message": "내 책 읽기"
   },
   "rdrLandingDesc": {
-    "message": "텍스트(txt / md)를 가져오면 ReadMate가 아름다운 책 페이지로 조판합니다. 동일한 자연 음성, 문장 하이라이트, 사전, 이중 언어 학습 도구를 내 파일에서 그대로 사용하세요."
+    "message": "txt, Markdown, epub, PDF 파일을 떨어뜨리면 한 권의 책이 됩니다. 낭독, 대역, 내보내기까지 한곳에서. 스캔본 PDF와 DRM 전자책은 지원하지 않습니다."
   },
   "rdrDropHint": {
-    "message": "여기에 .txt / .md 파일을 놓으세요 (epub과 PDF는 다음 단계)"
+    "message": "여기에 .txt / .md / .epub / .pdf 파일을 놓으세요"
   },
   "rdrChooseFile": {
     "message": "파일 선택…"
@@ -1145,5 +1145,32 @@
   "rdrModeTip": {
     "message": "대역 레이아웃",
     "description": "读伴书页"
+  },
+  "rdrImportProgress": {
+    "message": "파일을 읽는 중… ({done}/{total})"
+  },
+  "rdrEpubDrm": {
+    "message": "이 epub은 DRM으로 보호되어 열 수 없습니다"
+  },
+  "rdrEpubInvalid": {
+    "message": "epub 파일이 손상되었거나 불완전합니다"
+  },
+  "rdrEpubNoText": {
+    "message": "이 epub에서 읽을 수 있는 본문을 찾지 못했습니다"
+  },
+  "rdrPdfEncrypted": {
+    "message": "이 PDF는 암호로 보호되어 열 수 없습니다"
+  },
+  "rdrPdfInvalid": {
+    "message": "PDF 파일이 손상되어 읽을 수 없습니다"
+  },
+  "rdrPdfNoText": {
+    "message": "스캔본 PDF(이미지만 있고 텍스트 레이어 없음)라서 책 페이지로 변환할 수 없습니다"
+  },
+  "rdrPdfTooLarge": {
+    "message": "PDF가 너무 큽니다(300MB 초과)"
+  },
+  "rdrPdfLibFailed": {
+    "message": "PDF 엔진을 불러오지 못했습니다. 확장 프로그램을 다시 로드하세요"
   }
 }

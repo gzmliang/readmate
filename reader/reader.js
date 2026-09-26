@@ -365,7 +365,7 @@
 
       var icon = document.createElement('div');
       icon.className = 'rdr-ri-icon';
-      icon.textContent = e.format === 'md' ? '📝' : '📄';
+      icon.textContent = e.format === 'md' ? '📝' : (e.format === 'epub' ? '📖' : (e.format === 'pdf' ? '📕' : '📄'));
 
       var main = document.createElement('div');
       main.className = 'rdr-ri-main';
@@ -409,6 +409,26 @@
   // ============================================================
   // 导入
   // ============================================================
+  /** 把导入失败的错误码翻译成人话（界面文案全部走 i18n 词典） */
+  function importErrorText(err) {
+    var code = (err && err.code) || '';
+    var ext = ((err && err.ext) || '?').toUpperCase();
+    switch (code) {
+      case 'EPUB_DRM': return T('rdrEpubDrm');
+      case 'EPUB_INVALID': return T('rdrEpubInvalid');
+      case 'EPUB_NO_TEXT': return T('rdrEpubNoText');
+      case 'ZIP_BAD': case 'ZIP_UNSUPPORTED_METHOD': case 'ZIP_NO_DEFLATE': return T('rdrEpubInvalid');
+      case 'PDF_ENCRYPTED': return T('rdrPdfEncrypted');
+      case 'PDF_INVALID': return T('rdrPdfInvalid');
+      case 'PDF_NO_TEXT': return T('rdrPdfNoText');
+      case 'PDF_TOO_LARGE': return T('rdrPdfTooLarge');
+      case 'PDF_LIB_FAILED': return T('rdrPdfLibFailed');
+      case 'FORMAT_PLANNED': return T('rdrFormatPlanned', { ext: ext });
+      case 'FORMAT_UNSUPPORTED': return T('rdrFormatUnsupported', { ext: ext });
+      default: return T('rdrImportFailed');
+    }
+  }
+
   function importFile(file) {
     if (!file) return Promise.resolve();
     var ext = BookImporter.formatOf(file.name);
@@ -417,15 +437,20 @@
       else toast(T('rdrFormatUnsupported', { ext: (ext || '?').toUpperCase() }));
       return Promise.resolve();
     }
+    // epub / pdf 需要解包或逐页抽字，给个进度提示（大书也不像死住）
+    var heavy = ext === 'epub' || ext === 'pdf';
     toast(T('rdrImporting'), true);
-    return BookImporter.parseFile(file).then(function (b) {
+    var onProgress = heavy ? function (done, total) {
+      if (total > 1) toast(T('rdrImportProgress', { done: done, total: total }), true);
+    } : null;
+    return BookImporter.parseFile(file, { onProgress: onProgress }).then(function (b) {
       hideToast();
       if (!b.chapters || !b.chapters.length) { toast(T('rdrImportEmpty')); return; }
       return openBook(b);
     }).catch(function (err) {
       hideToast();
       console.warn('[Reader] import failed', err);
-      toast(T('rdrImportFailed'));
+      toast(importErrorText(err));
     });
   }
 
@@ -1252,7 +1277,12 @@
       })
       .then(function (buf) {
         hideToast();
-        return importFile(new File([buf], name, { type: 'text/plain' }));
+        // 链接常常没有扩展名（arXiv 的 /pdf/xxxx、网盘直链）：按内容嗅探后再决定解析器
+        var ext = BookImporter.sniffFormat(buf, name);
+        if (ext && BookImporter.formatOf(name) !== ext) name = name + '.' + ext;
+        var mime = ext === 'epub' ? 'application/epub+zip'
+          : (ext === 'pdf' ? 'application/pdf' : 'text/plain');
+        return importFile(new File([buf], name, { type: mime }));
       })
       .catch(function (e) {
         hideToast();

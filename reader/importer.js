@@ -1,6 +1,9 @@
 // ReadMate / 读伴 — 书稿解析器 (Book Importer)
 // M1: txt / md（自动识别 UTF-8 / GBK / UTF-16，自动切章节）
-// M2: epub（计划）  M3: PDF 文字层（计划）
+// M2: epub（reader/epub.js + reader/zip-reader.js，零依赖原生解压）
+// M3: PDF 文字层（reader/pdf-book.js，内置 pdf.js，扫描版/加密版明确报错）
+//
+// 三个格式共用同一套输出结构与切章引擎（splitChapters），书页完全无需区分格式。
 //
 // 输出统一结构（不含任何 UI 文案，界面文字一律由 reader.js 走 i18n 渲染）：
 // {
@@ -12,7 +15,11 @@ const BookImporter = (() => {
   'use strict';
 
   const TEXT_EXTS = ['txt', 'text', 'md', 'markdown', 'log'];
-  const PLANNED_EXTS = ['epub', 'pdf'];
+  const EPUB_EXTS = ['epub'];
+  const PDF_EXTS = ['pdf'];
+  const SUPPORTED_EXTS = TEXT_EXTS.concat(EPUB_EXTS, PDF_EXTS);
+  // 已明确支持之外的扩展名（保留给未来的格式）
+  const PLANNED_EXTS = [];
 
   // ====== 章节标题识别 ======
   const CN_NUM = '0-9零〇一二三四五六七八九十百千万两';
@@ -111,6 +118,34 @@ const BookImporter = (() => {
       if (ORNAMENT_LINE.test(norm)) continue;
       out.push(norm);
     }
+    return out;
+  }
+
+  // ====== 超长段落拆解（epub / PDF 共用：抓取来的「一整页一个段落」不能直接进排版） ======
+  const PARA_SOFT_LIMIT = 4000;     // 单个段落超过这个长度就按句子切开
+  const PARA_SPLIT_TARGET = 2000;   // 切开后每段的目标长度
+
+  function explodeParagraphs(paras) {
+    const out = [];
+    const push = function (piece) {
+      if (!piece) return;
+      if (piece.length <= PARA_SOFT_LIMIT) { out.push(piece); return; }
+      // 整段没有任何句末标点（OCR 渣、无标点长文）→ 硬切，否则排版与翻译队列会被拖垮
+      for (let i = 0; i < piece.length; i += PARA_SPLIT_TARGET) out.push(piece.slice(i, i + PARA_SPLIT_TARGET));
+    };
+    (paras || []).forEach(function (p) {
+      const text = String(p || '');
+      if (!text) return;
+      if (text.length <= PARA_SOFT_LIMIT) { out.push(text); return; }
+      let buf = '';
+      // 先按句末标点切（保留标点），攒够目标长度就落一段
+      text.split(/(?<=[。！？；…”」』!?;.])/).forEach(function (s) {
+        if (!s) return;
+        if (buf && (buf.length + s.length) > PARA_SPLIT_TARGET) { push(buf); buf = ''; }
+        buf += s;
+      });
+      push(buf);
+    });
     return out;
   }
 
@@ -294,7 +329,7 @@ const BookImporter = (() => {
 
   function isSupported(name) {
     const ext = formatOf(name);
-    return TEXT_EXTS.includes(ext);
+    return SUPPORTED_EXTS.includes(ext);
   }
 
   function isPlanned(name) {
@@ -308,22 +343,55 @@ const BookImporter = (() => {
     return buildBook(cleaned, Object.assign({}, meta, { encoding }));
   }
 
-  /** 解析 File 对象 */
-  async function parseFile(file) {
+  /**
+   * 解析 File 对象（txt / md / epub / pdf）
+   * @param file File
+   * @param opts { onProgress(done, total) 解析进度，可选 }
+   */
+  async function parseFile(file, opts) {
     const name = file.name || '';
     const ext = formatOf(name);
-    if (!TEXT_EXTS.includes(ext)) {
-      const err = new Error(PLANNED_EXTS.includes(ext) ? 'FORMAT_PLANNED' : 'FORMAT_UNSUPPORTED');
-      err.code = PLANNED_EXTS.includes(ext) ? 'FORMAT_PLANNED' : 'FORMAT_UNSUPPORTED';
+    const supported = SUPPORTED_EXTS.includes(ext) || PLANNED_EXTS.includes(ext);
+    if (!supported) {
+      const err = new Error('FORMAT_UNSUPPORTED');
+      err.code = 'FORMAT_UNSUPPORTED';
       err.ext = ext;
       throw err;
     }
     const buf = await file.arrayBuffer();
-    return parseBuffer(buf, {
+    const meta = {
       sourceName: name,
       format: ext,
       fingerprint: makeFingerprint(name, file.size, file.lastModified),
-    });
+    };
+    if (EPUB_EXTS.includes(ext)) {
+      if (typeof BookEpub === 'undefined') throw missingModule('BookEpub');
+      return BookEpub.parseBuffer(buf, meta, opts);
+    }
+    if (PDF_EXTS.includes(ext)) {
+      if (typeof BookPdf === 'undefined') throw missingModule('BookPdf');
+      return BookPdf.parseBuffer(buf, meta, opts);
+    }
+    return parseBuffer(buf, meta);
+  }
+
+  /**
+   * 按文件内容嗅探格式：远程书稿链接常常没有扩展名
+   * （例如 arXiv 的 /pdf/2301.00001、网盘直链）
+   */
+  function sniffFormat(buf, name) {
+    const ext = formatOf(name);
+    if (ext && SUPPORTED_EXTS.includes(ext)) return ext;
+    const b = new Uint8Array(buf.slice(0, 4));
+    if (b.length >= 4 && b[0] === 0x25 && b[1] === 0x50 && b[2] === 0x44 && b[3] === 0x46) return 'pdf';  // %PDF
+    if (b.length >= 2 && b[0] === 0x50 && b[1] === 0x4B) return 'epub';   // PK\x03\x04 → zip（epub 本体就是 zip）
+    return ext;
+  }
+
+  function missingModule(name) {
+    const err = new Error('IMPORTER_MODULE_MISSING: ' + name);
+    err.code = 'IMPORTER_MODULE_MISSING';
+    return err;
   }
 
   function parseText(text, meta) {
@@ -332,8 +400,12 @@ const BookImporter = (() => {
 
   return {
     TEXT_EXTS,
+    EPUB_EXTS,
+    PDF_EXTS,
+    SUPPORTED_EXTS,
     PLANNED_EXTS,
     formatOf,
+    sniffFormat,
     isSupported,
     isPlanned,
     parseFile,
@@ -342,6 +414,6 @@ const BookImporter = (() => {
     makeFingerprint,
     decodeBuffer,
     // 供自测台直接调用
-    _internal: { isHeadingLine, splitChapters, splitParagraphs, guessMeta },
+    _internal: { isHeadingLine, splitChapters, splitParagraphs, guessMeta, explodeParagraphs },
   };
 })();

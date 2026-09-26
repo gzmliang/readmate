@@ -828,10 +828,10 @@
     "message": "Lies deine eigenen Bücher"
   },
   "rdrLandingDesc": {
-    "message": "Importiere ein Textbuch (txt / md) und ReadMate setzt es in eine schön gesetzte Seite: dieselben natürlichen Stimmen, Satz-Hervorhebung, Wörterbuch und zweisprachige Lernwerkzeuge — jetzt für deine eigenen Dateien."
+    "message": "Ziehen Sie eine txt-, Markdown-, epub- oder PDF-Datei hinein — daraus wird ein schön gesetztes Buch mit Vorlesen, zweisprachiger Ansicht und Export. Gescannte PDFs und DRM-E-Books werden nicht unterstützt."
   },
   "rdrDropHint": {
-    "message": "Ziehe eine .txt-/.md-Datei hierher (epub und PDF folgen)"
+    "message": ".txt-/.md-/.epub-/.pdf-Datei hier ablegen"
   },
   "rdrChooseFile": {
     "message": "Datei auswählen…"
@@ -1145,5 +1145,32 @@
   "rdrModeTip": {
     "message": "Zweisprachige Ansicht",
     "description": "读伴书页"
+  },
+  "rdrImportProgress": {
+    "message": "Datei wird gelesen… ({done}/{total})"
+  },
+  "rdrEpubDrm": {
+    "message": "Dieses epub ist DRM-geschützt und kann nicht geöffnet werden"
+  },
+  "rdrEpubInvalid": {
+    "message": "Diese epub-Datei ist beschädigt oder unvollständig"
+  },
+  "rdrEpubNoText": {
+    "message": "In diesem epub wurde kein lesbarer Text gefunden"
+  },
+  "rdrPdfEncrypted": {
+    "message": "Diese PDF ist passwortgeschützt und kann nicht geöffnet werden"
+  },
+  "rdrPdfInvalid": {
+    "message": "Diese PDF-Datei ist beschädigt und kann nicht gelesen werden"
+  },
+  "rdrPdfNoText": {
+    "message": "Das ist ein gescanntes PDF (nur Bilder, keine Textebene) — daraus lässt sich keine Buchseite machen"
+  },
+  "rdrPdfTooLarge": {
+    "message": "Diese PDF ist zu groß (über 300 MB)"
+  },
+  "rdrPdfLibFailed": {
+    "message": "Die PDF-Engine konnte nicht geladen werden — Erweiterung neu laden und erneut versuchen"
   }
 }
