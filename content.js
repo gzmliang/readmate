@@ -815,8 +815,10 @@ function makeFabDraggable(el) {
       el.style.bottom = 'auto';
       el.style.transform = 'none';
     }
-    const w = el.offsetWidth || 52;
-    const h = el.offsetHeight || 52;
+    // 边界按「小球本身」计算：收起态悬浮球在容器顶部，隐藏竖条已点击穿透，不必再为它留空间
+    const playEl = el.querySelector('#readmate-fab-play');
+    const w = (playEl ? playEl.offsetWidth : 40) + 12;
+    const h = (playEl ? playEl.offsetHeight : 40) + 12;
     const left = Math.max(4, Math.min(Math.max(4, window.innerWidth - w - 4), origLeft + dx));
     const top = Math.max(4, Math.min(Math.max(4, window.innerHeight - h - 4), origTop + dy));
     el.style.left = `${left}px`;

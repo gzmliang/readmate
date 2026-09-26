@@ -112,6 +112,21 @@
   pointer-events: auto;
 }
 
+/* ★ v1.0.9：收起态只有小球可点，隐藏竖条一律点击穿透，绝不遮挡网页内容 */
+#readmate-fab-container {
+  pointer-events: none;
+}
+
+/* 主球始终可点（也用于拖动）；隐藏的子按钮保持 none，悬停后才变 auto */
+#readmate-fab-container #readmate-fab-play {
+  pointer-events: auto;
+  cursor: grab;
+}
+
+#readmate-fab-container.readmate-fab-dragging #readmate-fab-play {
+  cursor: grabbing;
+}
+
 /* ====== 全新双层歌词卡片控制条（Card Bar） ====== */
 #readmate-bar {
   position: fixed;
