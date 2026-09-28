@@ -521,6 +521,8 @@ function createFAB() {
 
   // ★ 悬浮球可自由拖动（拖动 >4px 才判定为拖动，绝不误触发朗读；刷新后复位右下角）
   makeFabDraggable(fabContainer);
+  // 窗口尺寸变化时重新判定展开方向（球贴底时窗口变矮，避免子按钮又被挤出视口）
+  window.addEventListener('resize', () => { if (fabContainer) syncFabDir(fabContainer); });
 
   const readerBtn = fabContainer.querySelector('#readmate-fab-reader');
   readerBtn.addEventListener('click', (e) => {
@@ -789,10 +791,66 @@ function makeDraggable(el) {
   });
 }
 
+/**
+ * 悬浮球几何量测（只在拖动开始时量一次，避免拖动中反复强制回滞）
+ * 关键点：insetYDown / insetYUp 必须与「当前展开方向」无关，否则翻转后会算出错误位置。
+ * - 向下展开时小球贴在容器顶部 → 内缩 = paddingTop；
+ * - 向上展开时小球被排到容器底部 → 内缩 = paddingTop + 两个子按钮的占位高度。
+ */
+function fabMetrics(el) {
+  const play = el.querySelector('#readmate-fab-play');
+  const pr = play.getBoundingClientRect();
+  const cr = el.getBoundingClientRect();
+  const cs = getComputedStyle(el);
+  const padT = parseFloat(cs.paddingTop) || 0;
+  const padB = parseFloat(cs.paddingBottom) || 0;
+  const subSpan = Math.max(0, cr.height - pr.height - padT - padB);
+  return {
+    ballW: pr.width,
+    ballH: pr.height,
+    insetX: pr.left - cr.left,
+    insetYDown: padT,
+    insetYUp: padT + subSpan,
+    needSpace: subSpan + 16,
+  };
+}
+
+/**
+ * 依据小球当前屏幕位置决定展开方向（带滞回防抖动）：
+ * 下方空间不够就把两个子按钮翻到上方，并补偿容器位置，保证小球“纹丝不动”。
+ * 滞回为什么不会抖：翻转时小球屏幕位置保持不变 → 判据 spaceBelow 也不变 → 不会来回切。
+ */
+function syncFabDir(el) {
+  const play = el.querySelector('#readmate-fab-play');
+  if (!play) return;
+  const m = fabMetrics(el);
+  if (!m.ballW) return;
+  const r = play.getBoundingClientRect();
+  const spaceBelow = window.innerHeight - r.bottom;
+  const spaceAbove = r.top;
+  const up = el.classList.contains('readmate-fab-upward');
+  let next = up;
+  if (!up && spaceBelow < m.needSpace && spaceAbove >= m.needSpace) next = true;
+  else if (up && spaceBelow >= m.needSpace) next = false;
+  if (next === up) return;
+  el.style.transition = 'none';
+  el.classList.toggle('readmate-fab-upward', next);
+  const afterTop = play.getBoundingClientRect().top;
+  const delta = r.top - afterTop;
+  if (el.style.top && el.style.top !== 'auto') {
+    el.style.top = `${parseFloat(el.style.top) + delta}px`;
+  } else {
+    el.style.bottom = `${(parseFloat(getComputedStyle(el).bottom) || 0) - delta}px`;
+  }
+  void el.offsetHeight;
+  el.style.transition = '';
+}
+
 /** 悬浮球自由拖动（与播放控制条同源思路，但用 Pointer 事件，兼容 Android Kiwi 触屏） */
 function makeFabDraggable(el) {
   const DRAG_THRESHOLD = 4; // 位移小于 4px 视为点击，绝不误伤播放按钮
-  let pressing = false, moved = false, startX = 0, startY = 0, origLeft = 0, origTop = 0;
+  let pressing = false, moved = false, startX = 0, startY = 0;
+  let origBallLeft = 0, origBallTop = 0, metrics = null;
 
   el.addEventListener('pointerdown', (e) => {
     if (e.button !== undefined && e.button !== 0) return;
@@ -800,9 +858,11 @@ function makeFabDraggable(el) {
     moved = false;
     startX = e.clientX;
     startY = e.clientY;
-    const rect = el.getBoundingClientRect();
-    origLeft = rect.left;
-    origTop = rect.top;
+    // ★ v1.0.10：以「小球」为拖动基准，而不是整个容器（容器含隐藏竖条，基准会随展开方向变化）
+    const pr = el.querySelector('#readmate-fab-play').getBoundingClientRect();
+    origBallLeft = pr.left;
+    origBallTop = pr.top;
+    metrics = fabMetrics(el);
   });
 
   window.addEventListener('pointermove', (e) => {
@@ -812,21 +872,28 @@ function makeFabDraggable(el) {
     if (!moved && Math.abs(dx) + Math.abs(dy) < DRAG_THRESHOLD) return;
     if (!moved) {
       moved = true;
+      const cr = el.getBoundingClientRect();
       el.classList.add('readmate-fab-dragging');
-      el.style.left = `${origLeft}px`;
-      el.style.top = `${origTop}px`;
+      el.style.left = `${cr.left}px`;
+      el.style.top = `${cr.top}px`;
       el.style.right = 'auto';
       el.style.bottom = 'auto';
       el.style.transform = 'none';
     }
-    // 边界按「小球本身」计算：收起态悬浮球在容器顶部，隐藏竖条已点击穿透，不必再为它留空间
-    const playEl = el.querySelector('#readmate-fab-play');
-    const w = (playEl ? playEl.offsetWidth : 40) + 12;
-    const h = (playEl ? playEl.offsetHeight : 40) + 12;
-    const left = Math.max(4, Math.min(Math.max(4, window.innerWidth - w - 4), origLeft + dx));
-    const top = Math.max(4, Math.min(Math.max(4, window.innerHeight - h - 4), origTop + dy));
-    el.style.left = `${left}px`;
-    el.style.top = `${top}px`;
+    const m = metrics || fabMetrics(el);
+    if (!m.ballW) return;
+    // 1) 先算小球「应该待在屏幕上的哪个位置」（严格跟手，边界按小球本身算）
+    const ballLeft = Math.max(4, Math.min(Math.max(4, window.innerWidth - m.ballW - 4), origBallLeft + dx));
+    const ballTop = Math.max(4, Math.min(Math.max(4, window.innerHeight - m.ballH - 4), origBallTop + dy));
+    // 2) 空间不够就翻转展开方向（滞回：翻转后小球位置不变，判据不变，不会抖）
+    let up = el.classList.contains('readmate-fab-upward');
+    const spaceBelow = window.innerHeight - (ballTop + m.ballH);
+    if (!up && spaceBelow < m.needSpace && ballTop >= m.needSpace) up = true;
+    else if (up && spaceBelow >= m.needSpace) up = false;
+    if (up !== el.classList.contains('readmate-fab-upward')) el.classList.toggle('readmate-fab-upward', up);
+    // 3) 再由小球位置反推容器位置（小球在屏幕上一动不动，只是隐藏竖条换了朝向）
+    el.style.left = `${ballLeft - m.insetX}px`;
+    el.style.top = `${ballTop - (up ? m.insetYUp : m.insetYDown)}px`;
     if (e.cancelable) e.preventDefault();
   }, { passive: false });
 
