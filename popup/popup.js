@@ -94,6 +94,7 @@ function localize() {
   setText('lblShortcutTip', _('shortcutTip'));
   setText('lblRefreshTip', _('refreshTip'));
   setText('openReaderBtn', _('btnOpenReader'));
+  setText('openTranslatorBtn', _('btnQuickTranslate'));
   setText('lblOpenReaderTip', _('lblOpenReaderTip'));
 
   setText('lblSectionVoiceStream', _('sectionVoiceStream'));
@@ -328,6 +329,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('readPageBtn').addEventListener('click', readCurrentPage);
   document.getElementById('openReaderBtn').addEventListener('click', () => {
     chrome.tabs.create({ url: chrome.runtime.getURL('reader.html') });
+    window.close();
+  });
+  document.getElementById('openTranslatorBtn')?.addEventListener('click', () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('translator.html') });
     window.close();
   });
   document.getElementById('stopBtn')?.addEventListener('click', stopAllReading);

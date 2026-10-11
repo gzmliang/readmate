@@ -1226,5 +1226,95 @@
   },
   "rdrPdfLibFailed": {
     "message": "The PDF engine failed to load — reload the extension and try again"
+  },
+  "btnQuickTranslate": {
+    "message": "🌐 Quick Translate"
+  },
+  "lblQuickTranslateTip": {
+    "message": "Open the ReadMate Translation Board to paste text and translate freely."
+  },
+  "menuOpenTranslator": {
+    "message": "Open Translation Board"
+  },
+  "translatorTitle": {
+    "message": "ReadMate Translation Board"
+  },
+  "transEngineMicrosoft": {
+    "message": "Microsoft Edge (Free)"
+  },
+  "transEngineGoogle": {
+    "message": "Google Translate (Free)"
+  },
+  "transEngineAI": {
+    "message": "AI LLM (DeepSeek / OpenAI)"
+  },
+  "transAutoDetect": {
+    "message": "Auto Detect"
+  },
+  "transSourcePlaceholder": {
+    "message": "Type or paste text to translate here..."
+  },
+  "transTargetPlaceholder": {
+    "message": "Translation will appear here..."
+  },
+  "transCharWordCount": {
+    "message": "{chars} chars / {words} words"
+  },
+  "btnClear": {
+    "message": "Clear"
+  },
+  "btnPaste": {
+    "message": "Paste"
+  },
+  "btnSpeakSource": {
+    "message": "Read Source"
+  },
+  "btnCopyResult": {
+    "message": "Copy"
+  },
+  "btnSpeakResult": {
+    "message": "Read Translation"
+  },
+  "btnTranslate": {
+    "message": "Translate"
+  },
+  "transStatusReady": {
+    "message": "Ready"
+  },
+  "transStatusTranslating": {
+    "message": "Translating..."
+  },
+  "transStatusSuccess": {
+    "message": "Translated in {time}ms"
+  },
+  "transStatusFailed": {
+    "message": "Translation failed: {err}"
+  },
+  "transCopySuccess": {
+    "message": "Copied to clipboard!"
+  },
+  "transAiTonePrompt": {
+    "message": "Tone & Style:"
+  },
+  "transToneStandard": {
+    "message": "Standard Natural"
+  },
+  "transToneAcademic": {
+    "message": "Academic"
+  },
+  "transToneCasual": {
+    "message": "Casual / Colloquial"
+  },
+  "transToneBusiness": {
+    "message": "Formal Business"
+  },
+  "transToneLiterature": {
+    "message": "Literary / Polished"
+  },
+  "transFallbackNoKey": {
+    "message": "⚠️ AI API Key not configured; translated using Microsoft Free engine."
+  },
+  "transFallbackError": {
+    "message": "⚠️ AI request failed ({err}); translated using Microsoft Free engine."
   }
 }

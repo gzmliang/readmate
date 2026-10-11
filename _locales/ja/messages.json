@@ -1222,5 +1222,95 @@
   },
   "rdrPdfLibFailed": {
     "message": "PDF エンジンの読み込みに失敗しました。拡張機能を再読み込みしてください"
+  },
+  "btnQuickTranslate": {
+    "message": "🌐 クイック翻訳"
+  },
+  "lblQuickTranslateTip": {
+    "message": "ReadMate 翻訳ボードを開き、テキストを自由に貼り付けて翻訳します。"
+  },
+  "menuOpenTranslator": {
+    "message": "翻訳ボードを開く"
+  },
+  "translatorTitle": {
+    "message": "ReadMate 翻訳ボード"
+  },
+  "transEngineMicrosoft": {
+    "message": "Microsoft Edge（無料）"
+  },
+  "transEngineGoogle": {
+    "message": "Google 翻訳（無料）"
+  },
+  "transEngineAI": {
+    "message": "AI LLM（DeepSeek / OpenAI）"
+  },
+  "transAutoDetect": {
+    "message": "言語を自動検出"
+  },
+  "transSourcePlaceholder": {
+    "message": "ここに翻訳するテキストを入力または貼り付け..."
+  },
+  "transTargetPlaceholder": {
+    "message": "翻訳結果がここに表示されます..."
+  },
+  "transCharWordCount": {
+    "message": "{chars} 文字 / {words} 単語"
+  },
+  "btnClear": {
+    "message": "クリア"
+  },
+  "btnPaste": {
+    "message": "貼り付け"
+  },
+  "btnSpeakSource": {
+    "message": "原文を読み上げ"
+  },
+  "btnCopyResult": {
+    "message": "訳文をコピー"
+  },
+  "btnSpeakResult": {
+    "message": "訳文を読み上げ"
+  },
+  "btnTranslate": {
+    "message": "翻訳"
+  },
+  "transStatusReady": {
+    "message": "準備完了"
+  },
+  "transStatusTranslating": {
+    "message": "翻訳中..."
+  },
+  "transStatusSuccess": {
+    "message": "翻訳完了（{time}ms）"
+  },
+  "transStatusFailed": {
+    "message": "翻訳失敗: {err}"
+  },
+  "transCopySuccess": {
+    "message": "クリップボードにコピーしました！"
+  },
+  "transAiTonePrompt": {
+    "message": "トーン＆スタイル:"
+  },
+  "transToneStandard": {
+    "message": "標準的で自然"
+  },
+  "transToneAcademic": {
+    "message": "学術論文風"
+  },
+  "transToneCasual": {
+    "message": "日常会話・口語"
+  },
+  "transToneBusiness": {
+    "message": "ビジネス・公的"
+  },
+  "transToneLiterature": {
+    "message": "文学的・洗練"
+  },
+  "transFallbackNoKey": {
+    "message": "⚠️ AI API キーが未設定のため、Microsoft 無料エンジンでフォールバック翻訳しました。"
+  },
+  "transFallbackError": {
+    "message": "⚠️ AI 要求が失敗したため（{err}）、Microsoft 無料エンジンで代替翻訳しました。"
   }
 }

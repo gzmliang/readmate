@@ -29,6 +29,7 @@ RUNTIME=(
   reader.html
   reader/reader.js reader/reader.css reader/importer.js
   reader/zip-reader.js reader/epub.js reader/pdf-book.js
+  translator.html translator.css translator.js
   popup/popup.html popup/popup.css popup/popup.js
   options/options.html options/options.js options/options.css
   icons/icon16.png icons/icon48.png icons/icon128.png icons/receivecode.jpg

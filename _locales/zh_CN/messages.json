@@ -1226,5 +1226,95 @@
   },
   "rdrPdfLibFailed": {
     "message": "PDF 引擎加载失败，请重新加载扩展后再试"
+  },
+  "btnQuickTranslate": {
+    "message": "🌐 快速翻译"
+  },
+  "lblQuickTranslateTip": {
+    "message": "打开「读伴翻译板」，随手粘贴文本并自由翻译。"
+  },
+  "menuOpenTranslator": {
+    "message": "打开快速翻译板"
+  },
+  "translatorTitle": {
+    "message": "读伴翻译板"
+  },
+  "transEngineMicrosoft": {
+    "message": "微软 Edge 引擎（免费秒级）"
+  },
+  "transEngineGoogle": {
+    "message": "谷歌翻译（免费）"
+  },
+  "transEngineAI": {
+    "message": "AI 大模型（DeepSeek / OpenAI）"
+  },
+  "transAutoDetect": {
+    "message": "自动识别"
+  },
+  "transSourcePlaceholder": {
+    "message": "在此键入或粘贴需要翻译的文本（支持长段落）..."
+  },
+  "transTargetPlaceholder": {
+    "message": "译文将在此显示..."
+  },
+  "transCharWordCount": {
+    "message": "{chars} 字符 / {words} 词"
+  },
+  "btnClear": {
+    "message": "清空"
+  },
+  "btnPaste": {
+    "message": "粘贴"
+  },
+  "btnSpeakSource": {
+    "message": "朗读原文"
+  },
+  "btnCopyResult": {
+    "message": "复制译文"
+  },
+  "btnSpeakResult": {
+    "message": "朗读译文"
+  },
+  "btnTranslate": {
+    "message": "翻译"
+  },
+  "transStatusReady": {
+    "message": "就绪"
+  },
+  "transStatusTranslating": {
+    "message": "正在翻译中..."
+  },
+  "transStatusSuccess": {
+    "message": "翻译完成（耗时 {time}ms）"
+  },
+  "transStatusFailed": {
+    "message": "翻译失败：{err}"
+  },
+  "transCopySuccess": {
+    "message": "已复制到剪贴板！"
+  },
+  "transAiTonePrompt": {
+    "message": "AI 润色偏好："
+  },
+  "transToneStandard": {
+    "message": "标准自然"
+  },
+  "transToneAcademic": {
+    "message": "学术论文风格"
+  },
+  "transToneCasual": {
+    "message": "地道口语化"
+  },
+  "transToneBusiness": {
+    "message": "商务正式"
+  },
+  "transToneLiterature": {
+    "message": "文学典雅"
+  },
+  "transFallbackNoKey": {
+    "message": "⚠️ 尚未配置大模型 API Key，已自动为您使用微软免费引擎翻译。"
+  },
+  "transFallbackError": {
+    "message": "⚠️ 大模型请求失败（{err}），已自动为您使用微软免费引擎翻译。"
   }
 }

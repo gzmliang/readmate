@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title id="pageTitle">ReadMate Translation Board</title>
+  <link rel="stylesheet" href="translator.css">
+</head>
+<body>
+
+  <!-- 顶部导航 -->
+  <header>
+    <div class="brand-wrap">
+      <div class="brand-logo">📖</div>
+      <div class="brand-title">
+        ReadMate
+        <span class="brand-badge" id="lblBoardBadge">Translation Board</span>
+      </div>
+    </div>
+    <div class="nav-actions">
+      <button class="nav-btn" id="btnNavReader">📚 <span id="lblNavReader">My Books</span></button>
+      <button class="nav-btn" id="btnNavOptions">⚙️ <span id="lblNavOptions">Settings &amp; AI</span></button>
+    </div>
+  </header>
+
+  <main>
+    <!-- 顶部横条：选择引擎与语言 -->
+    <div class="control-panel">
+      <!-- 翻译引擎切换 -->
+      <div class="engine-switcher">
+        <button class="engine-btn active" data-engine="microsoft" id="btnEngineMs">
+          <span>⚡ <span id="lblEngineMs">Microsoft Edge</span></span>
+          <span class="tag tag-free">Free</span>
+        </button>
+        <button class="engine-btn" data-engine="google" id="btnEngineGoogle">
+          <span>⚡ <span id="lblEngineGoogle">Google Translate</span></span>
+          <span class="tag tag-free">Free</span>
+        </button>
+        <button class="engine-btn" data-engine="custom" id="btnEngineAI">
+          <span>🤖 <span id="lblEngineAI">AI LLM</span></span>
+          <span class="tag tag-ai">AI</span>
+        </button>
+      </div>
+
+      <!-- 语言选择与互换 -->
+      <div class="lang-bar">
+        <div class="lang-group">
+          <button class="lang-chip active" data-lang="auto" id="chipSrcAuto">Auto</button>
+          <button class="lang-chip" data-lang="en" id="chipSrcEn">English</button>
+          <button class="lang-chip" data-lang="zh-Hans" id="chipSrcZh">中文</button>
+          <select class="lang-select" id="selectSrcLang">
+            <option value="auto">Auto Detect</option>
+            <option value="en">English</option>
+            <option value="zh-Hans">简体中文 (Chinese)</option>
+            <option value="zh-Hant">繁體中文 (Traditional)</option>
+            <option value="ja">日本語 (Japanese)</option>
+            <option value="ko">한국어 (Korean)</option>
+            <option value="fr">Français (French)</option>
+            <option value="de">Deutsch (German)</option>
+            <option value="es">Español (Spanish)</option>
+            <option value="ru">Русский (Russian)</option>
+            <option value="pt">Português (Portuguese)</option>
+            <option value="it">Italiano (Italian)</option>
+            <option value="ar">العربية (Arabic)</option>
+            <option value="vi">Tiếng Việt (Vietnamese)</option>
+          </select>
+        </div>
+
+        <button class="swap-btn" id="btnSwapLang" title="Swap languages">⇄</button>
+
+        <div class="lang-group">
+          <button class="lang-chip active" data-lang="zh-Hans" id="chipTgtZh">中文</button>
+          <button class="lang-chip" data-lang="en" id="chipTgtEn">English</button>
+          <button class="lang-chip" data-lang="ja" id="chipTgtJa">日本語</button>
+          <select class="lang-select" id="selectTgtLang">
+            <option value="zh-Hans">简体中文 (Chinese)</option>
+            <option value="zh-Hant">繁體中文 (Traditional)</option>
+            <option value="en">English</option>
+            <option value="ja">日本語 (Japanese)</option>
+            <option value="ko">한국어 (Korean)</option>
+            <option value="fr">Français (French)</option>
+            <option value="de">Deutsch (German)</option>
+            <option value="es">Español (Spanish)</option>
+            <option value="ru">Русский (Russian)</option>
+            <option value="pt">Português (Portuguese)</option>
+            <option value="it">Italiano (Italian)</option>
+            <option value="ar">العربية (Arabic)</option>
+            <option value="vi">Tiếng Việt (Vietnamese)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 主翻译区：左侧原文输入，右侧译文输出 -->
+    <div class="translate-grid">
+      <!-- 左栏：输入原文 -->
+      <div class="card">
+        <div class="card-body">
+          <textarea id="sourceInput" class="source-textarea" placeholder="Type or paste text to translate here..."></textarea>
+        </div>
+        <div class="card-footer">
+          <div class="meta-info" id="sourceMeta">
+            0 chars / 0 words
+          </div>
+          <div class="card-tools">
+            <button class="tool-btn" id="btnClear">✕ <span id="lblBtnClear">Clear</span></button>
+            <button class="tool-btn" id="btnPaste">📋 <span id="lblBtnPaste">Paste</span></button>
+            <button class="tool-btn tool-btn-speak" id="btnSpeakSource">🔊 <span id="lblBtnSpeakSource">Read Source</span></button>
+            <button class="tool-btn tool-btn-speak" id="btnDoTranslate" style="background:#2563eb;color:#fff;border-color:#1d4ed8;">⚡ <span id="lblBtnTranslate">Translate</span></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右栏：译文输出 -->
+      <div class="card">
+        <div class="card-body">
+          <div id="targetOutput" class="target-result placeholder">Translation will appear here...</div>
+        </div>
+        <div class="card-footer">
+          <div class="meta-info" id="targetMeta">
+            Ready
+          </div>
+          <div class="card-tools">
+            <button class="tool-btn" id="btnCopyResult">📄 <span id="lblBtnCopyResult">Copy</span></button>
+            <button class="tool-btn tool-btn-speak" id="btnSpeakTarget">🔊 <span id="lblBtnSpeakTarget">Read Translation</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 当切换到「大模型翻译」时展现的润色偏好条 -->
+    <div class="ai-options-strip" id="aiOptionsStrip">
+      <div class="ai-options-left">
+        <span>🤖 <span id="lblAiTonePrompt">Tone &amp; Style:</span></span>
+        <div class="ai-pills">
+          <span class="ai-pill active" data-tone="standard" id="toneStandard">Standard</span>
+          <span class="ai-pill" data-tone="academic" id="toneAcademic">Academic</span>
+          <span class="ai-pill" data-tone="casual" id="toneCasual">Casual</span>
+          <span class="ai-pill" data-tone="business" id="toneBusiness">Business</span>
+          <span class="ai-pill" data-tone="literature" id="toneLiterature">Literary</span>
+        </div>
+      </div>
+      <div class="ai-model-tag" id="aiModelTag">
+        Model: deepseek-chat
+      </div>
+    </div>
+  </main>
+
+  <div id="trans-toast"></div>
+
+  <script src="translator.js"></script>
+</body>
+</html>

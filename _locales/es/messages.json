@@ -1172,5 +1172,95 @@
   },
   "rdrPdfLibFailed": {
     "message": "No se pudo cargar el motor PDF: recarga la extensión e inténtalo de nuevo"
+  },
+  "btnQuickTranslate": {
+    "message": "🌐 Traducción Rápida"
+  },
+  "lblQuickTranslateTip": {
+    "message": "Abra el panel de traducción de ReadMate para pegar texto y traducir libremente."
+  },
+  "menuOpenTranslator": {
+    "message": "Abrir panel de traducción"
+  },
+  "translatorTitle": {
+    "message": "Panel de Traducción ReadMate"
+  },
+  "transEngineMicrosoft": {
+    "message": "Microsoft Edge (Gratis)"
+  },
+  "transEngineGoogle": {
+    "message": "Google Traductor (Gratis)"
+  },
+  "transEngineAI": {
+    "message": "IA LLM (DeepSeek / OpenAI)"
+  },
+  "transAutoDetect": {
+    "message": "Detectar idioma"
+  },
+  "transSourcePlaceholder": {
+    "message": "Escriba o pegue el texto a traducir aquí..."
+  },
+  "transTargetPlaceholder": {
+    "message": "La traducción aparecerá aquí..."
+  },
+  "transCharWordCount": {
+    "message": "{chars} caracteres / {words} palabras"
+  },
+  "btnClear": {
+    "message": "Borrar"
+  },
+  "btnPaste": {
+    "message": "Pegar"
+  },
+  "btnSpeakSource": {
+    "message": "Leer original"
+  },
+  "btnCopyResult": {
+    "message": "Copiar traducción"
+  },
+  "btnSpeakResult": {
+    "message": "Leer traducción"
+  },
+  "btnTranslate": {
+    "message": "Traducir"
+  },
+  "transStatusReady": {
+    "message": "Listo"
+  },
+  "transStatusTranslating": {
+    "message": "Traduciendo..."
+  },
+  "transStatusSuccess": {
+    "message": "Traducido en {time} ms"
+  },
+  "transStatusFailed": {
+    "message": "Error de traducción: {err}"
+  },
+  "transCopySuccess": {
+    "message": "¡Copiado al portapapeles!"
+  },
+  "transAiTonePrompt": {
+    "message": "Tono y estilo:"
+  },
+  "transToneStandard": {
+    "message": "Natural estándar"
+  },
+  "transToneAcademic": {
+    "message": "Académico"
+  },
+  "transToneCasual": {
+    "message": "Coloquial"
+  },
+  "transToneBusiness": {
+    "message": "Formal de negocios"
+  },
+  "transToneLiterature": {
+    "message": "Literario pulido"
+  },
+  "transFallbackNoKey": {
+    "message": "⚠️ Clave de API de IA no configurada; se usó el motor gratuito de Microsoft como respaldo."
+  },
+  "transFallbackError": {
+    "message": "⚠️ Error en IA ({err}); se usó el motor gratuito de Microsoft como respaldo."
   }
 }

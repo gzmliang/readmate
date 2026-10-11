@@ -43,7 +43,10 @@
 
     <!-- 读伴书页：导入本地书稿（txt / epub / PDF）不依赖任何网页 -->
     <div class="section">
-      <button id="openReaderBtn" class="btn-read-page" style="width:100%;">📚 My Books (import txt / epub / PDF)</button>
+      <div style="display:flex;gap:8px;">
+        <button id="openReaderBtn" class="btn-read-page" style="flex:1;">📚 My Books</button>
+        <button id="openTranslatorBtn" class="btn-read-page" style="flex:1;background:linear-gradient(135deg, #10b981, #059669);">🌐 Translate</button>
+      </div>
       <div class="shortcut-tip" id="lblOpenReaderTip">Open the ReadMate Reader page to import your own files and read them aloud with the same engine.</div>
     </div>
 

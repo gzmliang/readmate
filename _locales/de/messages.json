@@ -1172,5 +1172,95 @@
   },
   "rdrPdfLibFailed": {
     "message": "Die PDF-Engine konnte nicht geladen werden — Erweiterung neu laden und erneut versuchen"
+  },
+  "btnQuickTranslate": {
+    "message": "🌐 Schnellübersetzung"
+  },
+  "lblQuickTranslateTip": {
+    "message": "Öffnen Sie das ReadMate-Übersetzungsboard, um Text frei einzufügen und zu übersetzen."
+  },
+  "menuOpenTranslator": {
+    "message": "Übersetzungsboard öffnen"
+  },
+  "translatorTitle": {
+    "message": "ReadMate Übersetzungsboard"
+  },
+  "transEngineMicrosoft": {
+    "message": "Microsoft Edge (Kostenlos)"
+  },
+  "transEngineGoogle": {
+    "message": "Google Übersetzer (Kostenlos)"
+  },
+  "transEngineAI": {
+    "message": "KI-LLM (DeepSeek / OpenAI)"
+  },
+  "transAutoDetect": {
+    "message": "Sprache automatisch erkennen"
+  },
+  "transSourcePlaceholder": {
+    "message": "Geben Sie den zu übersetzenden Text hier ein oder fügen Sie ihn ein..."
+  },
+  "transTargetPlaceholder": {
+    "message": "Die Übersetzung wird hier angezeigt..."
+  },
+  "transCharWordCount": {
+    "message": "{chars} Zeichen / {words} Wörter"
+  },
+  "btnClear": {
+    "message": "Löschen"
+  },
+  "btnPaste": {
+    "message": "Einfügen"
+  },
+  "btnSpeakSource": {
+    "message": "Original vorlesen"
+  },
+  "btnCopyResult": {
+    "message": "Übersetzung kopieren"
+  },
+  "btnSpeakResult": {
+    "message": "Übersetzung vorlesen"
+  },
+  "btnTranslate": {
+    "message": "Übersetzen"
+  },
+  "transStatusReady": {
+    "message": "Bereit"
+  },
+  "transStatusTranslating": {
+    "message": "Wird übersetzt..."
+  },
+  "transStatusSuccess": {
+    "message": "Übersetzt in {time} ms"
+  },
+  "transStatusFailed": {
+    "message": "Übersetzung fehlgeschlagen: {err}"
+  },
+  "transCopySuccess": {
+    "message": "In die Zwischenablage kopiert!"
+  },
+  "transAiTonePrompt": {
+    "message": "Ton & Stil:"
+  },
+  "transToneStandard": {
+    "message": "Standard natürlich"
+  },
+  "transToneAcademic": {
+    "message": "Akademisch"
+  },
+  "transToneCasual": {
+    "message": "Umgangssprachlich"
+  },
+  "transToneBusiness": {
+    "message": "Formell geschäftlich"
+  },
+  "transToneLiterature": {
+    "message": "Literarisch"
+  },
+  "transFallbackNoKey": {
+    "message": "⚠️ KI-API-Schlüssel nicht konfiguriert; Fallback auf die kostenlose Microsoft-Engine."
+  },
+  "transFallbackError": {
+    "message": "⚠️ KI-Fehler ({err}); Fallback auf die kostenlose Microsoft-Engine."
   }
 }

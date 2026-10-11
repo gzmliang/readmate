@@ -21,6 +21,17 @@ const CONTENT_CSS = ['content.css'];
 function injectScripts(tabId) {
   return new Promise(async (resolve, reject) => {
     try {
+      // 先 ping 一下检测是否已经注入
+      const isAlive = await new Promise((res) => {
+        chrome.tabs.sendMessage(tabId, { action: 'ping' }, (response) => {
+          if (chrome.runtime.lastError || !response) res(false);
+          else res(true);
+        });
+      });
+      if (isAlive) {
+        return resolve(true);
+      }
+
       for (const css of CONTENT_CSS) {
         try {
           await chrome.scripting.insertCSS({ target: { tabId }, files: [css] });
@@ -36,35 +47,52 @@ function injectScripts(tabId) {
   });
 }
 
+function safeCreateMenu(options) {
+  chrome.contextMenus.create(options, () => {
+    if (chrome.runtime.lastError) {
+      // 忽略热重载引起的重复 id 报错
+    }
+  });
+}
+
 // ====== 右键菜单与多语言更新 ======
 function updateContextMenus(lang) {
   chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({
+    if (chrome.runtime.lastError) {
+      // 忽略清理时的 lastError
+    }
+    safeCreateMenu({
       id: 'read-selection',
       title: chrome.i18n.getMessage('menuReadSelection') || 'Read Selection',
       contexts: ['selection'],
     });
-    chrome.contextMenus.create({
+    safeCreateMenu({
       id: 'read-page',
       title: chrome.i18n.getMessage('menuReadPage') || 'Read Page',
       contexts: ['page'],
     });
-    chrome.contextMenus.create({
+    safeCreateMenu({
       id: 'separator-1',
       type: 'separator',
       contexts: ['selection', 'page'],
     });
-    chrome.contextMenus.create({
+    safeCreateMenu({
       id: 'translate-selection',
       title: chrome.i18n.getMessage('menuTranslateSelection') || 'Translate Selection',
       contexts: ['selection'],
     });
     // 读伴书页：右键一个书稿链接（txt/md/epub/pdf）直接导入阅读
-    chrome.contextMenus.create({
+    safeCreateMenu({
       id: 'open-in-reader',
       title: chrome.i18n.getMessage('menuOpenInReader') || 'Open in ReadMate Reader',
       contexts: ['link'],
       targetUrlPatterns: ['*://*/*.txt', '*://*/*.md', '*://*/*.markdown', '*://*/*.epub', '*://*/*.pdf', 'file:///*.txt', 'file:///*.epub', 'file:///*.pdf'],
+    });
+    // 读伴翻译板：随时右键打开独立翻译板
+    safeCreateMenu({
+      id: 'open-translator',
+      title: chrome.i18n.getMessage('menuOpenTranslator') || 'Open Translation Board',
+      contexts: ['page', 'selection'],
     });
   });
 }
@@ -94,6 +122,15 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
       if (linkUrl) {
         chrome.tabs.create({ url: chrome.runtime.getURL('reader.html') + '?src=' + encodeURIComponent(linkUrl) });
       }
+      break;
+    }
+    case 'open-translator': {
+      const selectedText = info.selectionText || '';
+      let url = chrome.runtime.getURL('translator.html');
+      if (selectedText) {
+        url += '?text=' + encodeURIComponent(selectedText);
+      }
+      chrome.tabs.create({ url });
       break;
     }
     case 'translate-selection':
@@ -649,13 +686,19 @@ async function executeTranslation({ endpoint, apiKey, model, text, texts, target
   const finalModel = model || currentSettings?.aiModel;
 
   let results = null;
+  let fallbackReason = null; // 记录是否发生降级兜底
 
-  // 1. 若用户指定了自定义 AI API 且填写了 Key
-  if ((activeProvider === 'openai' || activeProvider === 'custom') && finalApiKey) {
-    try {
-      results = await translateWithOpenAI(inputList, target, finalEndpoint, finalApiKey, finalModel);
-    } catch(err) {
-      console.warn('[ReadMate] OpenAI translate failed, falling back to Microsoft free:', err);
+  // 1. 若用户指定了自定义 AI API
+  if (activeProvider === 'openai' || activeProvider === 'custom') {
+    if (finalApiKey) {
+      try {
+        results = await translateWithOpenAI(inputList, target, finalEndpoint, finalApiKey, finalModel);
+      } catch(err) {
+        console.warn('[ReadMate] OpenAI translate failed, falling back to Microsoft free:', err);
+        fallbackReason = 'error: ' + (err.message || 'unknown');
+      }
+    } else {
+      fallbackReason = 'no_key';
     }
   }
 
@@ -665,6 +708,7 @@ async function executeTranslation({ endpoint, apiKey, model, text, texts, target
       results = await translateWithGoogle(inputList, target, sourceLang);
     } catch(err) {
       console.warn('[ReadMate] Google translate failed, falling back to Microsoft:', err);
+      fallbackReason = 'google_error: ' + (err.message || 'unknown');
     }
   }
 
@@ -685,6 +729,8 @@ async function executeTranslation({ endpoint, apiKey, model, text, texts, target
   return {
     text: results[0] || '',
     results: results,
+    fallbackReason: fallbackReason,
+    usedProvider: results ? (fallbackReason ? 'microsoft' : activeProvider) : 'none',
   };
 }
 

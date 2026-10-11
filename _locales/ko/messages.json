@@ -1172,5 +1172,95 @@
   },
   "rdrPdfLibFailed": {
     "message": "PDF 엔진을 불러오지 못했습니다. 확장 프로그램을 다시 로드하세요"
+  },
+  "btnQuickTranslate": {
+    "message": "🌐 빠른 번역"
+  },
+  "lblQuickTranslateTip": {
+    "message": "ReadMate 번역 보드를 열고 텍스트를 자유롭게 붙여넣어 번역합니다."
+  },
+  "menuOpenTranslator": {
+    "message": "번역 보드 열기"
+  },
+  "translatorTitle": {
+    "message": "ReadMate 번역 보드"
+  },
+  "transEngineMicrosoft": {
+    "message": "Microsoft Edge (무료)"
+  },
+  "transEngineGoogle": {
+    "message": "Google 번역 (무료)"
+  },
+  "transEngineAI": {
+    "message": "AI LLM (DeepSeek / OpenAI)"
+  },
+  "transAutoDetect": {
+    "message": "언어 자동 감지"
+  },
+  "transSourcePlaceholder": {
+    "message": "여기에 번역할 텍스트를 입력하거나 붙여넣으세요..."
+  },
+  "transTargetPlaceholder": {
+    "message": "번역 결과가 여기에 표시됩니다..."
+  },
+  "transCharWordCount": {
+    "message": "{chars}자 / {words}단어"
+  },
+  "btnClear": {
+    "message": "지우기"
+  },
+  "btnPaste": {
+    "message": "붙여넣기"
+  },
+  "btnSpeakSource": {
+    "message": "원문 읽기"
+  },
+  "btnCopyResult": {
+    "message": "번역 복사"
+  },
+  "btnSpeakResult": {
+    "message": "번역 읽기"
+  },
+  "btnTranslate": {
+    "message": "번역"
+  },
+  "transStatusReady": {
+    "message": "준비됨"
+  },
+  "transStatusTranslating": {
+    "message": "번역 중..."
+  },
+  "transStatusSuccess": {
+    "message": "번역 완료 ({time}ms)"
+  },
+  "transStatusFailed": {
+    "message": "번역 실패: {err}"
+  },
+  "transCopySuccess": {
+    "message": "클립보드에 복사되었습니다!"
+  },
+  "transAiTonePrompt": {
+    "message": "톤 및 스타일:"
+  },
+  "transToneStandard": {
+    "message": "표준 자연스러움"
+  },
+  "transToneAcademic": {
+    "message": "학술 논문 스타일"
+  },
+  "transToneCasual": {
+    "message": "일상 구어체"
+  },
+  "transToneBusiness": {
+    "message": "비즈니스 공식"
+  },
+  "transToneLiterature": {
+    "message": "문학적 다듬기"
+  },
+  "transFallbackNoKey": {
+    "message": "⚠️ AI API 키가 설정되지 않아 Microsoft 무료 엔진으로 대체 번역되었습니다."
+  },
+  "transFallbackError": {
+    "message": "⚠️ AI 요청 실패 ({err})로 인해 Microsoft 무료 엔진으로 대체 번역되었습니다."
   }
 }

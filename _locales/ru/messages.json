@@ -1172,5 +1172,95 @@
   },
   "rdrPdfLibFailed": {
     "message": "Не удалось загрузить движок PDF — перезагрузите расширение и повторите"
+  },
+  "btnQuickTranslate": {
+    "message": "🌐 Быстрый перевод"
+  },
+  "lblQuickTranslateTip": {
+    "message": "Откройте доску перевода ReadMate, чтобы легко вставить и перевести текст."
+  },
+  "menuOpenTranslator": {
+    "message": "Открыть доску перевода"
+  },
+  "translatorTitle": {
+    "message": "Доска перевода ReadMate"
+  },
+  "transEngineMicrosoft": {
+    "message": "Microsoft Edge (Бесплатно)"
+  },
+  "transEngineGoogle": {
+    "message": "Google Переводчик (Бесплатно)"
+  },
+  "transEngineAI": {
+    "message": "ИИ LLM (DeepSeek / OpenAI)"
+  },
+  "transAutoDetect": {
+    "message": "Автоопределение языка"
+  },
+  "transSourcePlaceholder": {
+    "message": "Введите или вставьте текст для перевода..."
+  },
+  "transTargetPlaceholder": {
+    "message": "Перевод появится здесь..."
+  },
+  "transCharWordCount": {
+    "message": "{chars} симв. / {words} сл."
+  },
+  "btnClear": {
+    "message": "Очистить"
+  },
+  "btnPaste": {
+    "message": "Вставить"
+  },
+  "btnSpeakSource": {
+    "message": "Озвучить оригинал"
+  },
+  "btnCopyResult": {
+    "message": "Копировать перевод"
+  },
+  "btnSpeakResult": {
+    "message": "Озвучить перевод"
+  },
+  "btnTranslate": {
+    "message": "Перевести"
+  },
+  "transStatusReady": {
+    "message": "Готово"
+  },
+  "transStatusTranslating": {
+    "message": "Перевод..."
+  },
+  "transStatusSuccess": {
+    "message": "Переведено за {time} мс"
+  },
+  "transStatusFailed": {
+    "message": "Ошибка перевода: {err}"
+  },
+  "transCopySuccess": {
+    "message": "Скопировано в буфер обмена!"
+  },
+  "transAiTonePrompt": {
+    "message": "Тон и стиль:"
+  },
+  "transToneStandard": {
+    "message": "Стандартный естественный"
+  },
+  "transToneAcademic": {
+    "message": "Академический"
+  },
+  "transToneCasual": {
+    "message": "Разговорный"
+  },
+  "transToneBusiness": {
+    "message": "Деловой официальный"
+  },
+  "transToneLiterature": {
+    "message": "Литературный"
+  },
+  "transFallbackNoKey": {
+    "message": "⚠️ API-ключ ИИ не настроен; выполнен откат на бесплатный движок Microsoft."
+  },
+  "transFallbackError": {
+    "message": "⚠️ Ошибка ИИ ({err}); выполнен откат на бесплатный движок Microsoft."
   }
 }

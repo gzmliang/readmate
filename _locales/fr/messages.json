@@ -1172,5 +1172,95 @@
   },
   "rdrPdfLibFailed": {
     "message": "Le moteur PDF n’a pas pu être chargé — rechargez l’extension et réessayez"
+  },
+  "btnQuickTranslate": {
+    "message": "🌐 Traduction Rapide"
+  },
+  "lblQuickTranslateTip": {
+    "message": "Ouvrez le tableau de traduction ReadMate pour coller du texte et traduire librement."
+  },
+  "menuOpenTranslator": {
+    "message": "Ouvrir le tableau de traduction"
+  },
+  "translatorTitle": {
+    "message": "Tableau de Traduction ReadMate"
+  },
+  "transEngineMicrosoft": {
+    "message": "Microsoft Edge (Gratuit)"
+  },
+  "transEngineGoogle": {
+    "message": "Google Traduction (Gratuit)"
+  },
+  "transEngineAI": {
+    "message": "IA LLM (DeepSeek / OpenAI)"
+  },
+  "transAutoDetect": {
+    "message": "Détection automatique"
+  },
+  "transSourcePlaceholder": {
+    "message": "Tapez ou collez le texte à traduire ici..."
+  },
+  "transTargetPlaceholder": {
+    "message": "La traduction apparaîtra ici..."
+  },
+  "transCharWordCount": {
+    "message": "{chars} caractères / {words} mots"
+  },
+  "btnClear": {
+    "message": "Effacer"
+  },
+  "btnPaste": {
+    "message": "Coller"
+  },
+  "btnSpeakSource": {
+    "message": "Lire la source"
+  },
+  "btnCopyResult": {
+    "message": "Copier la traduction"
+  },
+  "btnSpeakResult": {
+    "message": "Lire la traduction"
+  },
+  "btnTranslate": {
+    "message": "Traduire"
+  },
+  "transStatusReady": {
+    "message": "Prêt"
+  },
+  "transStatusTranslating": {
+    "message": "Traduction en cours..."
+  },
+  "transStatusSuccess": {
+    "message": "Traduit en {time} ms"
+  },
+  "transStatusFailed": {
+    "message": "Échec de traduction : {err}"
+  },
+  "transCopySuccess": {
+    "message": "Copié dans le presse-papiers !"
+  },
+  "transAiTonePrompt": {
+    "message": "Ton et style :"
+  },
+  "transToneStandard": {
+    "message": "Naturel standard"
+  },
+  "transToneAcademic": {
+    "message": "Académique"
+  },
+  "transToneCasual": {
+    "message": "Familier / Décontracté"
+  },
+  "transToneBusiness": {
+    "message": "Affaires officiel"
+  },
+  "transToneLiterature": {
+    "message": "Littéraire soigné"
+  },
+  "transFallbackNoKey": {
+    "message": "⚠️ Clé API IA non configurée ; utilisation du moteur gratuit Microsoft en secours."
+  },
+  "transFallbackError": {
+    "message": "⚠️ Échec IA ({err}) ; utilisation du moteur gratuit Microsoft en secours."
   }
 }
