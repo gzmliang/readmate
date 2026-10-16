@@ -5,7 +5,7 @@
 //
 // 设计要点：
 //   1. pdf.js 全部内置在扩展里（vendor/pdfjs/），**不联网、不引 CDN**；
-//      只在真的导入 PDF 时才动态加载 pdf.min.js，txt / epub 用户零开销
+//      只在真的导入 PDF 时才动态加载 pdf.js，txt / epub 用户零开销
 //   2. 逐页抽文字 → 按 y 坐标重建「行」→ 按缩进 / 行宽 / 行距重建「段落」
 //   3. 清洗管道（TTS 听感关键）：修连字符断词、删页码与页眉页脚、删 [12] 角标、
 //      康熙部首（Chromium 导出 PDF 会把「民」写成「⺠」）归一化恢复成正常汉字
@@ -18,8 +18,8 @@ const BookPdf = (() => {
   'use strict';
 
   const MAX_BYTES = 300 * 1024 * 1024;      // 单文件上限（防止内存爆掉）
-  const LIB_PATH = 'vendor/pdfjs/pdf.min.js';
-  const WORKER_PATH = 'vendor/pdfjs/pdf.worker.min.js';
+  const LIB_PATH = 'vendor/pdfjs/pdf.js';
+  const WORKER_PATH = 'vendor/pdfjs/pdf.worker.js';
   const CMAP_PATH = 'vendor/pdfjs/cmaps/';
   const FONT_PATH = 'vendor/pdfjs/standard_fonts/';
 

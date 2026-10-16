@@ -56,8 +56,14 @@ for f in "${RUNTIME[@]}" "${DOCS[@]}"; do
 done
 
 # 内置 pdf.js（含 cmaps 与标准字体：中文 PDF 靠它才不掉字）
+# 只打非压缩可读版（pdf.js / pdf.worker.js），排除 .min.js 和 .bak 文件（商店合规要求）
 mkdir -p "$STAGE/vendor/pdfjs"
-cp -r vendor/pdfjs/. "$STAGE/vendor/pdfjs/"
+cp vendor/pdfjs/pdf.js "$STAGE/vendor/pdfjs/"
+cp vendor/pdfjs/pdf.worker.js "$STAGE/vendor/pdfjs/"
+cp vendor/pdfjs/LICENSE "$STAGE/vendor/pdfjs/"
+cp vendor/pdfjs/README.md "$STAGE/vendor/pdfjs/"
+cp -r vendor/pdfjs/cmaps "$STAGE/vendor/pdfjs/"
+cp -r vendor/pdfjs/standard_fonts "$STAGE/vendor/pdfjs/"
 
 # 打包：zip 内不带顶层目录，且 manifest.json 必须在根
 ( cd "$STAGE" && zip -qr9 "$STAGE/$NAME" . -x '.*' )
