@@ -307,12 +307,34 @@ const ContentExtractor = (() => {
 
     // 过滤杂质段落
     const cleanT = (title || '').replace(/[^\w\u4e00-\u9fff]/g, '').toLowerCase();
-    for (const p of rawParagraphs) {
+    for (let p of rawParagraphs) {
+      // 1. 清洗常见的图库商业外链、摄影师后缀（如 Purchase Licensing, opens new tab 等纯网页操作杂质）
+      p = p.replace(/(?:REUTERS|AP|AFP|Getty\s+Images?|Stringer|File\s+Photo|\bPhoto\b)[\s/\\,\-—|]*[^\n.]*(?:Purchase\s+Licensing|opens\s+new\s+tab|Licensing)[^\n.]*/gi, '');
+      p = p.replace(/\b(?:Purchase\s+Licensing|opens\s+new\s+tab)\b[,\s]*/gi, '');
+      p = p.replace(/[\s\-,—|]+\s*$/, '').trim();
+      if (!p) continue;
+
       const pClean = p.replace(/[^\w\u4e00-\u9fff]/g, '').toLowerCase();
       // 如果正文中再次出现了完整标题段，跳过（避免读两遍）
       if (cleanT.length > 3 && pClean === cleanT) continue;
-      // 过滤前后的元数据杂质（作者、日期、来源、面包屑等）
+      // 过滤前后的元数据杂质（纯符号、纯分享等）
       if (isGarbageParagraph(p)) continue;
+
+      // 2. 针对无障碍视障听读优化：将混杂在一块的「作者/时间」与「新闻配图说明（Photo Caption）」做语义分离与前缀标识
+      const dateMatch = p.match(/^(.*?(?:Updated\s+\d+\s+(?:hours?|days?|minutes?)\s+ago|\b\d{4}\b[^\n]*?(?:GMT[+-]\d+|UTC[+-]\d+|EST|PST|CST)?))\s+([A-Z][a-z].*)$/);
+      if (dateMatch) {
+        let byline = dateMatch[1].trim();
+        let caption = dateMatch[2].trim();
+        const upMatch = caption.match(/^(Updated\s+\d+\s+(?:hours?|days?|minutes?)\s+ago)\s+([A-Z].*)$/i);
+        if (upMatch) {
+          byline += ' ' + upMatch[1];
+          caption = upMatch[2];
+        }
+        if (byline) result.paragraphs.push(byline);
+        if (caption) result.paragraphs.push('Photo: ' + caption);
+        continue;
+      }
+
       result.paragraphs.push(p);
     }
 

@@ -182,11 +182,11 @@ const TextUtils = (() => {
       merged.push(result[i]);
     }
 
-    // ====== 超长句子自然呼吸微切（单句过长 > 220 字符时，按从句标点平滑微切，避免高亮过长或 TTS 响应迟缓） ======
+    // ====== 超长句子自然呼吸微切（单句过长 > 600 字符时，按从句标点平滑微切，避免腰斩短语与正常英文长难句） ======
     const finalSentences = [];
     for (const item of merged) {
-      if (item.length > 220) {
-        finalSentences.push(...splitByLength(item, 160));
+      if (item.length > 600) {
+        finalSentences.push(...splitByLength(item, 350));
       } else {
         finalSentences.push(item);
       }

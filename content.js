@@ -1722,6 +1722,20 @@ async function playSentencesFlow(sentences, startIndex = 0) {
       triggerCurrentHighlight();
     }
 
+    // ★ 智能呼吸停顿阶梯（面向视障/听读体验调优，给听觉留出分明的时间层次感）：
+    // 1. 大标题播完后（第 0 句）：留出 800ms 的从容停顿，让用户清晰分辨出「文章正式开篇」
+    // 2. 元数据/配图说明播完后（或以 Photo: 开头）：留出 550ms 呼吸停顿
+    // 3. 普通自然句播完：留出 180ms 轻微停顿
+    if (isPlaying && !stopImmediate && pendingJumpIndex === null && i < sentences.length - 1) {
+      let pauseDuration = 180;
+      if (i === 0) {
+        pauseDuration = 800;
+      } else if (origSentence.startsWith('Photo:') || origSentence.startsWith('By ')) {
+        pauseDuration = 550;
+      }
+      await new Promise(r => setTimeout(r, pauseDuration));
+    }
+
     // 播放完成步进（如果用户未点跳转，自然推进到下一句）
     if (pendingJumpIndex !== null) {
       currentSentenceIndex = pendingJumpIndex;
