@@ -441,6 +441,25 @@ function getCanonicalArticle() {
   }
   rawParas = rawParas.map(p => (p || '').trim()).filter(p => p.length > 0);
 
+  // ★ 智能缝合被排版意外切断的跨块句子（保底保障：即使是直接抓 DOM p 标签也能无缝融合）
+  if (rawParas.length > 1) {
+    const stitched = [];
+    for (let i = 0; i < rawParas.length; i++) {
+      const cur = rawParas[i].trim();
+      if (stitched.length > 0) {
+        const prev = stitched[stitched.length - 1].trim();
+        const endsWithTerminal = /[.!?。！？;:；：]$/.test(prev) || /[.!?。！？]["'”’）\)]$/.test(prev);
+        const startsWithContinuation = /^[a-z]/.test(cur) || /^-[a-zA-Z]/.test(cur);
+        if (!endsWithTerminal && startsWithContinuation) {
+          stitched[stitched.length - 1] = prev + ' ' + cur;
+          continue;
+        }
+      }
+      stitched.push(cur);
+    }
+    rawParas = stitched;
+  }
+
   if (rawParas.length > 0 && rawParas[0] === pageTitle) {
     rawParas.shift();
   }

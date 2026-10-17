@@ -316,6 +316,26 @@ const ContentExtractor = (() => {
       result.paragraphs.push(p);
     }
 
+    // ★ 智能缝合被排版意外切断的跨块句子（如新闻插图、导语把一句话切成了两截）
+    if (result.paragraphs.length > 1) {
+      const stitched = [];
+      for (let i = 0; i < result.paragraphs.length; i++) {
+        const cur = result.paragraphs[i].trim();
+        if (stitched.length > 0) {
+          const prev = stitched[stitched.length - 1].trim();
+          // 前段末尾无句末终结符，且当前段以英文小写字母或连字符开头
+          const endsWithTerminal = /[.!?。！？;:；：]$/.test(prev) || /[.!?。！？]["'”’）\)]$/.test(prev);
+          const startsWithContinuation = /^[a-z]/.test(cur) || /^-[a-zA-Z]/.test(cur);
+          if (!endsWithTerminal && startsWithContinuation) {
+            stitched[stitched.length - 1] = prev + ' ' + cur;
+            continue;
+          }
+        }
+        stitched.push(cur);
+      }
+      result.paragraphs = stitched;
+    }
+
     // ★ 关键：确保大标题排在第一句（第 0 句），让朗读从大标题正式开始！
     if (title && title.trim().length > 1) {
       result.paragraphs.unshift(title.trim());
