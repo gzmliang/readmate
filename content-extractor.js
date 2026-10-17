@@ -9,7 +9,7 @@ const ContentExtractor = (() => {
     'script', 'style', 'noscript', 'iframe', 'nav', 'footer',
     'aside', 'form', 'button', 'select', 'input',
     'textarea', 'svg', 'canvas', 'video', 'audio', 'object',
-    'embed', 'applet',
+    'embed', 'applet', 'figcaption',
   ];
 
   // ====== class/id 黑名单模式 ======
@@ -24,6 +24,8 @@ const ContentExtractor = (() => {
     /player/i, /video-container/i, /media-player/i, /vjs-/i, /jwplayer/i,
     /sr-only/i, /screen-reader/i, /visually-hidden/i, /hide-accessible/i,
     /control-text/i, /caption-text/i,
+    /byline/i, /author-info/i, /article-author/i, /post-author/i,
+    /caption/i, /credit/i, /licensing/i, /copyright/i,
   ];
 
   // ====== 内容偏好标记 ======
@@ -242,6 +244,10 @@ const ContentExtractor = (() => {
     if (/^(?:\d{4}[-/年.]\d{1,2}[-/月.]\d{1,2}[日]?|\d{1,2}:\d{2}(?::\d{2})?|\d{1,2}\s*(?:hours?|minutes?|days?|seconds?)\s*ago)$/i.test(t)) return true;
     // 社交操作提示（如 微信扫一扫、分享至朋友圈、收藏本文）
     if (/^(?:微信扫一扫|扫码分享|分享到微信|朋友圈|微博|收藏|打印|字号|字体大小|正文字体|大中小)$/i.test(t)) return true;
+    // 纯净正文优先：过滤新闻记者的署名、发表时间混合行（如 Daniel Flynn October 15, 2026 2:03 PM GMT+8 Updated ...）
+    if (/^(?:[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3}\s+)?(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2},?\s+\d{4}(?:\s+\d{1,2}:\d{2}(?:\s*[AP]M)?(?:\s+GMT[+-]\d+|\s+UTC[+-]\d+)?)?(?:\s+Updated\s+[^\n.]*)?$/i.test(t)) return true;
+    // 过滤图注说明与版权杂质行（如包含 Photo、REUTERS/、Purchase Licensing、opens new tab 等）
+    if (/(?:Purchase\s+Licensing|opens\s+new\s+tab|File\s+Photo|Stringer|Photo\s+by|REUTERS\/Stringer)/i.test(t)) return true;
     return false;
   }
 
@@ -317,21 +323,11 @@ const ContentExtractor = (() => {
       const pClean = p.replace(/[^\w\u4e00-\u9fff]/g, '').toLowerCase();
       // 如果正文中再次出现了完整标题段，跳过（避免读两遍）
       if (cleanT.length > 3 && pClean === cleanT) continue;
-      // 过滤前后的元数据杂质（纯符号、纯分享等）
+      // 过滤前后的元数据杂质（纯符号、纯分享、纯日期作者、配图版权等）
       if (isGarbageParagraph(p)) continue;
 
-      // 2. 针对无障碍视障听读优化：将混杂在一块的「作者/时间」与「新闻配图说明（Photo Caption）」做语义分离与前缀标识
-      const dateMatch = p.match(/^(.*?(?:Updated\s+\d+\s+(?:hours?|days?|minutes?)\s+ago|\b\d{4}\b[^\n]*?(?:GMT[+-]\d+|UTC[+-]\d+|EST|PST|CST)?))\s+([A-Z][a-z].*)$/);
-      if (dateMatch) {
-        let byline = dateMatch[1].trim();
-        let caption = dateMatch[2].trim();
-        const upMatch = caption.match(/^(Updated\s+\d+\s+(?:hours?|days?|minutes?)\s+ago)\s+([A-Z].*)$/i);
-        if (upMatch) {
-          byline += ' ' + upMatch[1];
-          caption = upMatch[2];
-        }
-        if (byline) result.paragraphs.push(byline);
-        if (caption) result.paragraphs.push('Photo: ' + caption);
+      // 纯净正文优先：如果一段话开头是明显的作者发布时间与头图版权混合体，且包含图注描述，直接剔除该头图混杂段
+      if (/^(?:[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,3}\s+)?(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2},?\s+\d{4}/i.test(p) && /(?:oil refinery|drone strike|photo|reuters|image|caption)/i.test(p)) {
         continue;
       }
 
