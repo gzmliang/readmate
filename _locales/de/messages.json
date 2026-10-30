@@ -1262,5 +1262,20 @@
   },
   "transFallbackError": {
     "message": "⚠️ KI-Fehler ({err}); Fallback auf die kostenlose Microsoft-Engine."
+  },
+  "btnBilingualPage": {
+    "message": "Bilingual Page"
+  },
+  "btnBilingualPageTip": {
+    "message": "Toggle bilingual inline translation cards on current page"
+  },
+  "bilingualPageTranslating": {
+    "message": "Translating visible paragraphs..."
+  },
+  "bilingualPageDone": {
+    "message": "Bilingual translation active"
+  },
+  "bilingualPageOff": {
+    "message": "Bilingual mode disabled"
   }
 }

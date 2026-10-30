@@ -1312,5 +1312,20 @@
   },
   "transFallbackError": {
     "message": "⚠️ AI 要求が失敗したため（{err}）、Microsoft 無料エンジンで代替翻訳しました。"
+  },
+  "btnBilingualPage": {
+    "message": "Bilingual Page"
+  },
+  "btnBilingualPageTip": {
+    "message": "Toggle bilingual inline translation cards on current page"
+  },
+  "bilingualPageTranslating": {
+    "message": "Translating visible paragraphs..."
+  },
+  "bilingualPageDone": {
+    "message": "Bilingual translation active"
+  },
+  "bilingualPageOff": {
+    "message": "Bilingual mode disabled"
   }
 }

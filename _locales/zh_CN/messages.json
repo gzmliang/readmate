@@ -1316,5 +1316,20 @@
   },
   "transFallbackError": {
     "message": "⚠️ 大模型请求失败（{err}），已自动为您使用微软免费引擎翻译。"
+  },
+  "btnBilingualPage": {
+    "message": "原网页双语对照"
+  },
+  "btnBilingualPageTip": {
+    "message": "在原网页显示/隐藏逐段双语对照微卡片"
+  },
+  "bilingualPageTranslating": {
+    "message": "正在翻译当前可见段落..."
+  },
+  "bilingualPageDone": {
+    "message": "双语对照已就绪"
+  },
+  "bilingualPageOff": {
+    "message": "已退出双语对照模式"
   }
 }

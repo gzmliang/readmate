@@ -1262,5 +1262,20 @@
   },
   "transFallbackError": {
     "message": "⚠️ Ошибка ИИ ({err}); выполнен откат на бесплатный движок Microsoft."
+  },
+  "btnBilingualPage": {
+    "message": "Bilingual Page"
+  },
+  "btnBilingualPageTip": {
+    "message": "Toggle bilingual inline translation cards on current page"
+  },
+  "bilingualPageTranslating": {
+    "message": "Translating visible paragraphs..."
+  },
+  "bilingualPageDone": {
+    "message": "Bilingual translation active"
+  },
+  "bilingualPageOff": {
+    "message": "Bilingual mode disabled"
   }
 }

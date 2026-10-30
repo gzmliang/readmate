@@ -1262,5 +1262,20 @@
   },
   "transFallbackError": {
     "message": "⚠️ AI 요청 실패 ({err})로 인해 Microsoft 무료 엔진으로 대체 번역되었습니다."
+  },
+  "btnBilingualPage": {
+    "message": "Bilingual Page"
+  },
+  "btnBilingualPageTip": {
+    "message": "Toggle bilingual inline translation cards on current page"
+  },
+  "bilingualPageTranslating": {
+    "message": "Translating visible paragraphs..."
+  },
+  "bilingualPageDone": {
+    "message": "Bilingual translation active"
+  },
+  "bilingualPageOff": {
+    "message": "Bilingual mode disabled"
   }
 }

@@ -1262,5 +1262,20 @@
   },
   "transFallbackError": {
     "message": "⚠️ Échec IA ({err}) ; utilisation du moteur gratuit Microsoft en secours."
+  },
+  "btnBilingualPage": {
+    "message": "Bilingual Page"
+  },
+  "btnBilingualPageTip": {
+    "message": "Toggle bilingual inline translation cards on current page"
+  },
+  "bilingualPageTranslating": {
+    "message": "Translating visible paragraphs..."
+  },
+  "bilingualPageDone": {
+    "message": "Bilingual translation active"
+  },
+  "bilingualPageOff": {
+    "message": "Bilingual mode disabled"
   }
 }

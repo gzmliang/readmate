@@ -1897,3 +1897,93 @@ h6.readmate-active-paragraph {
   cursor: grabbing;
   opacity: 0.92;
 }
+
+/* ============================================================
+   ★ ReadMate 原网页双语对照微卡片（方案 A：呼吸感自研微卡片）
+   ============================================================ */
+.readmate-bilingual-card {
+  display: block !important;
+  margin: 6px 0 12px 0 !important;
+  padding: 8px 14px !important;
+  border-radius: 8px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  font-size: 0.9em !important;
+  line-height: 1.6 !important;
+  color: #374151 !important;
+  background: rgba(243, 244, 246, 0.88) !important;
+  border-left: 3px solid #10B981 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.25s ease !important;
+  position: relative !important;
+  z-index: 10 !important;
+  box-sizing: border-box !important;
+  cursor: pointer !important;
+  user-select: text !important;
+}
+
+/* 悬浮 hover 态 */
+.readmate-bilingual-card:hover {
+  background: rgba(238, 242, 246, 0.98) !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15) !important;
+}
+
+/* 正在翻译中的等待微动效 */
+.readmate-bilingual-card.readmate-card-loading {
+  color: #9CA3AF !important;
+  border-left-color: #CBD5E1 !important;
+  font-style: italic !important;
+}
+
+/* ★ 声画同步：朗读到对应段落时的高亮呼吸光环 */
+.readmate-bilingual-card.readmate-card-highlight {
+  background: rgba(236, 253, 245, 0.98) !important;
+  border-left-color: #059669 !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35), 0 4px 12px rgba(16, 185, 129, 0.2) !important;
+  color: #065F46 !important;
+  font-weight: 500 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* 适配深色网页（Dark Mode） */
+@media (prefers-color-scheme: dark) {
+  .readmate-bilingual-card {
+    background: rgba(30, 41, 59, 0.85) !important;
+    color: #E2E8F0 !important;
+    border-left: 3px solid #10B981 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  }
+  .readmate-bilingual-card:hover {
+    background: rgba(40, 53, 72, 0.95) !important;
+  }
+  .readmate-bilingual-card.readmate-card-highlight {
+    background: rgba(6, 78, 59, 0.45) !important;
+    border-left-color: #34D399 !important;
+    color: #A7F3D0 !important;
+    box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.4), 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  }
+}
+
+/* 当父级页面或 body 显式带 dark 类时同样生效 */
+body[data-theme='dark'] .readmate-bilingual-card,
+html[data-theme='dark'] .readmate-bilingual-card,
+.dark .readmate-bilingual-card {
+  background: rgba(30, 41, 59, 0.85) !important;
+  color: #E2E8F0 !important;
+  border-left: 3px solid #10B981 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+body[data-theme='dark'] .readmate-bilingual-card.readmate-card-highlight,
+html[data-theme='dark'] .readmate-bilingual-card.readmate-card-highlight,
+.dark .readmate-bilingual-card.readmate-card-highlight {
+  background: rgba(6, 78, 59, 0.45) !important;
+  border-left-color: #34D399 !important;
+  color: #A7F3D0 !important;
+}
+
+/* 按钮微动效与激活态 */
+.readmate-btn-bilingual-active {
+  background: #10B981 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6) !important;
+}

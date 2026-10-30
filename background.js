@@ -88,6 +88,12 @@ function updateContextMenus(lang) {
       contexts: ['link'],
       targetUrlPatterns: ['*://*/*.txt', '*://*/*.md', '*://*/*.markdown', '*://*/*.epub', '*://*/*.pdf', 'file:///*.txt', 'file:///*.epub', 'file:///*.pdf'],
     });
+    // 原网页双语对照切换
+    safeCreateMenu({
+      id: 'toggle-bilingual-page',
+      title: chrome.i18n.getMessage('btnBilingualPage') || 'Bilingual Page',
+      contexts: ['page'],
+    });
     // 读伴翻译板：随时右键打开独立翻译板
     safeCreateMenu({
       id: 'open-translator',
@@ -137,6 +143,11 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
       chrome.tabs.sendMessage(tab.id, {
         action: 'translateSelection',
         text: info.selectionText,
+      });
+      break;
+    case 'toggle-bilingual-page':
+      chrome.tabs.sendMessage(tab.id, {
+        action: 'toggleBilingualPage',
       });
       break;
   }

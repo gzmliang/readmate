@@ -532,6 +532,7 @@ function createFAB() {
   fabContainer = document.createElement('div');
   fabContainer.id = 'readmate-fab-container';
   fabContainer.innerHTML = `
+    <button id="readmate-fab-bilingual" class="readmate-fab-btn readmate-fab-sub" title="${_t('btnBilingualPageTip', 'Toggle bilingual inline translation cards on current page')}">🌐</button>
     <button id="readmate-fab-reader" class="readmate-fab-btn readmate-fab-sub" title="${_t('btnReaderMode', 'Immersive Reader Mode')}">📖</button>
     <button id="readmate-fab-summary" class="readmate-fab-btn readmate-fab-sub" title="${_t('fabSummaryTip', 'AI Bilingual Summary')}">⚡</button>
     <button id="readmate-fab-play" class="readmate-fab-btn" title="${_t('fabPlayTip', 'Read Current Article (Ctrl+Shift+P)')}">▶</button>
@@ -542,6 +543,12 @@ function createFAB() {
   makeFabDraggable(fabContainer);
   // 窗口尺寸变化时重新判定展开方向（球贴底时窗口变矮，避免子按钮又被挤出视口）
   window.addEventListener('resize', () => { if (fabContainer) syncFabDir(fabContainer); });
+
+  const bilingualBtn = fabContainer.querySelector('#readmate-fab-bilingual');
+  bilingualBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleBilingualPageMode();
+  });
 
   const readerBtn = fabContainer.querySelector('#readmate-fab-reader');
   readerBtn.addEventListener('click', (e) => {
@@ -625,6 +632,7 @@ function createFloatingBar() {
           <input type="checkbox" id="readmate-bilingual-chk" ${enableBilingual ? 'checked' : ''} style="margin:0 2px 0 0 !important; vertical-align:middle !important; width:14px !important; height:14px !important;">
           <span id="readmate-bilingual-text" style="white-space:nowrap !important; word-break:keep-all !important; line-height:1 !important; vertical-align:middle !important;">${_t('lblBilingual', 'Bilingual')}</span>
         </label>
+        <button class="readmate-btn" id="readmate-bar-bilingual-btn" title="${_t('btnBilingualPageTip', 'Toggle bilingual inline translation cards on current page')}" style="display:inline-flex !important; align-items:center !important; justify-content:center !important; margin:0 !important; vertical-align:middle !important;">🌐</button>
         <button class="readmate-btn readmate-btn-reader" id="readmate-bar-reader-btn" title="${_t('btnReaderMode', 'Immersive Reader Mode')}" style="display:inline-flex !important; align-items:center !important; justify-content:center !important; margin:0 !important; vertical-align:middle !important;">📖</button>
         <button class="readmate-btn readmate-btn-donate-thumb" id="readmate-bar-donate-btn" title="${_t('btnDonateThumbTip', 'Support Author / Buy a coffee ☕')}">
           <svg class="readmate-thumb-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -662,6 +670,7 @@ function createFloatingBar() {
     floatingBar.querySelector('#readmate-close-btn').onclick = () => stopReading(true);
     floatingBar.querySelector('#readmate-prev-sentence').onclick = prevSentence;
     floatingBar.querySelector('#readmate-next-sentence').onclick = nextSentence;
+    floatingBar.querySelector('#readmate-bar-bilingual-btn').onclick = toggleBilingualPageMode;
     floatingBar.querySelector('#readmate-bar-reader-btn').onclick = toggleReaderMode;
     floatingBar.querySelector('#readmate-bar-donate-btn').onclick = openDonateModal;
     floatingBar.querySelector('#readmate-summary-btn').onclick = generateAISummary;
@@ -766,6 +775,9 @@ function updateBarProgress(cur, total) {
 }
 
 function updateSubtitleDisplay(original, translated) {
+  if (isBilingualPageActive && original) {
+    syncBilingualCardHighlight(original);
+  }
   if (!floatingBar) return;
   const origEl = floatingBar.querySelector('#readmate-sub-original');
   const transEl = floatingBar.querySelector('#readmate-sub-translated');
@@ -4015,6 +4027,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       toggleReaderMode();
       sendResponse({ ok: true });
       break;
+    case 'toggleBilingualPage':
+      toggleBilingualPageMode();
+      sendResponse({ ok: true });
+      break;
   }
 });
 
@@ -4035,3 +4051,238 @@ loadSettings().then(() => {
   createFAB();
   showFAB();
 });
+
+
+// ============================================================
+// ★ ReadMate 原网页双语对照引擎（方案 A：呼吸感自研微卡片）
+// ============================================================
+let isBilingualPageActive = false;
+let bilingualObserver = null;
+const bilingualCardMap = new WeakMap(); // DOM Element -> Card Element
+let activeBilingualParagraph = null;
+
+/** 切换原网页双语对照状态 */
+async function toggleBilingualPageMode() {
+  if (isBilingualPageActive) {
+    disableBilingualPageMode();
+  } else {
+    await enableBilingualPageMode();
+  }
+}
+
+/** 开启原网页双语对照 */
+async function enableBilingualPageMode() {
+  
+  if (isBilingualPageActive) return;
+  isBilingualPageActive = true;
+  updateBilingualPageButtons(true);
+  showTranslation(_t('bilingualPageTranslating', 'Translating visible paragraphs...'), true);
+
+  // 1. 扫描页面正文段落
+  const candidates = collectBilingualCandidates();
+  
+  if (candidates.length === 0) {
+    showTranslation(_t('noTextFound', 'No readable text found on this page'), true);
+    return;
+  }
+
+  // 2. 建立 IntersectionObserver 实现首屏优先与滚动惰性翻译
+  if (!bilingualObserver) {
+    bilingualObserver = new IntersectionObserver((entries) => {
+      const visibleEntries = entries.filter(e => e.isIntersecting && !e.target.dataset.readmateTransState);
+      if (visibleEntries.length > 0) {
+        translateBilingualBatch(visibleEntries.map(e => e.target));
+      }
+    }, {
+      rootMargin: '250px 0px 250px 0px', // 提前 250px 预加载，滚动时无缝呈现
+      threshold: 0.01
+    });
+  }
+
+  // 3. 为所有候选元素注入占位微卡片并加入观察
+  candidates.forEach(el => {
+    ensureBilingualCard(el);
+    bilingualObserver.observe(el);
+  });
+}
+
+/** 关闭并彻底还原网页 */
+function disableBilingualPageMode() {
+  isBilingualPageActive = false;
+  updateBilingualPageButtons(false);
+  if (bilingualObserver) {
+    bilingualObserver.disconnect();
+    bilingualObserver = null;
+  }
+  // 移除所有注入的微卡片，恢复网页原生纯净 DOM
+  const cards = document.querySelectorAll('.readmate-bilingual-card');
+  cards.forEach(card => card.remove());
+
+  // 清除候选元素标记
+  const candidates = document.querySelectorAll('[data-readmate-trans-state]');
+  candidates.forEach(el => {
+    delete el.dataset.readmateTransState;
+  });
+
+  showTranslation(_t('bilingualPageOff', 'Bilingual mode disabled'), true);
+}
+
+/** 更新页面上双语按钮的视觉状态 */
+function updateBilingualPageButtons(active) {
+  const fabBtn = document.getElementById('readmate-fab-bilingual');
+  if (fabBtn) {
+    fabBtn.classList.toggle('readmate-btn-bilingual-active', active);
+  }
+  const barBtn = document.getElementById('readmate-bar-bilingual-btn');
+  if (barBtn) {
+    barBtn.classList.toggle('readmate-btn-bilingual-active', active);
+  }
+}
+
+/** 智能收集页面有效文本段落（跳过代码块、导航、菜单及非正文组件） */
+function collectBilingualCandidates() {
+  // 优先限定在 article, main, .content 等主内容区；若无则回退到 body
+  const root = document.querySelector('article, main, [role="main"], #content, .content, .post, .article') || document.body;
+  if (!root) return [];
+
+  const selector = 'p, h1, h2, h3, h4, h5, h6, li, blockquote';
+  const allNodes = Array.from(root.querySelectorAll(selector));
+  const results = [];
+
+  for (const el of allNodes) {
+    // 忽略 ReadMate 自身创建的 DOM 元素
+    if (el.closest('#readmate-bar, #readmate-fab-container, .readmate-modal-overlay, .readmate-bilingual-card')) {
+      continue;
+    }
+    // 保护代码块与技术标签
+    if (el.closest('pre, code, kbd, samp, .highlight, .prism, .monaco-editor, noscript, script, style')) {
+      continue;
+    }
+    // 过滤导航/侧栏/菜单/页脚等组件
+    if (el.closest('nav, header, footer, aside, .sidebar, .menu, .navigation, .nav, .breadcrumb')) {
+      continue;
+    }
+    // 过滤隐藏元素
+    if (el.offsetParent === null && el.tagName !== 'BODY') {
+      continue;
+    }
+
+    const text = el.innerText ? el.innerText.trim() : '';
+    // 跳过过短文本（少于 12 字符或纯数字）
+    if (text.length < 12 || /^[\d\s\-_.,/\\:;]+$/.test(text)) {
+      continue;
+    }
+
+    // 避免父子元素重复（例如 li 包含 p 时只抓内部 p）
+    const hasChildCandidate = el.querySelector('p, blockquote');
+    if (hasChildCandidate) {
+      continue;
+    }
+
+    results.push(el);
+  }
+
+  return results;
+}
+
+/** 为指定元素创建/关联双语对照微卡片 */
+function ensureBilingualCard(el) {
+  if (bilingualCardMap.has(el)) {
+    return bilingualCardMap.get(el);
+  }
+
+  const card = document.createElement('div');
+  card.className = 'readmate-bilingual-card readmate-card-loading';
+  card.textContent = '...'; // 初始加载占位
+  card.title = _t('btnReadSelection', 'Click to read aloud');
+
+  // 点击卡片直接朗读该段（指哪读哪声画联动）
+  card.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const origText = el.innerText.trim();
+    if (origText) {
+      startReading(origText);
+    }
+  });
+
+  // 将卡片优雅插入至原文段落后方（平级兄弟节点）
+  if (el.nextSibling) {
+    el.parentNode.insertBefore(card, el.nextSibling);
+  } else {
+    el.parentNode.appendChild(card);
+  }
+
+  bilingualCardMap.set(el, card);
+  return card;
+}
+
+/** 分批并发执行段落翻译 */
+async function translateBilingualBatch(elements) {
+  if (!elements || elements.length === 0) return;
+
+  const batch = [];
+  elements.forEach(el => {
+    if (el.dataset.readmateTransState) return;
+    el.dataset.readmateTransState = 'translating';
+    const text = el.innerText.trim();
+    batch.push({ el, text });
+  });
+
+  if (batch.length === 0) return;
+
+  const textsToTranslate = batch.map(b => b.text);
+
+  try {
+    const translatedList = await fetchTranslationsBatch(textsToTranslate);
+
+    batch.forEach((item, index) => {
+      const card = bilingualCardMap.get(item.el);
+      const translated = translatedList[index] || '';
+      if (card) {
+        card.classList.remove('readmate-card-loading');
+        if (translated && translated.trim()) {
+          card.textContent = translated.trim();
+          item.el.dataset.readmateTransState = 'done';
+          item.el.dataset.readmateTransText = translated.trim();
+        } else {
+          // 若翻译为空，暂时隐藏该卡片避免占用视觉
+          card.style.display = 'none';
+        }
+      }
+    });
+  } catch (err) {
+    console.warn('[ReadMate] Bilingual batch translation failed:', err);
+    batch.forEach(item => {
+      item.el.dataset.readmateTransState = '';
+      const card = bilingualCardMap.get(item.el);
+      if (card) card.classList.remove('readmate-card-loading');
+    });
+  }
+}
+
+/** ★ 声画同步联动：高亮对应原文段落及其中文微卡片 */
+function syncBilingualCardHighlight(currentSentenceText) {
+  if (!isBilingualPageActive || !currentSentenceText) return;
+
+  // 清除之前的高亮
+  if (activeBilingualParagraph) {
+    const oldCard = bilingualCardMap.get(activeBilingualParagraph);
+    if (oldCard) oldCard.classList.remove('readmate-card-highlight');
+    activeBilingualParagraph = null;
+  }
+
+  // 寻找匹配当前正在朗读句子的段落
+  const cleanSnippet = currentSentenceText.trim().slice(0, 30).toLowerCase();
+  const candidates = collectBilingualCandidates();
+  for (const el of candidates) {
+    const pText = el.innerText.toLowerCase();
+    if (pText.includes(cleanSnippet)) {
+      activeBilingualParagraph = el;
+      const card = bilingualCardMap.get(el);
+      if (card) {
+        card.classList.add('readmate-card-highlight');
+      }
+      break;
+    }
+  }
+}
