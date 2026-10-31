@@ -1339,5 +1339,17 @@
   },
   "lblQuickTargetLang": {
     "message": "翻訳先言語："
+  },
+  "lblBilingualCardStyle": {
+    "message": "表示レイアウト："
+  },
+  "optLayoutCard": {
+    "message": "カード (バブル)"
+  },
+  "optLayoutInterlinear": {
+    "message": "行間 (プレーンテキスト)"
+  },
+  "optLayoutSideBySide": {
+    "message": "左右対照 (2カラム)"
   }
 }

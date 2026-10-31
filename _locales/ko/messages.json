@@ -1289,5 +1289,17 @@
   },
   "lblQuickTargetLang": {
     "message": "번역 대상 언어:"
+  },
+  "lblBilingualCardStyle": {
+    "message": "표시 레이아웃:"
+  },
+  "optLayoutCard": {
+    "message": "카드 (버블형)"
+  },
+  "optLayoutInterlinear": {
+    "message": "행간 (순수 텍스트)"
+  },
+  "optLayoutSideBySide": {
+    "message": "좌우 대역 (2열)"
   }
 }

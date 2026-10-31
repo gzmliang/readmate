@@ -139,6 +139,10 @@ function localize() {
   setText('lblAutoBilingualPage', _('lblAutoBilingualPage'));
   setText('descAutoBilingualPage', _('descAutoBilingualPage'));
   setText('lblQuickTargetLang', _('lblQuickTargetLang'));
+  setText('lblBilingualCardStyle', _('lblBilingualCardStyle'));
+  setText('optLayoutCard', _('optLayoutCard'));
+  setText('optLayoutInterlinear', _('optLayoutInterlinear'));
+  setText('optLayoutSideBySide', _('optLayoutSideBySide'));
   setText('lblTargetLanguage', _('lblTargetLanguage'));
   setText('lblEnableBilingual', _('lblBilingualStudyMode'));
   setText('lblChkEnableBilingual', _('descBilingualStudyMode'));
@@ -361,6 +365,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
+    const layoutSelect = document.getElementById('bilingualCardStyle');
+    if (layoutSelect) {
+      layoutSelect.value = settings.bilingualCardStyle || 'card';
+      layoutSelect.addEventListener('change', (e) => {
+        const newStyle = e.target.value;
+        saveSettings(true);
+        // 通知当前标签页切换排版样式（纯 CSS/属性切换，无需重跑网络翻译！）
+        if (currentTabId) {
+          chrome.tabs.sendMessage(currentTabId, {
+            action: 'setBilingualCardStyle',
+            style: newStyle
+          }, () => {});
+        }
+      });
+    }
+
     // AI
     document.getElementById('aiEndpoint').value = settings.aiEndpoint || 'https://api.openai.com/v1';
     document.getElementById('aiApiKey').value = settings.aiApiKey || '';
@@ -555,6 +575,7 @@ function saveSettings(silent) {
     ttsEngine: document.querySelector('input[name="ttsEngine"]:checked')?.value || 'browser',
     ttsSpeed: parseFloat(document.getElementById('ttsSpeed').value),
     autoBilingualPage: document.getElementById('autoBilingualPage')?.checked || false,
+    bilingualCardStyle: document.getElementById('bilingualCardStyle')?.value || 'card',
     ttsVoice: document.getElementById('ttsVoice').value || '',
     readVoiceMode: document.getElementById('readVoiceMode')?.value || 'original',
     enableBilingual: document.getElementById('enableBilingual')?.checked || false,

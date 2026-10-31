@@ -1343,5 +1343,17 @@
   },
   "lblQuickTargetLang": {
     "message": "Target Language:"
+  },
+  "lblBilingualCardStyle": {
+    "message": "Display Layout:"
+  },
+  "optLayoutCard": {
+    "message": "Card (Subtle Bubble)"
+  },
+  "optLayoutInterlinear": {
+    "message": "Interlinear (Pure Text)"
+  },
+  "optLayoutSideBySide": {
+    "message": "Side-by-Side (Columns)"
   }
 }

@@ -4065,6 +4065,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       }
       sendResponse({ ok: true, active: isBilingualPageActive });
       break;
+    case 'setBilingualCardStyle':
+      if (msg.style) {
+        if (!settings) settings = {};
+        settings.bilingualCardStyle = msg.style;
+        applyBilingualLayoutStyle(msg.style);
+      }
+      sendResponse({ ok: true });
+      break;
   }
 });
 
@@ -4108,6 +4116,7 @@ async function enableBilingualPageMode() {
   if (isBilingualPageActive) return;
   isBilingualPageActive = true;
   updateBilingualPageButtons(true);
+  applyBilingualLayoutStyle(settings?.bilingualCardStyle || 'card');
   showTranslation(_t('bilingualPageTranslating', 'Translating visible paragraphs...'), true);
 
   // 1. 扫描页面正文段落与导航菜单项
@@ -4141,6 +4150,7 @@ async function enableBilingualPageMode() {
 function disableBilingualPageMode(silent = false) {
   isBilingualPageActive = false;
   updateBilingualPageButtons(false);
+  cleanBilingualLayoutWrapper();
   if (bilingualObserver) {
     bilingualObserver.disconnect();
     bilingualObserver = null;
@@ -4299,8 +4309,62 @@ function ensureBilingualDisplay(el) {
     }
 
     bilingualCardMap.set(el, card);
+
+    // 若当前是左右对照模式，将原文与译文包装进弹性对齐容器
+    if ((settings?.bilingualCardStyle || 'card') === 'sideBySide') {
+      wrapSideBySideRow(el, card);
+    }
+
     return card;
   }
+}
+
+/** 应用双语排版样式（card: 微卡片, interlinear: 纯行间, sideBySide: 左右对照） */
+function applyBilingualLayoutStyle(styleName) {
+  const root = document.documentElement;
+  root.classList.remove('readmate-bilingual-style-card', 'readmate-bilingual-style-interlinear', 'readmate-bilingual-style-sideBySide');
+  root.classList.add(`readmate-bilingual-style-${styleName || 'card'}`);
+
+  if (styleName === 'sideBySide') {
+    // 将现有的段落与其微卡片包装进 sideBySide 容器
+    const cards = Array.from(document.querySelectorAll('.readmate-bilingual-card'));
+    cards.forEach(card => {
+      const origEl = card.previousElementSibling;
+      if (origEl && origEl.dataset.readmateTransKind === 'block') {
+        wrapSideBySideRow(origEl, card);
+      }
+    });
+  } else {
+    // 还原 sideBySide 容器
+    cleanBilingualLayoutWrapper();
+  }
+}
+
+/** 左右对照容器包装 */
+function wrapSideBySideRow(origEl, cardEl) {
+  if (!origEl || !cardEl || !origEl.parentNode) return;
+  if (origEl.parentElement && origEl.parentElement.classList.contains('readmate-bilingual-row')) return;
+
+  const parent = origEl.parentNode;
+  const row = document.createElement('div');
+  row.className = 'readmate-bilingual-row';
+  
+  parent.insertBefore(row, origEl);
+  row.appendChild(origEl);
+  row.appendChild(cardEl);
+}
+
+/** 清理并解开左右对照包装容器，无损恢复原 DOM */
+function cleanBilingualLayoutWrapper() {
+  const rows = Array.from(document.querySelectorAll('.readmate-bilingual-row'));
+  rows.forEach(row => {
+    const parent = row.parentNode;
+    if (!parent) return;
+    while (row.firstChild) {
+      parent.insertBefore(row.firstChild, row);
+    }
+    row.remove();
+  });
 }
 
 /** 分批并发执行段落与菜单翻译 */

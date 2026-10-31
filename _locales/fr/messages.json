@@ -1289,5 +1289,17 @@
   },
   "lblQuickTargetLang": {
     "message": "Langue cible :"
+  },
+  "lblBilingualCardStyle": {
+    "message": "Disposition d'affichage :"
+  },
+  "optLayoutCard": {
+    "message": "Carte (Bulle)"
+  },
+  "optLayoutInterlinear": {
+    "message": "Interlinéaire (Texte pur)"
+  },
+  "optLayoutSideBySide": {
+    "message": "Côte à côte (Colonnes)"
   }
 }

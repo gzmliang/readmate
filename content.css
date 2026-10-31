@@ -2025,3 +2025,55 @@ html[data-theme='dark'] .readmate-bilingual-inline,
   color: #34D399 !important;
   background: rgba(52, 211, 153, 0.15) !important;
 }
+
+/* ============================================================
+   ★ ReadMate 多版式排版支持 (微卡片 / 纯行间直排 / 左右双栏对照)
+   ============================================================ */
+
+/* 1. 纯行间直排模式 (Interlinear): 无边框、无背景、像两行字自然紧排 */
+.readmate-bilingual-style-interlinear .readmate-bilingual-card {
+  background: transparent !important;
+  border-left: none !important;
+  box-shadow: none !important;
+  margin: 3px 0 8px 0 !important;
+  padding: 0 !important;
+  font-size: 0.9em !important;
+  line-height: 1.5 !important;
+  color: #059669 !important; /* 柔和翠绿字，与原文深色字清晰区分 */
+  font-weight: 400 !important;
+}
+
+.readmate-bilingual-style-interlinear .readmate-bilingual-card.readmate-card-highlight {
+  background: rgba(16, 185, 129, 0.12) !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  color: #047857 !important;
+  font-weight: 600 !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .readmate-bilingual-style-interlinear .readmate-bilingual-card {
+    color: #34D399 !important;
+  }
+}
+body[data-theme='dark'] .readmate-bilingual-style-interlinear .readmate-bilingual-card,
+html[data-theme='dark'] .readmate-bilingual-style-interlinear .readmate-bilingual-card,
+.dark .readmate-bilingual-style-interlinear .readmate-bilingual-card {
+  color: #34D399 !important;
+}
+
+/* 2. 左右对照模式 (Side-by-Side): 宽屏下并排成双栏，左英文右中文 */
+@media (min-width: 860px) {
+  .readmate-bilingual-style-sideBySide .readmate-bilingual-row {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 18px !important;
+    align-items: start !important;
+    margin: 8px 0 14px 0 !important;
+  }
+
+  .readmate-bilingual-style-sideBySide .readmate-bilingual-row > .readmate-bilingual-card {
+    margin: 0 !important;
+    height: 100% !important;
+  }
+}

@@ -246,6 +246,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         aiApiKey: '',
         aiModel: 'gpt-4o-mini',
         autoBilingualPage: false, // 全局网页双语对照自动开关
+        bilingualCardStyle: 'card', // 双语排版样式：'card' (微卡片), 'interlinear' (纯行间), 'sideBySide' (左右对照)
         enableBilingual: false, // 默认不开启双语翻译（高阶开关，按需激活）
         translateEnabled: false,
         translateProvider: 'microsoft', // 默认免费免配置：'microsoft' (微软Edge), 'google' (谷歌免费), 'custom' (自定义AI API)

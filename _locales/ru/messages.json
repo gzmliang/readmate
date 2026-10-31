@@ -1289,5 +1289,17 @@
   },
   "lblQuickTargetLang": {
     "message": "Целевой язык:"
+  },
+  "lblBilingualCardStyle": {
+    "message": "Макет отображения:"
+  },
+  "optLayoutCard": {
+    "message": "Карточка (Пузырек)"
+  },
+  "optLayoutInterlinear": {
+    "message": "Междустрочный (Обычный текст)"
+  },
+  "optLayoutSideBySide": {
+    "message": "Бок о бок (Колонки)"
   }
 }

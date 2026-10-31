@@ -1343,5 +1343,17 @@
   },
   "lblQuickTargetLang": {
     "message": "翻译目标语言："
+  },
+  "lblBilingualCardStyle": {
+    "message": "双语排版样式："
+  },
+  "optLayoutCard": {
+    "message": "微卡片 (呼吸气泡)"
+  },
+  "optLayoutInterlinear": {
+    "message": "行间直排 (纯净文本)"
+  },
+  "optLayoutSideBySide": {
+    "message": "左右对照 (双栏并排)"
   }
 }
