@@ -4147,17 +4147,22 @@ function collectBilingualCandidates() {
   const results = [];
   const visited = new Set();
 
-  // A. 正文区域候选扫描
-  const mainRoot = document.querySelector('article, main, [role="main"], #content, .content, .post, .article') || document.body;
-  if (mainRoot) {
-    const mainSelector = 'p, h1, h2, h3, h4, h5, h6, li, blockquote';
-    const mainNodes = Array.from(mainRoot.querySelectorAll(mainSelector));
+  // A. 正文与公告区域候选扫描（从 document.body 统一扫描，确保顶部公告条、页头描述、正文全部囊括）
+  const mainSelector = 'article p, main p, .content p, .post p, aside.site-announcement p, [class*="announcement"] p, header.content-hero p, article h1, article h2, article h3, article h4, main h1, main h2, main h3, main h4, main li, article li, main blockquote';
+  let mainNodes = Array.from(document.querySelectorAll(mainSelector));
+  if (mainNodes.length === 0) {
+    // 兜底泛扫描
+    const root = document.querySelector('article, main, [role="main"], #content, .content, .post, .article') || document.body;
+    mainNodes = Array.from(root.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, blockquote'));
+  }
 
     for (const el of mainNodes) {
       if (el.closest('#readmate-bar, #readmate-fab-container, .readmate-modal-overlay, .readmate-bilingual-card, .readmate-bilingual-inline')) continue;
       if (el.closest('pre, code, kbd, samp, .highlight, .prism, .monaco-editor, noscript, script, style')) continue;
-      // 若元素在侧栏或导航内，留给下方的导航扫描器以行内模式处理
-      if (el.closest('nav, header, footer, aside, [class*="nav"], [class*="sidebar"], [class*="toc"], [class*="menu"]')) continue;
+      // 仅排除纯导航/菜单容器，放行顶部公告条 aside.site-announcement 以及文章头描述 header.content-hero 等真实阅读内容
+      if (el.closest('nav, footer, .sidebar, .menu, [class*="nav-rail"], [class*="toc-rail"]')) continue;
+      // 若在 header 或 aside 中，如果是菜单或导航则跳过，如果是描述/公告段落则作为正文翻译
+      if (el.closest('header, aside') && !el.closest('.content-hero, .site-announcement, article, main')) continue;
       if (el.offsetParent === null && el.tagName !== 'BODY') continue;
 
       const text = el.innerText ? el.innerText.trim() : '';
@@ -4168,7 +4173,6 @@ function collectBilingualCandidates() {
       results.push(el);
       visited.add(el);
     }
-  }
 
   // B. 顶部导航与两旁侧边菜单扫描（如 pi.dev 的左侧文档导航、右侧大纲、顶部菜单、分组标题）
   const navSelector = 'nav a, aside a, header a, .sticky-nav-page-link, .docs-nav-link, .docs-toc-link, [class*="nav-link"], [class*="toc-link"], [class*="sidebar-link"], [class*="menu-link"], .content-card-title, .docs-nav-section-title, .docs-brand-mark';
@@ -4179,6 +4183,9 @@ function collectBilingualCandidates() {
     if (item.closest('pre, code, noscript, script, style')) continue;
     
     // 检查真实可见性（用 getBoundingClientRect 判断，支持各种自适应 flex 布局）
+    // 排除处于顶部公告条或文章大段落内部的内嵌超链接（避免拆碎整句英文）
+    if (item.closest('.site-announcement, [class*="announcement"], p, blockquote')) continue;
+
     const rect = item.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) continue;
 
