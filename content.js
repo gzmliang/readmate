@@ -4174,61 +4174,82 @@ function updateBilingualPageButtons(active) {
   }
 }
 
-/** 智能收集页面有效文本段落与导航菜单项 */
+/** 智能收集页面有效文本段落、新闻卡片标题与导航菜单项（全网通用） */
 function collectBilingualCandidates() {
   const results = [];
   const visited = new Set();
 
-  // A. 正文与公告区域候选扫描（从 document.body 统一扫描，确保顶部公告条、页头描述、正文全部囊括）
-  const mainSelector = 'article p, main p, .content p, .post p, aside.site-announcement p, [class*="announcement"] p, header.content-hero p, article h1, article h2, article h3, article h4, main h1, main h2, main h3, main h4, main li, article li, main blockquote';
-  let mainNodes = Array.from(document.querySelectorAll(mainSelector));
-  if (mainNodes.length === 0) {
-    // 兜底泛扫描
-    const root = document.querySelector('article, main, [role="main"], #content, .content, .post, .article') || document.body;
-    mainNodes = Array.from(root.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, blockquote'));
+  // 1. 全局正文与新闻标题块级元素收集（覆盖文档段落、博客、各大门户新闻如 Google News / Reuters / BBC）
+  const blockSelector = 'p, h1, h2, h3, h4, h5, h6, li, blockquote, [data-testid*="Heading"], [data-testid*="Title"], .story-title, .headline';
+  const blockNodes = Array.from(document.querySelectorAll(blockSelector));
+
+  for (const el of blockNodes) {
+    if (visited.has(el)) continue;
+    if (el.closest('#readmate-bar, #readmate-fab-container, .readmate-modal-overlay, .readmate-bilingual-card, .readmate-bilingual-inline')) continue;
+    if (el.closest('pre, code, kbd, samp, .highlight, .prism, .monaco-editor, noscript, script, style')) continue;
+    // 排除纯页脚/右键菜单
+    if (el.closest('footer, [role="menu"]')) continue;
+
+    const rect = el.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) continue;
+
+    const text = (el.innerText || el.textContent || '').trim();
+    if (text.length < 5 || /^[\d\s\-_.,/\\:;]+$/.test(text)) continue;
+    // 如果内部包含其他段落子标签，交由子标签翻译，避免整大块包裹重复
+    if (el.querySelector('p, blockquote, h1, h2, h3, h4')) continue;
+
+    el.dataset.readmateTransKind = 'block';
+    results.push(el);
+    visited.add(el);
   }
 
-    for (const el of mainNodes) {
-      if (el.closest('#readmate-bar, #readmate-fab-container, .readmate-modal-overlay, .readmate-bilingual-card, .readmate-bilingual-inline')) continue;
-      if (el.closest('pre, code, kbd, samp, .highlight, .prism, .monaco-editor, noscript, script, style')) continue;
-      // 仅排除纯导航/菜单容器，放行顶部公告条 aside.site-announcement 以及文章头描述 header.content-hero 等真实阅读内容
-      if (el.closest('nav, footer, .sidebar, .menu, [class*="nav-rail"], [class*="toc-rail"]')) continue;
-      // 若在 header 或 aside 中，如果是菜单或导航则跳过，如果是描述/公告段落则作为正文翻译
-      if (el.closest('header, aside') && !el.closest('.content-hero, .site-announcement, article, main')) continue;
-      if (el.offsetParent === null && el.tagName !== 'BODY') continue;
+  // 2. 收集现代卡片式新闻的独立标题链接（如 Google News 经典的 <a class="gPFEn">、Reuters/BBC 独立标题链接）
+  const standaloneLinks = Array.from(document.querySelectorAll('a, [role="link"]'));
+  for (const a of standaloneLinks) {
+    if (visited.has(a)) continue;
+    if (a.closest('#readmate-bar, #readmate-fab-container, .readmate-modal-overlay, .readmate-bilingual-card, .readmate-bilingual-inline')) continue;
+    if (a.closest('pre, code, noscript, script, style, nav, [class*="nav-rail"]')) continue;
+    if (a.closest('.readmate-bilingual-card, .readmate-bilingual-inline')) continue;
 
-      const text = el.innerText ? el.innerText.trim() : '';
-      if (text.length < 8 || /^[\d\s\-_.,/\:;]+$/.test(text)) continue;
-      if (el.querySelector('p, blockquote')) continue; // 避免父子嵌套重复
+    const rect = a.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) continue;
 
-      el.dataset.readmateTransKind = 'block'; // 正文大卡片模式
-      results.push(el);
-      visited.add(el);
+    const text = (a.innerText || a.textContent || '').trim();
+    // 较长的新闻标题链接（>= 25 字符），且没有被父级 blockNode 收纳的，作为独立新闻卡片进行块级翻译！
+    if (text.length >= 22 && !text.includes('\n')) {
+      // 避免父元素已经被收纳
+      let parentBlocked = false;
+      let p = a.parentElement;
+      while (p && p !== document.body) {
+        if (visited.has(p)) { parentBlocked = true; break; }
+        p = p.parentElement;
+      }
+      if (!parentBlocked) {
+        a.dataset.readmateTransKind = 'block';
+        results.push(a);
+        visited.add(a);
+      }
     }
+  }
 
-  // B. 顶部导航与两旁侧边菜单扫描（如 pi.dev 的左侧文档导航、右侧大纲、顶部菜单、分组标题）
+  // 3. 顶部导航与侧边栏紧凑链接收集（如 pi.dev / 官网侧栏导航、菜单）
   const navSelector = 'nav a, aside a, header a, .sticky-nav-page-link, .docs-nav-link, .docs-toc-link, [class*="nav-link"], [class*="toc-link"], [class*="sidebar-link"], [class*="menu-link"], .content-card-title, .docs-nav-section-title, .docs-brand-mark';
   const navItems = Array.from(document.querySelectorAll(navSelector));
   for (const item of navItems) {
     if (visited.has(item)) continue;
     if (item.closest('#readmate-bar, #readmate-fab-container, .readmate-modal-overlay, .readmate-bilingual-card, .readmate-bilingual-inline')) continue;
     if (item.closest('pre, code, noscript, script, style')) continue;
-    
-    // 检查真实可见性（用 getBoundingClientRect 判断，支持各种自适应 flex 布局）
-    // 排除处于顶部公告条或文章大段落内部的内嵌超链接（避免拆碎整句英文）
     if (item.closest('.site-announcement, [class*="announcement"], p, blockquote')) continue;
 
     const rect = item.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) continue;
 
     const rawText = (item.innerText || item.textContent || '').trim();
-    // 菜单项文本通常在 2 ~ 50 个字符之间
     if (rawText.length < 2 || rawText.length > 50) continue;
-    // 忽略纯图标/纯符号
     if (/^[\d\s\-_.,/\\:;→←\u2190-\u21FF]+$/.test(rawText)) continue;
     if (item.querySelectorAll('a, button').length > 1) continue;
 
-    item.dataset.readmateTransKind = 'inline'; // 导航紧凑行内标签模式
+    item.dataset.readmateTransKind = 'inline';
     results.push(item);
     visited.add(item);
   }
