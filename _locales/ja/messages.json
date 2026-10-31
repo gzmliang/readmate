@@ -1327,5 +1327,17 @@
   },
   "bilingualPageOff": {
     "message": "Bilingual mode disabled"
+  },
+  "sectionBilingualMaster": {
+    "message": "Webページバイリンガル翻訳マスター"
+  },
+  "lblAutoBilingualPage": {
+    "message": "バイリンガル対訳翻訳"
+  },
+  "descAutoBilingualPage": {
+    "message": "ONにすると、Webページ上で対訳カードとナビゲーション訳を自動表示します"
+  },
+  "lblQuickTargetLang": {
+    "message": "翻訳先言語："
   }
 }

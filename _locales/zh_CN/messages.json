@@ -1331,5 +1331,17 @@
   },
   "bilingualPageOff": {
     "message": "已退出双语对照模式"
+  },
+  "sectionBilingualMaster": {
+    "message": "网页双语翻译全局控制"
+  },
+  "lblAutoBilingualPage": {
+    "message": "双语对照翻译"
+  },
+  "descAutoBilingualPage": {
+    "message": "开启后，访问网页自动呈现双语对照译文卡片与导航标签"
+  },
+  "lblQuickTargetLang": {
+    "message": "翻译目标语言："
   }
 }

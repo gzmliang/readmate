@@ -1277,5 +1277,17 @@
   },
   "bilingualPageOff": {
     "message": "Bilingual mode disabled"
+  },
+  "sectionBilingualMaster": {
+    "message": "웹페이지 이중언어 번역 마스터"
+  },
+  "lblAutoBilingualPage": {
+    "message": "이중언어 대역 번역"
+  },
+  "descAutoBilingualPage": {
+    "message": "켜면 웹페이지에서 대역 카드 및 네비게이션 번역이 자동으로 표시됩니다"
+  },
+  "lblQuickTargetLang": {
+    "message": "번역 대상 언어:"
   }
 }

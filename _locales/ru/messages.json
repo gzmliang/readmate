@@ -1277,5 +1277,17 @@
   },
   "bilingualPageOff": {
     "message": "Bilingual mode disabled"
+  },
+  "sectionBilingualMaster": {
+    "message": "Двуязычный перевод веб-страниц"
+  },
+  "lblAutoBilingualPage": {
+    "message": "Двуязычный перевод"
+  },
+  "descAutoBilingualPage": {
+    "message": "Если включено, автоматически отображает двуязычный перевод на веб-страницах"
+  },
+  "lblQuickTargetLang": {
+    "message": "Целевой язык:"
   }
 }

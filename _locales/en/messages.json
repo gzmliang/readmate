@@ -1331,5 +1331,17 @@
   },
   "bilingualPageOff": {
     "message": "Bilingual mode disabled"
+  },
+  "sectionBilingualMaster": {
+    "message": "Bilingual Translation Master"
+  },
+  "lblAutoBilingualPage": {
+    "message": "Bilingual Page Translation"
+  },
+  "descAutoBilingualPage": {
+    "message": "When ON, automatically show bilingual inline translation on web pages"
+  },
+  "lblQuickTargetLang": {
+    "message": "Target Language:"
   }
 }

@@ -136,6 +136,9 @@ function localize() {
   setText('lblModel', _('lblModel'));
   setText('optModelGpt4oMini', _('optModelGpt4oMini'));
   setText('optModelSiliconFree', _('optModelSiliconFree'));
+  setText('lblAutoBilingualPage', _('lblAutoBilingualPage'));
+  setText('descAutoBilingualPage', _('descAutoBilingualPage'));
+  setText('lblQuickTargetLang', _('lblQuickTargetLang'));
   setText('lblTargetLanguage', _('lblTargetLanguage'));
   setText('lblEnableBilingual', _('lblBilingualStudyMode'));
   setText('lblChkEnableBilingual', _('descBilingualStudyMode'));
@@ -180,7 +183,14 @@ function updateEngineSections(engine) {
 function getCurrentTab() {
   return new Promise((resolve) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      resolve(tabs && tabs.length > 0 ? tabs[0] : null);
+      if (tabs && tabs.length > 0 && !tabs[0].url?.startsWith('chrome-extension://')) {
+        return resolve(tabs[0]);
+      }
+      // 当 popup 被作为独立标签页打开或测试驱动时，寻找最后一个活跃的真实网页 tab
+      chrome.tabs.query({}, (all) => {
+        const webTabs = (all || []).filter(t => t.url && !t.url.startsWith('chrome') && !t.url.startsWith('about'));
+        resolve(webTabs.length > 0 ? webTabs[webTabs.length - 1] : (tabs && tabs[0] ? tabs[0] : null));
+      });
     });
   });
 }
@@ -303,6 +313,51 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
           autoSave();
         }
+      });
+    }
+
+    // 全局双语翻译主开关与快捷目标语言
+    const autoBiSwitch = document.getElementById('autoBilingualPage');
+    const quickLangSelect = document.getElementById('quickTargetLang');
+    const fullTargetSelect = document.getElementById('translateTarget');
+
+    if (autoBiSwitch) {
+      autoBiSwitch.checked = !!settings.autoBilingualPage;
+      autoBiSwitch.addEventListener('change', (e) => {
+        const active = e.target.checked;
+        saveSettings(true);
+        // 立即通知当前活动标签页生效或撤销双语翻译
+        if (currentTabId) {
+          chrome.tabs.sendMessage(currentTabId, {
+            action: 'setBilingualPageActive',
+            active: active,
+            targetLang: quickLangSelect ? quickLangSelect.value : (settings.translateTarget || 'Simplified Chinese')
+          }, () => {});
+        }
+      });
+    }
+
+    if (quickLangSelect) {
+      quickLangSelect.value = settings.translateTarget || 'Simplified Chinese';
+      quickLangSelect.addEventListener('change', (e) => {
+        const newLang = e.target.value;
+        if (fullTargetSelect) fullTargetSelect.value = newLang;
+        saveSettings(true);
+        // 如果当前双语开关开着，立即通知当前页面以新语言重新加载双语翻译
+        if (autoBiSwitch && autoBiSwitch.checked && currentTabId) {
+          chrome.tabs.sendMessage(currentTabId, {
+            action: 'setBilingualPageActive',
+            active: true,
+            targetLang: newLang,
+            forceRefresh: true
+          }, () => {});
+        }
+      });
+    }
+
+    if (fullTargetSelect) {
+      fullTargetSelect.addEventListener('change', (e) => {
+        if (quickLangSelect) quickLangSelect.value = e.target.value;
       });
     }
 
@@ -499,6 +554,7 @@ function saveSettings(silent) {
   const settings = {
     ttsEngine: document.querySelector('input[name="ttsEngine"]:checked')?.value || 'browser',
     ttsSpeed: parseFloat(document.getElementById('ttsSpeed').value),
+    autoBilingualPage: document.getElementById('autoBilingualPage')?.checked || false,
     ttsVoice: document.getElementById('ttsVoice').value || '',
     readVoiceMode: document.getElementById('readVoiceMode')?.value || 'original',
     enableBilingual: document.getElementById('enableBilingual')?.checked || false,

@@ -245,6 +245,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         aiEndpoint: 'https://api.openai.com/v1',
         aiApiKey: '',
         aiModel: 'gpt-4o-mini',
+        autoBilingualPage: false, // 全局网页双语对照自动开关
         enableBilingual: false, // 默认不开启双语翻译（高阶开关，按需激活）
         translateEnabled: false,
         translateProvider: 'microsoft', // 默认免费免配置：'microsoft' (微软Edge), 'google' (谷歌免费), 'custom' (自定义AI API)

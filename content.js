@@ -1060,9 +1060,9 @@ function nextSentence() {
 // ====== 翻译预取与批量流水线（支持免费免配置接口与自定义API） ======
 async function fetchTranslation(text) {
   if (!text || !text.trim()) return '';
-  if (translationCache.has(text)) return translationCache.get(text);
-
   const targetLang = settings.translateTarget || 'Simplified Chinese';
+  const cacheKey = `${targetLang}__${text}`;
+  if (translationCache.has(cacheKey)) return translationCache.get(cacheKey);
   const provider = settings.translateProvider || 'microsoft';
   const apiKey = settings.aiApiKey || '';
   const endpoint = settings.aiEndpoint || 'https://api.openai.com/v1';
@@ -1079,7 +1079,7 @@ async function fetchTranslation(text) {
       targetLang,
     }, (resp) => {
       const translated = (resp && resp.ok && resp.text) ? resp.text.trim() : '';
-      if (translated) translationCache.set(text, translated);
+      if (translated) translationCache.set(cacheKey, translated);
       resolve(translated);
     });
   });
@@ -1088,6 +1088,7 @@ async function fetchTranslation(text) {
 /** 批量翻译多段文本（极大减少网络往返，防止单段频发 429） */
 async function fetchTranslationsBatch(texts) {
   if (!texts || texts.length === 0) return [];
+  const targetLang = settings.translateTarget || 'Simplified Chinese';
   const results = new Array(texts.length).fill('');
   const missingIndices = [];
   const missingTexts = [];
@@ -1095,19 +1096,20 @@ async function fetchTranslationsBatch(texts) {
   texts.forEach((txt, idx) => {
     if (!txt || !txt.trim()) {
       results[idx] = '';
-    } else if (translationCache.has(txt)) {
-      results[idx] = translationCache.get(txt);
     } else {
-      missingIndices.push(idx);
-      missingTexts.push(txt);
+      const cKey = `${targetLang}__${txt}`;
+      if (translationCache.has(cKey)) {
+        results[idx] = translationCache.get(cKey);
+      } else {
+        missingIndices.push(idx);
+        missingTexts.push(txt);
+      }
     }
   });
 
   if (missingTexts.length === 0) {
     return results;
   }
-
-  const targetLang = settings.translateTarget || 'Simplified Chinese';
   const provider = settings.translateProvider || 'microsoft';
   const apiKey = settings.aiApiKey || '';
   const endpoint = settings.aiEndpoint || 'https://api.openai.com/v1';
@@ -1129,7 +1131,7 @@ async function fetchTranslationsBatch(texts) {
           const cleanTrans = (trans || '').trim();
           results[origIdx] = cleanTrans;
           if (cleanTrans && missingTexts[i]) {
-            translationCache.set(missingTexts[i], cleanTrans);
+            translationCache.set(`${targetLang}__${missingTexts[i]}`, cleanTrans);
           }
         });
       }
@@ -3954,6 +3956,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       break;
     case 'settingsUpdated':
       if (msg.settings) {
+        const oldTarget = settings.translateTarget;
         Object.assign(settings, msg.settings);
         if (msg.settings.readVoiceMode) readVoiceMode = msg.settings.readVoiceMode;
         if (msg.settings.paragraphClickMode) paragraphClickMode = msg.settings.paragraphClickMode;
@@ -3961,6 +3964,22 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           enableBilingual = msg.settings.enableBilingual;
           const biChk = floatingBar?.querySelector('#readmate-bilingual-chk');
           if (biChk) biChk.checked = enableBilingual;
+        }
+        // 全局双语翻译总开关状态实时响应
+        if (msg.settings.autoBilingualPage !== undefined) {
+          const autoBi = !!msg.settings.autoBilingualPage;
+          if (autoBi && !isBilingualPageActive) {
+            enableBilingualPageMode();
+          } else if (!autoBi && isBilingualPageActive) {
+            disableBilingualPageMode();
+          }
+        }
+        // 目标语言变更时，如果当前正处于双语对照中，刷新重译
+                if (msg.settings.translateTarget && msg.settings.translateTarget !== oldTarget) {
+          if (isBilingualPageActive) {
+            disableBilingualPageMode(true);
+            setTimeout(() => enableBilingualPageMode(), 150);
+          }
         }
         if (msg.settings.uiLanguage) {
           loadContentI18n(msg.settings.uiLanguage).then(() => {
@@ -4031,6 +4050,21 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       toggleBilingualPageMode();
       sendResponse({ ok: true });
       break;
+    case 'setBilingualPageActive':
+      if (msg.targetLang) {
+        if (!settings) settings = {};
+        settings.translateTarget = msg.targetLang;
+      }
+      if (msg.active) {
+        if (msg.forceRefresh && isBilingualPageActive) {
+          disableBilingualPageMode(true); // 静默清空旧语言
+        }
+        enableBilingualPageMode();
+      } else {
+        disableBilingualPageMode();
+      }
+      sendResponse({ ok: true, active: isBilingualPageActive });
+      break;
   }
 });
 
@@ -4046,11 +4080,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// 页面就绪：加载设置并创建悬浮按钮
-loadSettings().then(() => {
-  createFAB();
-  showFAB();
-});
+// (loadSettings placed at bottom after all engine declarations)
 
 
 // ============================================================
@@ -4108,7 +4138,7 @@ async function enableBilingualPageMode() {
 }
 
 /** 关闭并彻底还原网页 */
-function disableBilingualPageMode() {
+function disableBilingualPageMode(silent = false) {
   isBilingualPageActive = false;
   updateBilingualPageButtons(false);
   if (bilingualObserver) {
@@ -4127,7 +4157,9 @@ function disableBilingualPageMode() {
     delete el.dataset.readmateTransKind;
   });
 
-  showTranslation(_t('bilingualPageOff', 'Bilingual mode disabled'), true);
+  if (!silent) {
+    showTranslation(_t('bilingualPageOff', 'Bilingual mode disabled'), true);
+  }
 }
 
 /** 更新页面上双语按钮的视觉状态 */
@@ -4207,7 +4239,10 @@ function collectBilingualCandidates() {
 /** 为指定元素创建/关联双语对照视图（支持正文微卡片与导航行内标签两种版式） */
 function ensureBilingualDisplay(el) {
   if (bilingualCardMap.has(el)) {
-    return bilingualCardMap.get(el);
+    const existing = bilingualCardMap.get(el);
+    if (existing && existing.isConnected) {
+      return existing;
+    }
   }
 
   const kind = el.dataset.readmateTransKind || 'block';
@@ -4327,3 +4362,18 @@ function syncBilingualCardHighlight(currentSentenceText) {
     }
   }
 }
+
+
+// ============================================================
+// ★ 页面入口就绪：加载设置并创建悬浮按钮，若开启了全局双语翻译则自动激活
+// ============================================================
+loadSettings().then(() => {
+  createFAB();
+  showFAB();
+  if (settings && settings.autoBilingualPage) {
+    DebugLog.add('autoBilingualPage is ON: automatically activating bilingual mode');
+    setTimeout(() => {
+      enableBilingualPageMode();
+    }, 400);
+  }
+});

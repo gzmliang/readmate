@@ -1277,5 +1277,17 @@
   },
   "bilingualPageOff": {
     "message": "Bilingual mode disabled"
+  },
+  "sectionBilingualMaster": {
+    "message": "Traduction bilingue de page Web"
+  },
+  "lblAutoBilingualPage": {
+    "message": "Traduction bilingue"
+  },
+  "descAutoBilingualPage": {
+    "message": "Si activé, affiche automatiquement la traduction bilingue sur les pages Web"
+  },
+  "lblQuickTargetLang": {
+    "message": "Langue cible :"
   }
 }
