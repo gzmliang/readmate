@@ -4056,9 +4056,12 @@ loadSettings().then(() => {
 // ============================================================
 // ★ ReadMate 原网页双语对照引擎（方案 A：呼吸感自研微卡片）
 // ============================================================
+// ============================================================
+// ★ ReadMate 原网页双语对照引擎（正文微卡片 + 导航行内紧凑标签）
+// ============================================================
 let isBilingualPageActive = false;
 let bilingualObserver = null;
-const bilingualCardMap = new WeakMap(); // DOM Element -> Card Element
+const bilingualCardMap = new WeakMap(); // DOM Element -> Card/Inline Element
 let activeBilingualParagraph = null;
 
 /** 切换原网页双语对照状态 */
@@ -4072,15 +4075,13 @@ async function toggleBilingualPageMode() {
 
 /** 开启原网页双语对照 */
 async function enableBilingualPageMode() {
-  
   if (isBilingualPageActive) return;
   isBilingualPageActive = true;
   updateBilingualPageButtons(true);
   showTranslation(_t('bilingualPageTranslating', 'Translating visible paragraphs...'), true);
 
-  // 1. 扫描页面正文段落
+  // 1. 扫描页面正文段落与导航菜单项
   const candidates = collectBilingualCandidates();
-  
   if (candidates.length === 0) {
     showTranslation(_t('noTextFound', 'No readable text found on this page'), true);
     return;
@@ -4099,9 +4100,9 @@ async function enableBilingualPageMode() {
     });
   }
 
-  // 3. 为所有候选元素注入占位微卡片并加入观察
+  // 3. 为所有候选元素注入占位元素并加入观察
   candidates.forEach(el => {
-    ensureBilingualCard(el);
+    ensureBilingualDisplay(el);
     bilingualObserver.observe(el);
   });
 }
@@ -4114,14 +4115,16 @@ function disableBilingualPageMode() {
     bilingualObserver.disconnect();
     bilingualObserver = null;
   }
-  // 移除所有注入的微卡片，恢复网页原生纯净 DOM
-  const cards = document.querySelectorAll('.readmate-bilingual-card');
+  // 移除所有注入的正文微卡片和导航行内小标签，恢复网页原生纯净 DOM
+  const cards = document.querySelectorAll('.readmate-bilingual-card, .readmate-bilingual-inline');
   cards.forEach(card => card.remove());
 
   // 清除候选元素标记
   const candidates = document.querySelectorAll('[data-readmate-trans-state]');
   candidates.forEach(el => {
     delete el.dataset.readmateTransState;
+    delete el.dataset.readmateTransText;
+    delete el.dataset.readmateTransKind;
   });
 
   showTranslation(_t('bilingualPageOff', 'Bilingual mode disabled'), true);
@@ -4139,84 +4142,105 @@ function updateBilingualPageButtons(active) {
   }
 }
 
-/** 智能收集页面有效文本段落（跳过代码块、导航、菜单及非正文组件） */
+/** 智能收集页面有效文本段落与导航菜单项 */
 function collectBilingualCandidates() {
-  // 优先限定在 article, main, .content 等主内容区；若无则回退到 body
-  const root = document.querySelector('article, main, [role="main"], #content, .content, .post, .article') || document.body;
-  if (!root) return [];
-
-  const selector = 'p, h1, h2, h3, h4, h5, h6, li, blockquote';
-  const allNodes = Array.from(root.querySelectorAll(selector));
   const results = [];
+  const visited = new Set();
 
-  for (const el of allNodes) {
-    // 忽略 ReadMate 自身创建的 DOM 元素
-    if (el.closest('#readmate-bar, #readmate-fab-container, .readmate-modal-overlay, .readmate-bilingual-card')) {
-      continue;
-    }
-    // 保护代码块与技术标签
-    if (el.closest('pre, code, kbd, samp, .highlight, .prism, .monaco-editor, noscript, script, style')) {
-      continue;
-    }
-    // 过滤导航/侧栏/菜单/页脚等组件
-    if (el.closest('nav, header, footer, aside, .sidebar, .menu, .navigation, .nav, .breadcrumb')) {
-      continue;
-    }
-    // 过滤隐藏元素
-    if (el.offsetParent === null && el.tagName !== 'BODY') {
-      continue;
-    }
+  // A. 正文区域候选扫描
+  const mainRoot = document.querySelector('article, main, [role="main"], #content, .content, .post, .article') || document.body;
+  if (mainRoot) {
+    const mainSelector = 'p, h1, h2, h3, h4, h5, h6, li, blockquote';
+    const mainNodes = Array.from(mainRoot.querySelectorAll(mainSelector));
 
-    const text = el.innerText ? el.innerText.trim() : '';
-    // 跳过过短文本（少于 12 字符或纯数字）
-    if (text.length < 12 || /^[\d\s\-_.,/\\:;]+$/.test(text)) {
-      continue;
-    }
+    for (const el of mainNodes) {
+      if (el.closest('#readmate-bar, #readmate-fab-container, .readmate-modal-overlay, .readmate-bilingual-card, .readmate-bilingual-inline')) continue;
+      if (el.closest('pre, code, kbd, samp, .highlight, .prism, .monaco-editor, noscript, script, style')) continue;
+      // 若元素在侧栏或导航内，留给下方的导航扫描器以行内模式处理
+      if (el.closest('nav, header, footer, aside, [class*="nav"], [class*="sidebar"], [class*="toc"], [class*="menu"]')) continue;
+      if (el.offsetParent === null && el.tagName !== 'BODY') continue;
 
-    // 避免父子元素重复（例如 li 包含 p 时只抓内部 p）
-    const hasChildCandidate = el.querySelector('p, blockquote');
-    if (hasChildCandidate) {
-      continue;
-    }
+      const text = el.innerText ? el.innerText.trim() : '';
+      if (text.length < 8 || /^[\d\s\-_.,/\:;]+$/.test(text)) continue;
+      if (el.querySelector('p, blockquote')) continue; // 避免父子嵌套重复
 
-    results.push(el);
+      el.dataset.readmateTransKind = 'block'; // 正文大卡片模式
+      results.push(el);
+      visited.add(el);
+    }
+  }
+
+  // B. 顶部导航与两旁侧边菜单扫描（如 pi.dev 的左侧文档导航、右侧大纲、顶部菜单、分组标题）
+  const navSelector = 'nav a, aside a, header a, .sticky-nav-page-link, .docs-nav-link, .docs-toc-link, [class*="nav-link"], [class*="toc-link"], [class*="sidebar-link"], [class*="menu-link"], .content-card-title, .docs-nav-section-title, .docs-brand-mark';
+  const navItems = Array.from(document.querySelectorAll(navSelector));
+  for (const item of navItems) {
+    if (visited.has(item)) continue;
+    if (item.closest('#readmate-bar, #readmate-fab-container, .readmate-modal-overlay, .readmate-bilingual-card, .readmate-bilingual-inline')) continue;
+    if (item.closest('pre, code, noscript, script, style')) continue;
+    
+    // 检查真实可见性（用 getBoundingClientRect 判断，支持各种自适应 flex 布局）
+    const rect = item.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) continue;
+
+    const rawText = (item.innerText || item.textContent || '').trim();
+    // 菜单项文本通常在 2 ~ 50 个字符之间
+    if (rawText.length < 2 || rawText.length > 50) continue;
+    // 忽略纯图标/纯符号
+    if (/^[\d\s\-_.,/\\:;→←\u2190-\u21FF]+$/.test(rawText)) continue;
+    if (item.querySelectorAll('a, button').length > 1) continue;
+
+    item.dataset.readmateTransKind = 'inline'; // 导航紧凑行内标签模式
+    results.push(item);
+    visited.add(item);
   }
 
   return results;
 }
 
-/** 为指定元素创建/关联双语对照微卡片 */
-function ensureBilingualCard(el) {
+/** 为指定元素创建/关联双语对照视图（支持正文微卡片与导航行内标签两种版式） */
+function ensureBilingualDisplay(el) {
   if (bilingualCardMap.has(el)) {
     return bilingualCardMap.get(el);
   }
 
-  const card = document.createElement('div');
-  card.className = 'readmate-bilingual-card readmate-card-loading';
-  card.textContent = '...'; // 初始加载占位
-  card.title = _t('btnReadSelection', 'Click to read aloud');
+  const kind = el.dataset.readmateTransKind || 'block';
 
-  // 点击卡片直接朗读该段（指哪读哪声画联动）
-  card.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const origText = el.innerText.trim();
-    if (origText) {
-      startReading(origText);
-    }
-  });
-
-  // 将卡片优雅插入至原文段落后方（平级兄弟节点）
-  if (el.nextSibling) {
-    el.parentNode.insertBefore(card, el.nextSibling);
+  if (kind === 'inline') {
+    // 方案 1：导航/侧边栏紧凑行内小标签
+    const tag = document.createElement('span');
+    tag.className = 'readmate-bilingual-inline readmate-card-loading';
+    tag.textContent = '...';
+    // 插入到导航元素内部最末尾，紧随英文
+    el.appendChild(tag);
+    bilingualCardMap.set(el, tag);
+    return tag;
   } else {
-    el.parentNode.appendChild(card);
-  }
+    // 方案 A：正文呼吸感独立微卡片
+    const card = document.createElement('div');
+    card.className = 'readmate-bilingual-card readmate-card-loading';
+    card.textContent = '...';
+    card.title = _t('btnReadSelection', 'Click to read aloud');
 
-  bilingualCardMap.set(el, card);
-  return card;
+    card.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const origText = el.innerText.trim();
+      if (origText) {
+        startReading(origText);
+      }
+    });
+
+    if (el.nextSibling) {
+      el.parentNode.insertBefore(card, el.nextSibling);
+    } else {
+      el.parentNode.appendChild(card);
+    }
+
+    bilingualCardMap.set(el, card);
+    return card;
+  }
 }
 
-/** 分批并发执行段落翻译 */
+/** 分批并发执行段落与菜单翻译 */
 async function translateBilingualBatch(elements) {
   if (!elements || elements.length === 0) return;
 
@@ -4224,8 +4248,13 @@ async function translateBilingualBatch(elements) {
   elements.forEach(el => {
     if (el.dataset.readmateTransState) return;
     el.dataset.readmateTransState = 'translating';
-    const text = el.innerText.trim();
-    batch.push({ el, text });
+    // 提取纯净文本进行翻译（排除掉自身可能已挂载的译文子节点）
+    const clone = el.cloneNode(true);
+    clone.querySelectorAll('.readmate-bilingual-inline, .readmate-bilingual-card').forEach(n => n.remove());
+    const text = clone.innerText.trim();
+    if (text) {
+      batch.push({ el, text });
+    }
   });
 
   if (batch.length === 0) return;
@@ -4236,17 +4265,22 @@ async function translateBilingualBatch(elements) {
     const translatedList = await fetchTranslationsBatch(textsToTranslate);
 
     batch.forEach((item, index) => {
-      const card = bilingualCardMap.get(item.el);
+      const displayNode = bilingualCardMap.get(item.el);
       const translated = translatedList[index] || '';
-      if (card) {
-        card.classList.remove('readmate-card-loading');
+      if (displayNode) {
+        displayNode.classList.remove('readmate-card-loading');
         if (translated && translated.trim()) {
-          card.textContent = translated.trim();
+          const kind = item.el.dataset.readmateTransKind || 'block';
+          if (kind === 'inline') {
+            displayNode.textContent = translated.trim();
+          } else {
+            displayNode.textContent = translated.trim();
+          }
           item.el.dataset.readmateTransState = 'done';
           item.el.dataset.readmateTransText = translated.trim();
         } else {
-          // 若翻译为空，暂时隐藏该卡片避免占用视觉
-          card.style.display = 'none';
+          // 若翻译为空，暂时隐藏该节点避免占用视觉
+          displayNode.style.display = 'none';
         }
       }
     });
@@ -4254,8 +4288,8 @@ async function translateBilingualBatch(elements) {
     console.warn('[ReadMate] Bilingual batch translation failed:', err);
     batch.forEach(item => {
       item.el.dataset.readmateTransState = '';
-      const card = bilingualCardMap.get(item.el);
-      if (card) card.classList.remove('readmate-card-loading');
+      const displayNode = bilingualCardMap.get(item.el);
+      if (displayNode) displayNode.classList.remove('readmate-card-loading');
     });
   }
 }
@@ -4279,7 +4313,7 @@ function syncBilingualCardHighlight(currentSentenceText) {
     if (pText.includes(cleanSnippet)) {
       activeBilingualParagraph = el;
       const card = bilingualCardMap.get(el);
-      if (card) {
+      if (card && card.classList.contains('readmate-bilingual-card')) {
         card.classList.add('readmate-card-highlight');
       }
       break;

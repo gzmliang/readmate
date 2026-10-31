@@ -1987,3 +1987,41 @@ html[data-theme='dark'] .readmate-bilingual-card.readmate-card-highlight,
   color: #FFFFFF !important;
   box-shadow: 0 0 8px rgba(16, 185, 129, 0.6) !important;
 }
+
+/* ============================================================
+   ★ ReadMate 导航与侧边栏紧凑行内译文标签 (方案 1)
+   ============================================================ */
+.readmate-bilingual-inline {
+  display: inline-block !important;
+  margin-left: 6px !important;
+  font-size: 0.82em !important;
+  font-weight: normal !important;
+  color: #10B981 !important;
+  background: rgba(16, 185, 129, 0.08) !important;
+  padding: 1px 6px !important;
+  border-radius: 4px !important;
+  line-height: 1.3 !important;
+  vertical-align: middle !important;
+  pointer-events: none !important; /* 避免抢夺 a 标签点击 */
+  white-space: nowrap !important;
+}
+
+.readmate-bilingual-inline.readmate-card-loading {
+  color: #9CA3AF !important;
+  background: rgba(156, 163, 175, 0.1) !important;
+  font-style: italic !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .readmate-bilingual-inline {
+    color: #34D399 !important;
+    background: rgba(52, 211, 153, 0.15) !important;
+  }
+}
+
+body[data-theme='dark'] .readmate-bilingual-inline,
+html[data-theme='dark'] .readmate-bilingual-inline,
+.dark .readmate-bilingual-inline {
+  color: #34D399 !important;
+  background: rgba(52, 211, 153, 0.15) !important;
+}
