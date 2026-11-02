@@ -1185,6 +1185,12 @@
   "translatorTitle": {
     "message": "ReadMate 번역 보드"
   },
+  "translatorBadge": {
+    "message": "번역 보드"
+  },
+  "optionsTitle": {
+    "message": "설정 & AI"
+  },
   "transEngineMicrosoft": {
     "message": "Microsoft Edge (무료)"
   },

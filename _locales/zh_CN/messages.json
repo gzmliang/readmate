@@ -1239,6 +1239,12 @@
   "translatorTitle": {
     "message": "读伴翻译板"
   },
+  "translatorBadge": {
+    "message": "翻译板"
+  },
+  "optionsTitle": {
+    "message": "设置与 AI"
+  },
   "transEngineMicrosoft": {
     "message": "微软 Edge 引擎（免费秒级）"
   },
@@ -1250,6 +1256,15 @@
   },
   "transAutoDetect": {
     "message": "自动识别"
+  },
+  "transLangEn": {
+    "message": "English"
+  },
+  "transLangZh": {
+    "message": "中文"
+  },
+  "transLangJa": {
+    "message": "日本語"
   },
   "transSourcePlaceholder": {
     "message": "在此键入或粘贴需要翻译的文本（支持长段落）..."
@@ -1292,6 +1307,15 @@
   },
   "transCopySuccess": {
     "message": "已复制到剪贴板！"
+  },
+  "transSwapAutoError": {
+    "message": "自动识别语言不支持对调"
+  },
+  "transClipboardError": {
+    "message": "请授予剪贴板读取权限"
+  },
+  "transCopyFailed": {
+    "message": "复制失败"
   },
   "transAiTonePrompt": {
     "message": "AI 润色偏好："

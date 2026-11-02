@@ -1235,6 +1235,12 @@
   "translatorTitle": {
     "message": "ReadMate 翻訳ボード"
   },
+  "translatorBadge": {
+    "message": "翻訳ボード"
+  },
+  "optionsTitle": {
+    "message": "設定 & AI"
+  },
   "transEngineMicrosoft": {
     "message": "Microsoft Edge（無料）"
   },

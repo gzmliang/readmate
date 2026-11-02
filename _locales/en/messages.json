@@ -1239,6 +1239,12 @@
   "translatorTitle": {
     "message": "ReadMate Translation Board"
   },
+  "translatorBadge": {
+    "message": "Translation Board"
+  },
+  "optionsTitle": {
+    "message": "Settings & AI"
+  },
   "transEngineMicrosoft": {
     "message": "Microsoft Edge (Free)"
   },
@@ -1250,6 +1256,15 @@
   },
   "transAutoDetect": {
     "message": "Auto Detect"
+  },
+  "transLangEn": {
+    "message": "English"
+  },
+  "transLangZh": {
+    "message": "Chinese"
+  },
+  "transLangJa": {
+    "message": "Japanese"
   },
   "transSourcePlaceholder": {
     "message": "Type or paste text to translate here..."
@@ -1292,6 +1307,15 @@
   },
   "transCopySuccess": {
     "message": "Copied to clipboard!"
+  },
+  "transSwapAutoError": {
+    "message": "Auto language cannot be swapped"
+  },
+  "transClipboardError": {
+    "message": "Please grant clipboard permission"
+  },
+  "transCopyFailed": {
+    "message": "Copy failed"
   },
   "transAiTonePrompt": {
     "message": "Tone & Style:"

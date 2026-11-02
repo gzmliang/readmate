@@ -1185,6 +1185,12 @@
   "translatorTitle": {
     "message": "ReadMate Übersetzungsboard"
   },
+  "translatorBadge": {
+    "message": "Übersetzungsboard"
+  },
+  "optionsTitle": {
+    "message": "Einstellungen & KI"
+  },
   "transEngineMicrosoft": {
     "message": "Microsoft Edge (Kostenlos)"
   },

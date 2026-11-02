@@ -7,8 +7,44 @@
 (function () {
   'use strict';
 
-  // 国际化提取辅助函数
+  // 多语言词典缓存与当前语言
+  let messages = {};
+  let activeUiLang = 'en';
+
+  function resolveEffectiveLang(lang) {
+    if (!lang || lang === 'auto') {
+      const sys = (navigator.language || '').toLowerCase();
+      if (sys.startsWith('zh')) return 'zh_CN';
+      if (sys.startsWith('ja')) return 'ja';
+      if (sys.startsWith('ko')) return 'ko';
+      if (sys.startsWith('de')) return 'de';
+      if (sys.startsWith('es')) return 'es';
+      if (sys.startsWith('fr')) return 'fr';
+      if (sys.startsWith('ru')) return 'ru';
+      return 'en';
+    }
+    return lang;
+  }
+
+  async function loadI18n(lang) {
+    activeUiLang = resolveEffectiveLang(lang);
+    try {
+      const url = chrome.runtime.getURL(`_locales/${activeUiLang}/messages.json`);
+      const resp = await fetch(url);
+      const data = await resp.json();
+      messages = {};
+      for (const [k, v] of Object.entries(data)) {
+        messages[k] = v.message;
+      }
+    } catch (e) {
+      messages = {};
+    }
+    initI18n();
+  }
+
+  // 国际化提取辅助函数：优先走已加载的目标语言词典，兜底回退 chrome.i18n.getMessage 或默认值
   function _(key, def) {
+    if (messages && messages[key]) return messages[key];
     try {
       const msg = chrome.i18n.getMessage(key);
       if (msg) return msg;
@@ -93,7 +129,7 @@
   // 初始化多语言文本
   function initI18n() {
     document.title = _('translatorTitle', 'ReadMate Translation Board');
-    els.lblBoardBadge.textContent = _('translatorTitle', 'Translation Board');
+    els.lblBoardBadge.textContent = _('translatorBadge', 'Translation Board');
     els.lblNavReader.textContent = _('btnOpenReader', 'My Books');
     els.lblNavOptions.textContent = _('optionsTitle', 'Settings & AI');
 
@@ -102,8 +138,15 @@
     els.lblEngineAI.textContent = _('transEngineAI', 'AI LLM (DeepSeek / OpenAI)');
 
     els.chipSrcAuto.textContent = _('transAutoDetect', 'Auto');
+    if (els.chipSrcEn) els.chipSrcEn.textContent = _('transLangEn', 'English');
+    if (els.chipSrcZh) els.chipSrcZh.textContent = _('transLangZh', 'Chinese');
+    if (els.chipTgtZh) els.chipTgtZh.textContent = _('transLangZh', 'Chinese');
+    if (els.chipTgtEn) els.chipTgtEn.textContent = _('transLangEn', 'English');
+    if (els.chipTgtJa) els.chipTgtJa.textContent = _('transLangJa', 'Japanese');
     els.sourceInput.placeholder = _('transSourcePlaceholder', 'Type or paste text to translate here...');
-    els.targetOutput.textContent = _('transTargetPlaceholder', 'Translation will appear here...');
+    if (els.targetOutput.classList.contains('placeholder')) {
+      els.targetOutput.textContent = _('transTargetPlaceholder', 'Translation will appear here...');
+    }
 
     els.lblBtnClear.textContent = _('btnClear', 'Clear');
     els.lblBtnPaste.textContent = _('btnPaste', 'Paste');
@@ -121,7 +164,13 @@
     els.toneLiterature.textContent = _('transToneLiterature', 'Literary');
 
     updateWordCount();
-    setTargetStatus(_('transStatusReady', 'Ready'));
+    if (!isTranslating) {
+      const curMeta = els.targetMeta.textContent.trim();
+      const readyTokens = ['Ready', '就绪', '准备好', 'Готово', 'Bereit', 'Listo', 'Prêt', '準備完了', '준비'];
+      if (!curMeta || readyTokens.includes(curMeta)) {
+        setTargetStatus(_('transStatusReady', 'Ready'));
+      }
+    }
   }
 
   // Toast 提示
@@ -151,20 +200,25 @@
   }
 
   // 加载配置
-  function loadSettings() {
+  function loadSettings(callback) {
     chrome.storage.sync.get(
-      ['translateProvider', 'translateTarget', 'aiApiKey', 'aiEndpoint', 'aiModel'],
-      (res) => {
-        if (res.translateProvider) {
+      ['uiLanguage', 'translateProvider', 'translateTarget', 'aiApiKey', 'aiEndpoint', 'aiModel'],
+      async (res) => {
+        const lang = res && res.uiLanguage ? res.uiLanguage : 'auto';
+        await loadI18n(lang);
+
+        if (res && res.translateProvider) {
           setEngine(res.translateProvider);
         }
-        if (res.translateTarget) {
+        if (res && res.translateTarget) {
           setTargetLanguage(res.translateTarget);
         }
-        aiConfig.apiKey = res.aiApiKey || '';
-        aiConfig.endpoint = res.aiEndpoint || '';
-        aiConfig.model = res.aiModel || 'gpt-4o-mini';
+        aiConfig.apiKey = (res && res.aiApiKey) || '';
+        aiConfig.endpoint = (res && res.aiEndpoint) || '';
+        aiConfig.model = (res && res.aiModel) || 'gpt-4o-mini';
         els.aiModelTag.textContent = `Model: ${aiConfig.model}`;
+
+        if (typeof callback === 'function') callback();
       }
     );
   }
@@ -377,7 +431,7 @@
     // 交换语言
     els.btnSwapLang.addEventListener('click', () => {
       if (sourceLang === 'auto') {
-        showToast('Auto language cannot be swapped');
+        showToast(_('transSwapAutoError', 'Auto language cannot be swapped'));
         return;
       }
       const tmp = sourceLang;
@@ -423,7 +477,7 @@
           triggerTranslation(true);
         }
       } catch (e) {
-        showToast('Please grant clipboard permission');
+        showToast(_('transClipboardError', 'Please grant clipboard permission'));
       }
     });
 
@@ -435,7 +489,7 @@
         await navigator.clipboard.writeText(text);
         showToast(_('transCopySuccess', 'Copied to clipboard!'));
       } catch (e) {
-        showToast('Copy failed');
+        showToast(_('transCopyFailed', 'Copy failed'));
       }
     });
 
@@ -467,6 +521,24 @@
         }
       });
     });
+
+    // 实时监听多语言设置变更
+    try {
+      if (chrome.storage && chrome.storage.onChanged) {
+        chrome.storage.onChanged.addListener((changes, area) => {
+          if (area === 'sync' && changes.uiLanguage && changes.uiLanguage.newValue) {
+            loadI18n(changes.uiLanguage.newValue);
+          }
+        });
+      }
+      if (chrome.runtime && chrome.runtime.onMessage) {
+        chrome.runtime.onMessage.addListener((msg) => {
+          if (msg && msg.action === 'uiLanguageChanged' && msg.lang) {
+            loadI18n(msg.lang);
+          }
+        });
+      }
+    } catch (e) {}
   }
 
   // 读取 URL 参数（支持外部快捷跳转注入文本）
@@ -482,9 +554,9 @@
 
   // 启动
   document.addEventListener('DOMContentLoaded', () => {
-    initI18n();
-    loadSettings();
     bindEvents();
-    checkUrlParams();
+    loadSettings(() => {
+      checkUrlParams();
+    });
   });
 })();

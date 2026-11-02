@@ -1185,6 +1185,12 @@
   "translatorTitle": {
     "message": "Panel de Traducción ReadMate"
   },
+  "translatorBadge": {
+    "message": "Panel de traducción"
+  },
+  "optionsTitle": {
+    "message": "Ajustes e IA"
+  },
   "transEngineMicrosoft": {
     "message": "Microsoft Edge (Gratis)"
   },

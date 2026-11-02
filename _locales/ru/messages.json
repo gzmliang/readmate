@@ -1185,6 +1185,12 @@
   "translatorTitle": {
     "message": "Доска перевода ReadMate"
   },
+  "translatorBadge": {
+    "message": "Панель перевода"
+  },
+  "optionsTitle": {
+    "message": "Настройки и ИИ"
+  },
   "transEngineMicrosoft": {
     "message": "Microsoft Edge (Бесплатно)"
   },
