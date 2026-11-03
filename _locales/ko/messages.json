@@ -1307,5 +1307,37 @@
   },
   "optLayoutSideBySide": {
     "message": "좌우 대역 (2열)"
+  },
+  "transLangEn": {
+    "message": "영어",
+    "description": ""
+  },
+  "transLangZh": {
+    "message": "중국어",
+    "description": ""
+  },
+  "transLangJa": {
+    "message": "일본어",
+    "description": ""
+  },
+  "transSwapAutoError": {
+    "message": "자동 언어는 교체할 수 없습니다",
+    "description": ""
+  },
+  "transClipboardError": {
+    "message": "클립보드 사용 허가를 주세요",
+    "description": ""
+  },
+  "transCopyFailed": {
+    "message": "복사 실패",
+    "description": ""
+  },
+  "noTextFound": {
+    "message": "이 페이지에는 읽을 수 있는 텍스트가 없습니다",
+    "description": "Toast when no content"
+  },
+  "btnReadSelection": {
+    "message": "소리 내어 읽기려면 클릭하세요",
+    "description": "Tooltip to read selected text"
   }
 }

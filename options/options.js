@@ -188,6 +188,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       else if (l.startsWith('de')) uiLang = 'de';
       else if (l.startsWith('fr')) uiLang = 'fr';
       else if (l.startsWith('es')) uiLang = 'es';
+      else if (l.startsWith('ro')) uiLang = 'ro';
       else if (l.startsWith('ru')) uiLang = 'ru';
       else uiLang = 'en';
     }
@@ -243,7 +244,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('aiApiKey').value = settings.aiApiKey || '';
     document.getElementById('aiModel').value = settings.aiModel || 'gpt-4o-mini';
     document.getElementById('translateProvider').value = settings.translateProvider || 'microsoft';
-    document.getElementById('translateTarget').value = settings.translateTarget || 'Simplified Chinese';
+    const tgtEl = document.getElementById('translateTarget');
+    if (tgtEl) {
+      tgtEl.value = settings.translateTarget || 'en';
+      if (!tgtEl.value) {
+        const langMap = {
+          'English': 'en', 'Simplified Chinese': 'zh-Hans', 'Romanian': 'ro',
+          'Russian': 'ru', 'Spanish': 'es', 'Portuguese': 'pt',
+          'French': 'fr', 'German': 'de', 'Italian': 'it',
+          'Korean': 'ko', 'Japanese': 'ja'
+        };
+        tgtEl.value = langMap[settings.translateTarget] || 'en';
+      }
+    }
     document.getElementById('pdfLayout').value = settings.pdfLayout || 'stacked';
     document.getElementById('defaultSummaryView').value = settings.defaultSummaryView || 'bilingual';
     document.getElementById('highlightEnabled').checked = settings.highlightEnabled !== false;

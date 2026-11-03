@@ -51,6 +51,7 @@ function getBrowserLang() {
   if (lang.startsWith('de')) return 'de';
   if (lang.startsWith('fr')) return 'fr';
   if (lang.startsWith('es')) return 'es';
+  if (lang.startsWith('ro')) return 'ro';
   if (lang.startsWith('ru')) return 'ru';
   return 'en';
 }
@@ -342,7 +343,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (quickLangSelect) {
-      quickLangSelect.value = settings.translateTarget || 'Simplified Chinese';
+      const rawTarget = settings.translateTarget || 'English';
+      quickLangSelect.value = rawTarget;
+      if (!quickLangSelect.value) {
+        const codeToName = {
+          'en': 'English', 'zh-Hans': 'Simplified Chinese', 'zh': 'Simplified Chinese',
+          'ro': 'Romanian', 'ru': 'Russian', 'es': 'Spanish', 'pt': 'Portuguese',
+          'fr': 'French', 'de': 'German', 'it': 'Italian', 'ko': 'Korean', 'ja': 'Japanese'
+        };
+        quickLangSelect.value = codeToName[rawTarget] || 'English';
+      }
       quickLangSelect.addEventListener('change', (e) => {
         const newLang = e.target.value;
         if (fullTargetSelect) fullTargetSelect.value = newLang;
@@ -385,7 +395,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('aiEndpoint').value = settings.aiEndpoint || 'https://api.openai.com/v1';
     document.getElementById('aiApiKey').value = settings.aiApiKey || '';
     document.getElementById('aiModel').value = settings.aiModel || 'gpt-4o-mini';
-    document.getElementById('translateTarget').value = settings.translateTarget || 'Simplified Chinese';
+    const fullTgtEl = document.getElementById('translateTarget');
+    if (fullTgtEl) {
+      fullTgtEl.value = quickLangSelect ? quickLangSelect.value : (settings.translateTarget || 'English');
+    }
     document.getElementById('highlightEnabled').checked = settings.highlightEnabled !== false;
 
     // 云端 Edge TTS

@@ -35,7 +35,7 @@ RUNTIME=(
   icons/icon16.png icons/icon48.png icons/icon128.png icons/receivecode.jpg
   _locales/de/messages.json _locales/en/messages.json _locales/es/messages.json
   _locales/fr/messages.json _locales/ja/messages.json _locales/ko/messages.json
-  _locales/ru/messages.json _locales/zh_CN/messages.json
+  _locales/ro/messages.json _locales/ru/messages.json _locales/zh_CN/messages.json
 )
 DOCS=(
   CHROME-STORE-SUBMISSION.md DEVELOPMENT-PROGRESS.md DEV-I18N-SPEC.md

@@ -1379,5 +1379,13 @@
   },
   "optLayoutSideBySide": {
     "message": "左右对照 (双栏并排)"
+  },
+  "noTextFound": {
+    "message": "当前网页未找到可提取的正文",
+    "description": "Toast when no content"
+  },
+  "btnReadSelection": {
+    "message": "点击朗读",
+    "description": "Tooltip to read selected text"
   }
 }

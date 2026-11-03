@@ -1307,5 +1307,37 @@
   },
   "optLayoutSideBySide": {
     "message": "Бок о бок (Колонки)"
+  },
+  "transLangEn": {
+    "message": "Английский",
+    "description": ""
+  },
+  "transLangZh": {
+    "message": "Китайский",
+    "description": ""
+  },
+  "transLangJa": {
+    "message": "Японская",
+    "description": ""
+  },
+  "transSwapAutoError": {
+    "message": "Автоязык нельзя менять",
+    "description": ""
+  },
+  "transClipboardError": {
+    "message": "Пожалуйста, разрешите использование буфера обмена",
+    "description": ""
+  },
+  "transCopyFailed": {
+    "message": "Копия не получила",
+    "description": ""
+  },
+  "noTextFound": {
+    "message": "На этой странице не найдено читаемого текста",
+    "description": "Toast when no content"
+  },
+  "btnReadSelection": {
+    "message": "Нажмите, чтобы читать вслух",
+    "description": "Tooltip to read selected text"
   }
 }

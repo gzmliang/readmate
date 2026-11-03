@@ -185,7 +185,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     case 'getI18nMessages': {
       const requestedLang = msg.lang || 'zh_CN';
       const effectiveLang = (requestedLang === 'auto')
-        ? (navigator.language.startsWith('zh') ? 'zh_CN' : navigator.language.startsWith('ja') ? 'ja' : 'en')
+        ? (navigator.language.startsWith('zh') ? 'zh_CN' : (navigator.language.startsWith('ro') ? 'ro' : (navigator.language.startsWith('ru') ? 'ru' : (navigator.language.startsWith('ja') ? 'ja' : 'en'))))
         : requestedLang;
       const url = chrome.runtime.getURL(`_locales/${effectiveLang}/messages.json`);
       fetch(url)
@@ -536,6 +536,7 @@ function normalizeLangCode(lang) {
   if (lower.includes('italian') || lower === 'it' || lower.startsWith('it-')) return 'it';
   if (lower.includes('arabic') || lower === 'ar' || lower.startsWith('ar-')) return 'ar';
   if (lower.includes('vietnamese') || lower === 'vi' || lower.startsWith('vi-')) return 'vi';
+  if (lower.includes('romanian') || lower === 'ro' || lower.startsWith('ro-')) return 'ro';
   return lang;
 }
 

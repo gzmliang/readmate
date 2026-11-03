@@ -73,6 +73,8 @@ const VOICE_MAP = {
   'it': 'it-IT-ElsaNeural',
   'pt-PT': 'pt-BR-FranciscaNeural',
   'pt': 'pt-BR-FranciscaNeural',
+  'ro-RO': 'ro-RO-AlinaNeural',
+  'ro': 'ro-RO-AlinaNeural',
 };
 
 /** 根据语言代码与偏好，智能获取最佳云端音色（优先尊重用户手工指定，自动模式按语种精确匹配） */
@@ -132,14 +134,19 @@ function getBestBrowserVoice(langCode, customVoiceName = '') {
 const LANG_NAME_TO_CODE = {
   'Simplified Chinese': 'zh-CN',
   'English': 'en-US',
-  'Japanese': 'ja-JP',
-  'Korean': 'ko-KR',
+  'Romanian': 'ro-RO',
+  'Russian': 'ru-RU',
+  'Spanish': 'es-ES',
+  'Portuguese': 'pt-PT',
   'French': 'fr-FR',
   'German': 'de-DE',
-  'Spanish': 'es-ES',
-  'Russian': 'ru-RU',
   'Italian': 'it-IT',
-  'Portuguese': 'pt-PT',
+  'Korean': 'ko-KR',
+  'Japanese': 'ja-JP',
+  'ro': 'ro-RO',
+  'ro-RO': 'ro-RO',
+  'zh-Hans': 'zh-CN',
+  'zh-Hant': 'zh-TW',
 };
 
 // ====== 多语言国际化（i18n）系统 ======
@@ -155,6 +162,7 @@ async function loadContentI18n(lang) {
     else if (l.startsWith('de')) effectiveLang = 'de';
     else if (l.startsWith('fr')) effectiveLang = 'fr';
     else if (l.startsWith('es')) effectiveLang = 'es';
+    else if (l.startsWith('ro')) effectiveLang = 'ro';
     else if (l.startsWith('ru')) effectiveLang = 'ru';
     else effectiveLang = 'en';
   }

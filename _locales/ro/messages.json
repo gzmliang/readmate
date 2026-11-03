@@ -1,0 +1,1538 @@
+{
+  "appName": {
+    "message": "ReadMate: Lectură vocală și Text to Speech (TTS)",
+    "description": "App name"
+  },
+  "appDesc": {
+    "message": "Asistent inteligent de lectură TTS & citire cu voce tare — Voci naturale AI Edge-TTS, evidențiere bilingvă a propozițiilor și traducere instantanee.",
+    "description": "App description"
+  },
+  "menuReadSelection": {
+    "message": "Citește selecția",
+    "description": "Context menu: read selection"
+  },
+  "menuReadPage": {
+    "message": "Citește această pagină",
+    "description": "Context menu: read page"
+  },
+  "menuTranslateSelection": {
+    "message": "Translate Selection",
+    "description": "Context menu: translate selection"
+  },
+  "btnReadPage": {
+    "message": "▶ Citește pagina",
+    "description": "Read page button"
+  },
+  "btnStop": {
+    "message": "⏹ Stop",
+    "description": "Stop button"
+  },
+  "shortcutTip": {
+    "message": "Scurtături: Ctrl+Shift+P pentru a citi, Ctrl+Shift+S pentru a opri",
+    "description": "Shortcut tips"
+  },
+  "refreshTip": {
+    "message": "💡 Dacă este instalat/actualizat nou, reîmprospătează pagina web pentru a activa",
+    "description": "Refresh webpage hint"
+  },
+  "sectionVoiceStream": {
+    "message": "Modul de flux vocal",
+    "description": "Voice stream mode section title"
+  },
+  "lblVoiceMode": {
+    "message": "Modul de redare",
+    "description": "Playback mode label"
+  },
+  "modeOriginal": {
+    "message": "🔊 Doar original (audio pur)",
+    "description": "Original only"
+  },
+  "modeTranslated": {
+    "message": "🌐 Doar tradus (difuzare nativă)",
+    "description": "Translated only"
+  },
+  "modeBilingual": {
+    "message": "🔄 Bilingv alternant (propoziție cu propoziție)",
+    "description": "Bilingual alternating"
+  },
+  "lblBilingualSubtitles": {
+    "message": "Subtitrări",
+    "description": "Subtitles label"
+  },
+  "chkShowSubtitles": {
+    "message": "Afișează versuri/subtitrări bilingve pe bar",
+    "description": "Show bilingual subtitles checkbox"
+  },
+  "ttsEngineSection": {
+    "message": "Motor de vorbire",
+    "description": "TTS Engine section title"
+  },
+  "engineBrowser": {
+    "message": "🔊 Browser nativ",
+    "description": "Browser native"
+  },
+  "engineCloud": {
+    "message": "☁️ Cloud Edge TTS",
+    "description": "Cloud Edge TTS"
+  },
+  "speedLabel": {
+    "message": "Viteză",
+    "description": "Speed label"
+  },
+  "voiceLabel": {
+    "message": "Voce",
+    "description": "Voice label"
+  },
+  "voiceAutoLang": {
+    "message": "Potrivire automată (după limba paginii)",
+    "description": "Auto match voice"
+  },
+  "btnTestBrowser": {
+    "message": "▶ Browser de testare",
+    "description": "Test browser button"
+  },
+  "cloudTtsSection": {
+    "message": "Cloud TTS (Edge TTS)",
+    "description": "Cloud TTS title"
+  },
+  "lblCloudEndpoint": {
+    "message": "Server Endpoint",
+    "description": "Server endpoint"
+  },
+  "lblCloudVoice": {
+    "message": "Vocea Norului",
+    "description": "Cloud voice label"
+  },
+  "optCloudAuto": {
+    "message": "⚡ Selecție automată (recomandat)",
+    "description": "Auto select best voice"
+  },
+  "optCloudTransAuto": {
+    "message": "Potrivire automată a vocii native (de exemplu, Xiaoxiao pentru chineză)",
+    "description": "Auto match native voice for translation"
+  },
+  "btnTestCloud": {
+    "message": "☁️ Cloud de testare",
+    "description": "Test cloud button"
+  },
+  "aiSectionTitle": {
+    "message": "Furnizor AI & Rezumat",
+    "description": "AI section title"
+  },
+  "lblProvider": {
+    "message": "Presetul furnizorului",
+    "description": "Provider preset label"
+  },
+  "lblEndpoint": {
+    "message": "API Endpoint",
+    "description": "API Endpoint"
+  },
+  "lblApiKey": {
+    "message": "Cheia API",
+    "description": "API Key"
+  },
+  "lblModel": {
+    "message": "Model",
+    "description": "Model label"
+  },
+  "lblTargetLanguage": {
+    "message": "Limba țintă",
+    "description": "Target language label"
+  },
+  "lblSummaryViewMode": {
+    "message": "Vizualizare rezumată implicită",
+    "description": "Default summary presentation view"
+  },
+  "lblHighlight": {
+    "message": "Evidențierea propoziției",
+    "description": "Sentence highlight label"
+  },
+  "lblHighlightParagraph": {
+    "message": "Evidențierea contextului paragrafului",
+    "description": "Paragraph highlight toggle label"
+  },
+  "lblShowFab": {
+    "message": "Buton de acțiune plutitoare Afișează",
+    "description": "Show FAB toggle label"
+  },
+  "btnTestAi": {
+    "message": "Test AI Connection",
+    "description": "Test AI button"
+  },
+  "btnSave": {
+    "message": "Setări de salvare",
+    "description": "Save settings button"
+  },
+  "btnFullOptions": {
+    "message": "⚙ Opțiuni complete",
+    "description": "Full options button"
+  },
+  "savedStatus": {
+    "message": "✓ Salvat",
+    "description": "Saved status"
+  },
+  "btnSummary": {
+    "message": "⚡ Rezumat",
+    "description": "Summary button"
+  },
+  "lblSubtitles": {
+    "message": "Subtitrări",
+    "description": "Subtitles label"
+  },
+  "btnPrev": {
+    "message": "Anterior",
+    "description": "Previous"
+  },
+  "btnPlay": {
+    "message": "Redare/Pauză",
+    "description": "Play/Pause"
+  },
+  "btnNext": {
+    "message": "Următorul",
+    "description": "Next"
+  },
+  "summaryCardTitle": {
+    "message": "⚡ Rezumatul AI Bilingv Core",
+    "description": "Summary card title"
+  },
+  "summaryTabBilingual": {
+    "message": "🔄 Bilingv",
+    "description": "Bilingual tab label"
+  },
+  "summaryTabBilingualTip": {
+    "message": "Mod de comparație bilingv",
+    "description": "Bilingual tab tooltip"
+  },
+  "summaryTabOriginal": {
+    "message": "📄 Original",
+    "description": "Original tab label"
+  },
+  "summaryTabOriginalTip": {
+    "message": "Text original doar (Imersiv)",
+    "description": "Original tab tooltip"
+  },
+  "summaryTabTranslated": {
+    "message": "🌐 Traducere",
+    "description": "Translation tab label"
+  },
+  "summaryTabTranslatedTip": {
+    "message": "Doar traducere (Privire rapidă)",
+    "description": "Translation tab tooltip"
+  },
+  "summaryRegenerateTip": {
+    "message": "Rezumat Regenerate",
+    "description": "Regenerate summary tooltip"
+  },
+  "summaryMinimizeTip": {
+    "message": "Minimizează",
+    "description": "Minimize summary tooltip"
+  },
+  "summaryCloseTip": {
+    "message": "Închide (ESC)",
+    "description": "Close summary tooltip"
+  },
+  "summaryPlayBilingual": {
+    "message": "🔄 Rezumatul piesei (bilingv)",
+    "description": "Play bilingual summary"
+  },
+  "summaryPlayBilingualTip": {
+    "message": "Rezumatul piesei în alternanță bilingvă",
+    "description": "Play bilingual summary tooltip"
+  },
+  "summaryPlayOrig": {
+    "message": "🔊 Citește originalul",
+    "description": "Read original summary"
+  },
+  "summaryPlayOrigTip": {
+    "message": "Citește doar rezumatul original",
+    "description": "Read original summary tooltip"
+  },
+  "summaryPlayTrans": {
+    "message": "🌐 Citește traducerea",
+    "description": "Read translated summary"
+  },
+  "summaryPlayTransTip": {
+    "message": "Citește doar rezumatul tradus",
+    "description": "Read translated summary tooltip"
+  },
+  "readOriginal": {
+    "message": "Citește originalul",
+    "description": "Read original button"
+  },
+  "readTranslated": {
+    "message": "Citește tradus",
+    "description": "Read translated button"
+  },
+  "playAllSummary": {
+    "message": "▶ Joacă toate (bilingv)",
+    "description": "Play all summary button"
+  },
+  "copyMarkdown": {
+    "message": "📋 Copy Markdown",
+    "description": "Copy Markdown button"
+  },
+  "fabSummaryTip": {
+    "message": "Rezumatul bilingv AI",
+    "description": "FAB AI summary button tooltip"
+  },
+  "fabPlayTip": {
+    "message": "Citește articolul curent (Ctrl+Shift+P)",
+    "description": "FAB play button tooltip"
+  },
+  "selPlayTip": {
+    "message": "Citește textul selectat",
+    "description": "Selection play tooltip"
+  },
+  "selTranslateTip": {
+    "message": "Traduce textul selectat",
+    "description": "Selection translate tooltip"
+  },
+  "toastTextTooShort": {
+    "message": "⚠️ Text prea scurt (<50 de caractere) pentru a fi citit",
+    "description": "Text too short"
+  },
+  "toastGeneratingSummary": {
+    "message": "⚡ AI extrage un rezumat bilingv detaliat...",
+    "description": "Toast when generating summary"
+  },
+  "toastSummaryFailed": {
+    "message": "❌ Generarea sumarului a eșuat, vă rugăm să verificați configurația AI",
+    "description": "Toast summary failed"
+  },
+  "toastCopied": {
+    "message": "✓ Copiat pe clipboard",
+    "description": "Copied"
+  },
+  "toastArticleFinished": {
+    "message": "🎉 Citirea articolului s-a încheiat",
+    "description": "Article finished"
+  },
+  "toastNeedsApiKey": {
+    "message": "⚠️ Te rugăm să introduci mai întâi AI API Key în setări",
+    "description": "Needs API Key"
+  },
+  "toastModeChanged": {
+    "message": "Mod schimbat: ",
+    "description": "Mode changed"
+  },
+  "toastAudioDownloading": {
+    "message": "⏳ Sintetizez audio, vă rog să așteptați...",
+    "description": "Audio is downloading"
+  },
+  "toastNoContentToDownload": {
+    "message": "⚠️ Nu există conținut de articol disponibil pentru descărcare",
+    "description": "No content to download"
+  },
+  "lblBilingual": {
+    "message": "Bilingv",
+    "description": "Bilingual toggle label"
+  },
+  "lblEnableBilingual": {
+    "message": "Traducere bilingvă (economisește jetoane când este dezactivat)",
+    "description": "Bilingual toggle tooltip"
+  },
+  "btnReaderMode": {
+    "message": "Modul Cititor Imersiv",
+    "description": "Reader mode button label"
+  },
+  "btnExitReader": {
+    "message": "Înapoi la pagina web",
+    "description": "Exit reader mode label"
+  },
+  "btnExportPdf": {
+    "message": "Export PDF",
+    "description": "Export PDF label"
+  },
+  "tipThemePicker": {
+    "message": "Tema de fundal a cititorului Switch",
+    "description": "Theme picker tip"
+  },
+  "tipFontSize": {
+    "message": "Ajustează dimensiunea fontului de citire",
+    "description": "Font size tip"
+  },
+  "statChars": {
+    "message": "Chars",
+    "description": "Characters unit"
+  },
+  "statEst": {
+    "message": "aprox.",
+    "description": "Approximately"
+  },
+  "statMins": {
+    "message": "min read",
+    "description": "Minutes of reading"
+  },
+  "statParas": {
+    "message": "Paragrafe",
+    "description": "Paragraphs count"
+  },
+  "toastPreparingPdf": {
+    "message": "📄 Deschizând previzualizarea tipărită pentru exportul PDF...",
+    "description": "Preparing PDF toast"
+  },
+  "btnPlayArticle": {
+    "message": "Începe să citești articolul",
+    "description": "Start reading entire article button"
+  },
+  "btnPause": {
+    "message": "Pauză citirea",
+    "description": "Pause reading button"
+  },
+  "btnResume": {
+    "message": "Recapitulare",
+    "description": "Resume reading button"
+  },
+  "statSentences": {
+    "message": "Propoziții",
+    "description": "Sentences count unit"
+  },
+  "btnDownloadAudio": {
+    "message": "Descarcă audio (MP3)",
+    "description": "Download audio button"
+  },
+  "btnAudio": {
+    "message": "Audio",
+    "description": "Download audio button label"
+  },
+  "btnVocabNotebook": {
+    "message": "Caiețel de vocabular",
+    "description": "Vocab notebook button"
+  },
+  "btnVocab": {
+    "message": "Vocabular",
+    "description": "Vocab button label"
+  },
+  "themeSepia": {
+    "message": "Vintage Sepia",
+    "description": "Sepia theme"
+  },
+  "themeLight": {
+    "message": "Lumină Pură",
+    "description": "Light theme"
+  },
+  "themeGreen": {
+    "message": "Verde blând",
+    "description": "Green theme"
+  },
+  "themeEink": {
+    "message": "Gri E-Ink",
+    "description": "E-ink gray theme"
+  },
+  "themeMidnight": {
+    "message": "Midnight Blue",
+    "description": "Midnight blue theme"
+  },
+  "themeDark": {
+    "message": "Noaptea întunecată",
+    "description": "Dark theme"
+  },
+  "toastTranslatingSelection": {
+    "message": "🌐 Traducerea selecției cu AI...",
+    "description": "Translating selection"
+  },
+  "toastTranslateFailed": {
+    "message": "❌ Traducerea a eșuat, vă rugăm să verificați configurația AI-ului",
+    "description": "Translate failed"
+  },
+  "toastBilingualEnabled": {
+    "message": "🌐 Traducerea bilingvă este posibilă",
+    "description": "Bilingual enabled"
+  },
+  "toastBilingualDisabled": {
+    "message": "📄 Traducerea dezactivată (modul de economisire a tokenilor)",
+    "description": "Bilingual disabled"
+  },
+  "toastDebugCopied": {
+    "message": "✓ Jurnalul de depanare copiat pe clipboard",
+    "description": "Debug log copied"
+  },
+  "toastAudioStart": {
+    "message": "📥 Sintetizarea audiobook-ului ({count} propoziții)...",
+    "description": "Start synthesizing full audio"
+  },
+  "toastAudioProgress": {
+    "message": "📥 Sintetizarea audio ({current}/{total} propoziții)...",
+    "description": "Synthesizing progress"
+  },
+  "toastAudioSuccess": {
+    "message": "🎉 Sinteza audiobook-ului este completă! Descărcarea a început.",
+    "description": "Audio download success"
+  },
+  "toastAudioFailed": {
+    "message": "❌ Sinteza audiobook-ului a eșuat: ",
+    "description": "Audio download failed prefix"
+  },
+  "toastVocabRemoved": {
+    "message": "Eliminat din caietul de vocabular",
+    "description": "Removed from vocab"
+  },
+  "toastVocabAdded": {
+    "message": "⭐ Adăugat în caietul de vocabular!",
+    "description": "Added to vocab"
+  },
+  "toastVocabEmpty": {
+    "message": "Caietul de vocabular este gol",
+    "description": "Vocab is empty"
+  },
+  "toastVocabExported": {
+    "message": "✓ Exportat ca Markdown pe clipboard!",
+    "description": "Vocab exported"
+  },
+  "toastVocabCleared": {
+    "message": "Caietul de vocabular a fost eliberat",
+    "description": "Vocab cleared"
+  },
+  "confirmClearVocab": {
+    "message": "Ești sigur că vrei să ștergi toate cuvintele din caietul tău de vocabular?",
+    "description": "Confirm clear vocab"
+  },
+  "dictSearching": {
+    "message": "🔍 Căutând definiții...",
+    "description": "Searching definition"
+  },
+  "dictNoResult": {
+    "message": "Nu s-a găsit nicio definiție",
+    "description": "No definition found"
+  },
+  "vocabEmptyPlaceholder": {
+    "message": "📭 Nu există cuvinte în caietul tău<br>încă. Dă dublu click pe cuvinte în Modul Cititor pentru a căuta și a pune o stea.",
+    "description": "Vocab empty placeholder"
+  },
+  "vocabExportMd": {
+    "message": "📋 Reducere la export",
+    "description": "Export markdown button"
+  },
+  "vocabClearAll": {
+    "message": "🗑️ Curăță totul",
+    "description": "Clear all vocab button"
+  },
+  "readerProgressTip": {
+    "message": "{count} propoziții · aprox. {time} min citire · Apasă orice propoziție pentru a reda",
+    "description": "Reader mode progress banner tip"
+  },
+  "tipFontDec": {
+    "message": "Mărime mai mică a fontului",
+    "description": "Decrease font size"
+  },
+  "tipFontInc": {
+    "message": "Mărirea dimensiunii fontului",
+    "description": "Increase font size"
+  },
+  "tipPronounce": {
+    "message": "Pronunță",
+    "description": "Pronounce word"
+  },
+  "tipAddToVocab": {
+    "message": "Salvează în caietul de vocabular",
+    "description": "Add to vocab notebook"
+  },
+  "tipClose": {
+    "message": "Închide",
+    "description": "Close button tip"
+  },
+  "tipDelete": {
+    "message": "Șterge",
+    "description": "Delete button tip"
+  },
+  "translatingText": {
+    "message": "Traduc...",
+    "description": "Translating text fallback"
+  },
+  "debugLogCount": {
+    "message": "{count} intrări (click pentru copiere)",
+    "description": "Debug log count"
+  },
+  "audioFilenameSuffix": {
+    "message": "_Audiobook",
+    "description": "Audio filename suffix"
+  },
+  "btnDonate": {
+    "message": "Donează",
+    "description": "Donate button label"
+  },
+  "btnDonateTitle": {
+    "message": "Cumpără-i o cafea profesorului Liang ☕",
+    "description": "Donate button title"
+  },
+  "donateToastMessage": {
+    "message": "Mulțumesc că folosești ReadMate! Dacă îți place acest instrument fără reclame, ia în considerare să-i cumperi lui Liang o cafea ☕",
+    "description": "Donate toast message"
+  },
+  "donateModalTitle": {
+    "message": "Susține-l pe dezvoltatorul independent Liang",
+    "description": "Donate modal title"
+  },
+  "donateTabIntl": {
+    "message": "Internațional / Ko-fi & PayPal",
+    "description": "International donation tab"
+  },
+  "donateTabCN": {
+    "message": "China / WeChat & Alipay",
+    "description": "China donation tab"
+  },
+  "donateIntlDesc": {
+    "message": "Dacă ReadMate îți face cititul și învățarea limbilor zilnice mai bună, ia în considerare să-mi cumperi o cafea! Generozitatea ta menține acest instrument fără reclame și întreținut activ.",
+    "description": "Intl donation description"
+  },
+  "donateCNDesc": {
+    "message": "Vă mulțumesc pentru sprijinul cald și recunoașterea ReadMate! Fiecare contribuție alimentează îmbunătățiri continue și întreținere independentă.",
+    "description": "China donation description"
+  },
+  "optProviderOpenAI": {
+    "message": "OpenAI (ChatGPT oficial)",
+    "description": "OpenAI provider"
+  },
+  "optProviderDeepSeek": {
+    "message": "DeepSeek (Calitate și Valoare Ridicată)",
+    "description": "DeepSeek provider"
+  },
+  "optProviderSiliconFlow": {
+    "message": "SiliconFlow (cotă gratuită inclusă)",
+    "description": "SiliconFlow provider"
+  },
+  "optProviderGemini": {
+    "message": "Google Gemini",
+    "description": "Gemini provider"
+  },
+  "optProviderMoonshot": {
+    "message": "Moonshot (Kimi)",
+    "description": "Moonshot provider"
+  },
+  "optProviderQwen": {
+    "message": "Aliyun Qwen (DashScope)",
+    "description": "Qwen provider"
+  },
+  "optProviderCustom": {
+    "message": "Personalizat (compatibil OpenAI)",
+    "description": "Custom provider"
+  },
+  "lblTransVoice": {
+    "message": "Voce de traducere",
+    "description": "Translation voice label"
+  },
+  "optTransVoiceAuto": {
+    "message": "Potrivește automat cea mai bună voce țintă (de exemplu, Xiaoxiao pentru chineză)",
+    "description": "Auto match voice"
+  },
+  "lblOpenAiEndpoint": {
+    "message": "TTS API Endpoint",
+    "description": "TTS API Endpoint label"
+  },
+  "lblOpenAiKey": {
+    "message": "Cheia API TTS",
+    "description": "TTS API Key label"
+  },
+  "lblOpenAiModel": {
+    "message": "Modelul TTS",
+    "description": "TTS Model label"
+  },
+  "lblOpenAiVoice": {
+    "message": "TTS Voice",
+    "description": "TTS Voice label"
+  },
+  "btnTestOpenAiTts": {
+    "message": "🎙️ Testează vocea AI",
+    "description": "Test AI voice button"
+  },
+  "btnHelpTtsLink": {
+    "message": "❓ Ghidul Edge-TTS pentru motoare vocală și auto-găzduire",
+    "description": "TTS help button"
+  },
+  "btnHelpAiLink": {
+    "message": "❓ Ghid de configurare LLM & Chei API gratuite",
+    "description": "AI help button"
+  },
+  "btnDonateCapsule": {
+    "message": "☕ Autor de suport (Ko-fi · PayPal · WeChat · Alipay)",
+    "description": "Donate capsule button in options"
+  },
+  "btnDonatePopup": {
+    "message": "☕ Donează",
+    "description": "Donate button in popup"
+  },
+  "optSummaryBilingual": {
+    "message": "🔄 Bilingv (Original + Traducere)",
+    "description": "Bilingual summary mode"
+  },
+  "optSummaryOriginal": {
+    "message": "📄 Doar Original (Imersiv)",
+    "description": "Original summary mode"
+  },
+  "optSummaryTranslated": {
+    "message": "🌐 Doar traducere (scanare rapidă)",
+    "description": "Translated summary mode"
+  },
+  "optModelGpt4oMini": {
+    "message": "GPT-4O-mini (Oficial / Fast & Light)",
+    "description": "Model gpt-4o-mini"
+  },
+  "optModelSiliconFree": {
+    "message": "Qwen/Qwen2.5-7B-Instruct (Fără SiliconFlow)",
+    "description": "Model Qwen free"
+  },
+  "btnDonateThumbTip": {
+    "message": "Susține autorul / Cumpără o cafea ☕",
+    "description": "Thumb donate button tooltip"
+  },
+  "cmdReadSelection": {
+    "message": "Citește textul selectat",
+    "description": "Shortcut: read selection"
+  },
+  "cmdReadPage": {
+    "message": "Citește întreaga pagină",
+    "description": "Shortcut: read page"
+  },
+  "cmdToggleRead": {
+    "message": "Pauză / Reluare a lecturii",
+    "description": "Shortcut: toggle reading"
+  },
+  "cmdStopRead": {
+    "message": "Oprește-te din citit",
+    "description": "Shortcut: stop reading"
+  },
+  "lblBilingualStudySection": {
+    "message": "Studiu și traducere bilingvă",
+    "description": "Bilingual study section"
+  },
+  "lblBilingualStudyMode": {
+    "message": "Mod de studiu bilingv",
+    "description": "Bilingual study mode label"
+  },
+  "descBilingualStudyMode": {
+    "message": "Permiteți comparația bilingvă pe pagină întreagă, TTS alternant bilingv și exportul bilingv PDF",
+    "description": "Bilingual study mode description"
+  },
+  "lblTranslateProvider": {
+    "message": "Furnizor de traduceri",
+    "description": "Translation provider label"
+  },
+  "optProviderMicrosoft": {
+    "message": "Microsoft Edge Translate (gratuit, instantaneu)",
+    "description": "Microsoft edge translate"
+  },
+  "optProviderGoogle": {
+    "message": "Google Translate (gratuit)",
+    "description": "Google translate"
+  },
+  "optProviderCustomAI": {
+    "message": "API AI personalizat (DeepSeek / OpenAI / etc.)",
+    "description": "Custom API translate"
+  },
+  "lblPdfLayout": {
+    "message": "Layout-ul PDF implicit",
+    "description": "Default PDF layout"
+  },
+  "optPdfOriginal": {
+    "message": "PDF original curat (fără distrageri)",
+    "description": "Clean original PDF"
+  },
+  "descPdfOriginal": {
+    "message": "Document curat, fără reclame, cu tipografie elegantă",
+    "description": "Clean original PDF description"
+  },
+  "optPdfStacked": {
+    "message": "Bilingv - Stivuit",
+    "description": "Bilingual stacked"
+  },
+  "descPdfStacked": {
+    "message": "Paragraful original urmat imediat de traducere, ideal pentru cititul pe mobil/tabletă",
+    "description": "Bilingual stacked description"
+  },
+  "optPdfColumns": {
+    "message": "Bilingv - Alături de Umăr",
+    "description": "Bilingual side by side"
+  },
+  "descPdfColumns": {
+    "message": "Originalul din stânga, traducerea din dreapta, ideal pentru studiu desktop și academic",
+    "description": "Bilingual side by side description"
+  },
+  "optPdfTranslated": {
+    "message": "Doar tradus PDF",
+    "description": "Translated only PDF"
+  },
+  "descPdfTranslated": {
+    "message": "Exportă articolul tradus curat doar pentru lectură nativă rapidă",
+    "description": "Translated only PDF description"
+  },
+  "modalExportPdfTitle": {
+    "message": "📑 Exportă articolul în PDF",
+    "description": "Export PDF dialog title"
+  },
+  "btnExportPdfAction": {
+    "message": "Exportă acum",
+    "description": "Export PDF action button"
+  },
+  "toastTranslatingPage": {
+    "message": "🌐 Traducerea articolului în paralel...",
+    "description": "Translating page toast"
+  },
+  "toastBilingualReady": {
+    "message": "✨ Traducerea bilingvă este gata",
+    "description": "Bilingual ready toast"
+  },
+  "lblViewOriginal": {
+    "message": "Original",
+    "description": "View original pill"
+  },
+  "lblViewBilingual": {
+    "message": "Bilingv",
+    "description": "View bilingual pill"
+  },
+  "lblViewTranslated": {
+    "message": "Traducere",
+    "description": "View translated pill"
+  },
+  "sectionClickRead": {
+    "message": "Acțiune de click pe paragraf",
+    "description": "Section title for paragraph click behavior"
+  },
+  "lblParagraphClickMode": {
+    "message": "Când dai click pe un paragraf",
+    "description": "Label for paragraph click action"
+  },
+  "clickModeBubble": {
+    "message": "Arată o bule de confirmare (recomandat)",
+    "description": "Option: show confirm bubble"
+  },
+  "clickModeDirect": {
+    "message": "Citește imediat",
+    "description": "Option: read immediately on click"
+  },
+  "hintClickMode": {
+    "message": "Dând click pe un paragraf, apare o mică bulă (Citește această propoziție / Traduce această propoziție) în loc să începi redarea imediat. În timp ce citești deja, să dai click pe un paragraf tot sar direct la el.",
+    "description": "Hint explaining paragraph click modes"
+  },
+  "bubbleReadTip": {
+    "message": "Citește din această propoziție",
+    "description": "Tooltip: read from this sentence"
+  },
+  "bubbleTranslateTip": {
+    "message": "Traduce această propoziție",
+    "description": "Tooltip: translate this sentence"
+  },
+  "lblEngineOpenAI": {
+    "message": "🎙️ AI Voice",
+    "description": "Option: generic AI voice engine"
+  },
+  "btnCancel": {
+    "message": "Anulează",
+    "description": "Button: cancel"
+  },
+  "stopBtnTip": {
+    "message": "Opriți cititul (Ctrl+Shift+S)",
+    "description": "Tooltip: stop button"
+  },
+  "injectBtnTip": {
+    "message": "Re-detectează / injectează extensia",
+    "description": "Tooltip: re-inject button"
+  },
+  "btnOpenReader": {
+    "message": "📚 Cărțile mele (import txt / epub / PDF)",
+    "description": ""
+  },
+  "lblOpenReaderTip": {
+    "message": "Deschide pagina ReadMate Reader pentru a-ți importa propriile fișiere și citi-le cu voce tare folosind același motor.",
+    "description": ""
+  },
+  "menuOpenInReader": {
+    "message": "Deschide-te în ReadMate Reader",
+    "description": ""
+  },
+  "rdrReaderTitle": {
+    "message": "ReadMate Reader",
+    "description": ""
+  },
+  "rdrToc": {
+    "message": "Conținut",
+    "description": ""
+  },
+  "rdrTocTitle": {
+    "message": "Conținut",
+    "description": ""
+  },
+  "rdrThemeSepia": {
+    "message": "Sepia",
+    "description": ""
+  },
+  "rdrThemeLight": {
+    "message": "Alb",
+    "description": ""
+  },
+  "rdrThemeGreen": {
+    "message": "Verde pentru îngrijirea ochilor",
+    "description": ""
+  },
+  "rdrThemeEink": {
+    "message": "Gri e-ink",
+    "description": ""
+  },
+  "rdrThemeMidnight": {
+    "message": "Albastru de miezul nopții",
+    "description": ""
+  },
+  "rdrThemeDark": {
+    "message": "Noapte neagră",
+    "description": ""
+  },
+  "rdrTypo": {
+    "message": "Tipografie",
+    "description": ""
+  },
+  "rdrTypoTitle": {
+    "message": "Tipografie",
+    "description": ""
+  },
+  "rdrBilingual": {
+    "message": "Bilingv",
+    "description": ""
+  },
+  "rdrExport": {
+    "message": "Export",
+    "description": ""
+  },
+  "rdrLibrary": {
+    "message": "Bibliotecă",
+    "description": ""
+  },
+  "rdrLandingTitle": {
+    "message": "Citește-ți propriile cărți",
+    "description": ""
+  },
+  "rdrLandingDesc": {
+    "message": "Lasă un fișier txt, Markdown, epub sau PDF și devine o carte frumos tipărită — citită cu voce tare, vizualizare bilingvă și exportă într-un singur loc. PDF-urile scanate și ebook-urile DRM nu sunt suportate.",
+    "description": ""
+  },
+  "rdrDropHint": {
+    "message": "Lasă aici un fișier .txt / .md / .epub / .pdf",
+    "description": ""
+  },
+  "rdrChooseFile": {
+    "message": "Alege un dosar...",
+    "description": ""
+  },
+  "rdrRecent": {
+    "message": "Continuă să citești",
+    "description": ""
+  },
+  "rdrRecentNote": {
+    "message": "Pentru confidențialitate, textul cărții nu este stocat — alege din nou același fișier pentru a reveni la locul unde te-ai oprit.",
+    "description": ""
+  },
+  "rdrPrevChapter": {
+    "message": "Anterior",
+    "description": ""
+  },
+  "rdrNextChapter": {
+    "message": "Următorul",
+    "description": ""
+  },
+  "rdrFontSize": {
+    "message": "Dimensiunea fontului",
+    "description": ""
+  },
+  "rdrLineHeight": {
+    "message": "Înălțimea liniei",
+    "description": ""
+  },
+  "rdrMeasure": {
+    "message": "Lățimea liniei",
+    "description": ""
+  },
+  "rdrParaGap": {
+    "message": "Interval de paragraf",
+    "description": ""
+  },
+  "rdrIndentLabel": {
+    "message": "Indentare",
+    "description": ""
+  },
+  "rdrFontLabel": {
+    "message": "Font",
+    "description": ""
+  },
+  "rdrFontSong": {
+    "message": "Serif",
+    "description": ""
+  },
+  "rdrFontHei": {
+    "message": "Sans",
+    "description": ""
+  },
+  "rdrFontKai": {
+    "message": "Kai",
+    "description": ""
+  },
+  "rdrFontSans": {
+    "message": "Sistem",
+    "description": ""
+  },
+  "rdrAlignLabel": {
+    "message": "Align",
+    "description": ""
+  },
+  "rdrAlignJustify": {
+    "message": "Justificat",
+    "description": ""
+  },
+  "rdrAlignLeft": {
+    "message": "Stânga",
+    "description": ""
+  },
+  "rdrModeLabel": {
+    "message": "Bilingv",
+    "description": ""
+  },
+  "rdrModeOriginal": {
+    "message": "Original",
+    "description": ""
+  },
+  "rdrModeStacked": {
+    "message": "Stivuiți",
+    "description": ""
+  },
+  "rdrModeColumns": {
+    "message": "Umăr la cot",
+    "description": ""
+  },
+  "rdrModeTranslated": {
+    "message": "Traducere",
+    "description": ""
+  },
+  "rdrOtherLabel": {
+    "message": "Mai mult",
+    "description": ""
+  },
+  "rdrIndentToggle": {
+    "message": "Prima linie de indentare",
+    "description": ""
+  },
+  "rdrAutoTranslate": {
+    "message": "Traducere automată",
+    "description": ""
+  },
+  "rdrPrintPreview": {
+    "message": "Previzualizare tipărită",
+    "description": ""
+  },
+  "rdrReset": {
+    "message": "Resetare",
+    "description": ""
+  },
+  "rdrPanelHint": {
+    "message": "Aceste setări sunt ținute minte. Pagina de carte și modul cititor imersiv împărtășesc un set de preferințe tipografice.",
+    "description": ""
+  },
+  "rdrDropAnywhere": {
+    "message": "Aruncă fișierul cărții pentru a-l deschide",
+    "description": ""
+  },
+  "rdrChars": {
+    "message": "Chars",
+    "description": ""
+  },
+  "rdrCharsUnit": {
+    "message": "{n} caractere",
+    "description": ""
+  },
+  "rdrDelete": {
+    "message": "Îndepărtează",
+    "description": ""
+  },
+  "rdrRecentMeta": {
+    "message": "{chapter} · {pct}% · {date}",
+    "description": ""
+  },
+  "rdrChapterNo": {
+    "message": "Capitolul {n}",
+    "description": ""
+  },
+  "rdrPickSameFile": {
+    "message": "Vă rugăm să alegeți din nou același fișier: {name}",
+    "description": ""
+  },
+  "rdrNoText": {
+    "message": "Nu s-a găsit niciun text lizibil în acest fișier",
+    "description": ""
+  },
+  "rdrResumed": {
+    "message": "Reluat la capitolul {n}",
+    "description": ""
+  },
+  "rdrEncoding": {
+    "message": "Codare detectată: {enc}",
+    "description": ""
+  },
+  "rdrFileMismatch": {
+    "message": "Acesta este un fișier diferit — începând de la început",
+    "description": ""
+  },
+  "rdrPlanned": {
+    "message": "Suportul {ext} vine în următorul pas",
+    "description": ""
+  },
+  "rdrUnsupported": {
+    "message": "Format nesuportat: . {ext}",
+    "description": ""
+  },
+  "rdrParseFailed": {
+    "message": "Nu am putut citi acest fișier",
+    "description": ""
+  },
+  "rdrDownloading": {
+    "message": "Descărc {name}...",
+    "description": ""
+  },
+  "rdrDownloadFailed": {
+    "message": "Descărcarea eșuată",
+    "description": ""
+  },
+  "rdrSectionNo": {
+    "message": "Secțiunea {n}",
+    "description": ""
+  },
+  "rdrFrontMatter": {
+    "message": "Materie din față",
+    "description": ""
+  },
+  "rdrTranslating": {
+    "message": "Traduc... {done}/{total}",
+    "description": ""
+  },
+  "rdrTranslateDone": {
+    "message": "Traducerea este gata",
+    "description": ""
+  },
+  "rdrTranslateFailed": {
+    "message": "Serviciu de traducere indisponibil",
+    "description": ""
+  },
+  "rdrTapToTranslate": {
+    "message": "Apasă butonul globului pentru a traduce acest capitol",
+    "description": ""
+  },
+  "rdrExportTitle": {
+    "message": "Export",
+    "description": ""
+  },
+  "rdrExportSub": {
+    "message": "Capitolul actual: {name}",
+    "description": ""
+  },
+  "rdrExportChapterPdf": {
+    "message": "Acest capitol → PDF",
+    "description": ""
+  },
+  "rdrExportChapterPdfDesc": {
+    "message": "Se deschide dialogul de printare folosind layout-ul bilingv actual",
+    "description": ""
+  },
+  "rdrExportBookHtml": {
+    "message": "Întreaga carte → HTML bilingv",
+    "description": ""
+  },
+  "rdrExportBookHtmlDesc": {
+    "message": "Un fișier offline cu original + traducere pentru fiecare capitol. Deschide-l și apasă Ctrl+P pentru un PDF cu o carte întreagă.",
+    "description": ""
+  },
+  "rdrCancel": {
+    "message": "Anulează",
+    "description": ""
+  },
+  "rdrExportGo": {
+    "message": "Export",
+    "description": ""
+  },
+  "rdrExportFailed": {
+    "message": "Exportul a eșuat",
+    "description": ""
+  },
+  "rdrExportProgress": {
+    "message": "{done} / {total} paragrafe",
+    "description": ""
+  },
+  "rdrExportTranslatingBook": {
+    "message": "Traducerea întregii cărți. Poți anula — capitolele finalizate sunt păstrate.",
+    "description": ""
+  },
+  "rdrBusy": {
+    "message": "Un alt export este în rulare",
+    "description": ""
+  },
+  "rdrSaved": {
+    "message": "Salvat: {name}",
+    "description": ""
+  },
+  "rdrExportMeta": {
+    "message": "{chapters} capitole · {chars} caractere",
+    "description": ""
+  },
+  "rdrStandaloneHint": {
+    "message": "Apasă Ctrl+P / Cmd+P pentru a salva întreaga carte ca PDF bilingv.",
+    "description": ""
+  },
+  "rdrResetDone": {
+    "message": "Resetarea tipografiei la setările implicite",
+    "description": ""
+  },
+  "rdrDocTitle": {
+    "message": "ReadMate Reader",
+    "description": "读伴书页"
+  },
+  "rdrChapter": {
+    "message": "Capitolul {n}",
+    "description": "读伴书页"
+  },
+  "rdrChapterOf": {
+    "message": "Capitolul {cur} din {total}",
+    "description": "读伴书页"
+  },
+  "rdrUnitChars": {
+    "message": "{n} caractere",
+    "description": "读伴书页"
+  },
+  "rdrUntitled": {
+    "message": "Fără titlu",
+    "description": "读伴书页"
+  },
+  "rdrReadPct": {
+    "message": "{n}% citit",
+    "description": "读伴书页"
+  },
+  "rdrImporting": {
+    "message": "Importul și compunerea tiparului...",
+    "description": "读伴书页"
+  },
+  "rdrImported": {
+    "message": "Import finalizat",
+    "description": "读伴书页"
+  },
+  "rdrImportEmpty": {
+    "message": "Nu s-a găsit niciun text lizibil în acest fișier",
+    "description": "读伴书页"
+  },
+  "rdrImportFailed": {
+    "message": "Importul a eșuat, vă rugăm să încercați un alt fișier",
+    "description": "读伴书页"
+  },
+  "rdrFormatPlanned": {
+    "message": "Suportul {ext} este pe drum",
+    "description": "读伴书页"
+  },
+  "rdrFormatUnsupported": {
+    "message": "fișierele {ext} nu sunt încă suportate",
+    "description": "读伴书页"
+  },
+  "rdrNeedReimport": {
+    "message": "Alege din nou același fișier pentru a continua",
+    "description": "读伴书页"
+  },
+  "rdrRemove": {
+    "message": "Scoate din istorie",
+    "description": "读伴书页"
+  },
+  "rdrReadTip": {
+    "message": "Atinge bula ▶ pentru a citi acest capitol cu voce tare",
+    "description": "读伴书页"
+  },
+  "rdrTransProgress": {
+    "message": "Traducerea acestui capitol ({done}/{total} paragrafe)...",
+    "description": "读伴书页"
+  },
+  "rdrTransDone": {
+    "message": "Traducerea capitolului gata",
+    "description": "读伴书页"
+  },
+  "rdrTransFailed": {
+    "message": "Traducerea nu este disponibilă momentan, vă rugăm să încercați din nou mai târziu",
+    "description": "读伴书页"
+  },
+  "rdrExportPdfT": {
+    "message": "Tipărește / Salvează ca PDF",
+    "description": "读伴书页"
+  },
+  "rdrExportPdfD": {
+    "message": "Exportă un PDF cu tipografia ta curentă și layout-ul bilingv (alege \"Salvează ca PDF\" în dialogul de tipărire)",
+    "description": "读伴书页"
+  },
+  "rdrExportHtmlT": {
+    "message": "HTML bilingv (fișier unic)",
+    "description": "读伴书页"
+  },
+  "rdrExportHtmlD": {
+    "message": "Un fișier offline cu textul original și traducerea acestuia, se deschide pe orice dispozitiv",
+    "description": "读伴书页"
+  },
+  "rdrExportPlainT": {
+    "message": "HTML simplu (fișier unic)",
+    "description": "读伴书页"
+  },
+  "rdrExportPlainD": {
+    "message": "Doar textul original, nu e nevoie de rețea, exportat instantaneu",
+    "description": "读伴书页"
+  },
+  "rdrExportWorking": {
+    "message": "Pregătirea... ({done}/{total})",
+    "description": "读伴书页"
+  },
+  "rdrExportDone": {
+    "message": "Exportat: {name}",
+    "description": "读伴书页"
+  },
+  "rdrOpenFirst": {
+    "message": "Importă sau deschide o carte mai întâi",
+    "description": "读伴书页"
+  },
+  "rdrModeTip": {
+    "message": "Structură bilingvă",
+    "description": "读伴书页"
+  },
+  "rdrImportProgress": {
+    "message": "Citind fișierul... ({done}/{total})",
+    "description": ""
+  },
+  "rdrEpubDrm": {
+    "message": "Acest epub este protejat cu DRM și nu poate fi deschis",
+    "description": ""
+  },
+  "rdrEpubInvalid": {
+    "message": "Acest fișier epub este deteriorat sau incomplet",
+    "description": ""
+  },
+  "rdrEpubNoText": {
+    "message": "Nu s-a găsit niciun text lizibil în acest epub",
+    "description": ""
+  },
+  "rdrPdfEncrypted": {
+    "message": "Acest PDF este protejat cu parolă și nu poate fi deschis",
+    "description": ""
+  },
+  "rdrPdfInvalid": {
+    "message": "Acest fișier PDF este deteriorat și nu poate fi citit",
+    "description": ""
+  },
+  "rdrPdfNoText": {
+    "message": "Acesta este un PDF scanat (doar imagini, fără strat de text), deci nu poate fi transformat într-o pagină de carte",
+    "description": ""
+  },
+  "rdrPdfTooLarge": {
+    "message": "Acest PDF este prea mare (peste 300 MB)",
+    "description": ""
+  },
+  "rdrPdfLibFailed": {
+    "message": "Motorul PDF nu s-a încărcat — reîncarcă extensia și încearcă din nou",
+    "description": ""
+  },
+  "btnQuickTranslate": {
+    "message": "🌐 Traducere rapidă",
+    "description": ""
+  },
+  "lblQuickTranslateTip": {
+    "message": "Deschide ReadMate Translation Board pentru a lipi text și a traduce liber.",
+    "description": ""
+  },
+  "menuOpenTranslator": {
+    "message": "Consiliul de Traducere Deschis",
+    "description": ""
+  },
+  "translatorTitle": {
+    "message": "Placa de traducere ReadMate",
+    "description": ""
+  },
+  "translatorBadge": {
+    "message": "Consiliul de Traduceri",
+    "description": ""
+  },
+  "optionsTitle": {
+    "message": "Setări & AI",
+    "description": ""
+  },
+  "transEngineMicrosoft": {
+    "message": "Microsoft Edge (gratuit)",
+    "description": ""
+  },
+  "transEngineGoogle": {
+    "message": "Google Translate (gratuit)",
+    "description": ""
+  },
+  "transEngineAI": {
+    "message": "AI LLM (DeepSeek / OpenAI)",
+    "description": ""
+  },
+  "transAutoDetect": {
+    "message": "Auto Detect",
+    "description": ""
+  },
+  "transLangEn": {
+    "message": "Engleză",
+    "description": ""
+  },
+  "transLangZh": {
+    "message": "Chineză",
+    "description": ""
+  },
+  "transLangJa": {
+    "message": "Japoneză",
+    "description": ""
+  },
+  "transSourcePlaceholder": {
+    "message": "Tastează sau lipește textul pentru a traduce aici...",
+    "description": ""
+  },
+  "transTargetPlaceholder": {
+    "message": "Traducerea va apărea aici...",
+    "description": ""
+  },
+  "transCharWordCount": {
+    "message": "{chars} caractere / {words} cuvinte",
+    "description": ""
+  },
+  "btnClear": {
+    "message": "Clar",
+    "description": ""
+  },
+  "btnPaste": {
+    "message": "Pastă",
+    "description": ""
+  },
+  "btnSpeakSource": {
+    "message": "Citește sursa",
+    "description": ""
+  },
+  "btnCopyResult": {
+    "message": "Recepționat",
+    "description": ""
+  },
+  "btnSpeakResult": {
+    "message": "Citește traducerea",
+    "description": ""
+  },
+  "btnTranslate": {
+    "message": "Traduce",
+    "description": ""
+  },
+  "transStatusReady": {
+    "message": "Gata",
+    "description": ""
+  },
+  "transStatusTranslating": {
+    "message": "Traduc...",
+    "description": ""
+  },
+  "transStatusSuccess": {
+    "message": "Tradus în {time}ms",
+    "description": ""
+  },
+  "transStatusFailed": {
+    "message": "Traducerea a eșuat: {err}",
+    "description": ""
+  },
+  "transCopySuccess": {
+    "message": "Copiat pe clipboard!",
+    "description": ""
+  },
+  "transSwapAutoError": {
+    "message": "Limbajul automat nu poate fi schimbat",
+    "description": ""
+  },
+  "transClipboardError": {
+    "message": "Vă rugăm să acordați permisiunea pentru clipboard",
+    "description": ""
+  },
+  "transCopyFailed": {
+    "message": "Copiere eșuată",
+    "description": ""
+  },
+  "transAiTonePrompt": {
+    "message": "Ton și stil:",
+    "description": ""
+  },
+  "transToneStandard": {
+    "message": "Naturale standard",
+    "description": ""
+  },
+  "transToneAcademic": {
+    "message": "Academic",
+    "description": ""
+  },
+  "transToneCasual": {
+    "message": "Casual / Colocvial",
+    "description": ""
+  },
+  "transToneBusiness": {
+    "message": "Afaceri formale",
+    "description": ""
+  },
+  "transToneLiterature": {
+    "message": "Literar / Finisat",
+    "description": ""
+  },
+  "transFallbackNoKey": {
+    "message": "⚠️ Cheia API AI neconfigurată; tradus folosind motorul Microsoft Free.",
+    "description": ""
+  },
+  "transFallbackError": {
+    "message": "⚠️ Cererea AI a eșuat ({err}); tradus folosind motorul Microsoft Free.",
+    "description": ""
+  },
+  "btnBilingualPage": {
+    "message": "Pagină bilingvă",
+    "description": ""
+  },
+  "btnBilingualPageTip": {
+    "message": "Comută cardurile bilingve de traducere inline pe pagina curentă",
+    "description": ""
+  },
+  "bilingualPageTranslating": {
+    "message": "Traducerea paragrafelor vizibile...",
+    "description": ""
+  },
+  "bilingualPageDone": {
+    "message": "Traducere bilingvă activă",
+    "description": ""
+  },
+  "bilingualPageOff": {
+    "message": "Modul bilingv dezactivat",
+    "description": ""
+  },
+  "sectionBilingualMaster": {
+    "message": "Maestru de traducere bilingv",
+    "description": ""
+  },
+  "lblAutoBilingualPage": {
+    "message": "Traducere bilingvă a paginilor",
+    "description": ""
+  },
+  "descAutoBilingualPage": {
+    "message": "Când este activat, afișează automat traducerea bilingvă inline pe paginile web",
+    "description": ""
+  },
+  "lblQuickTargetLang": {
+    "message": "Limba țintă:",
+    "description": ""
+  },
+  "lblBilingualCardStyle": {
+    "message": "Configurația afișajului:",
+    "description": ""
+  },
+  "optLayoutCard": {
+    "message": "Card (Bulă Subtilă)",
+    "description": ""
+  },
+  "optLayoutInterlinear": {
+    "message": "Interliniar (Text pur)",
+    "description": ""
+  },
+  "optLayoutSideBySide": {
+    "message": "Umăr la Cot (Coloane)",
+    "description": ""
+  },
+  "noTextFound": {
+    "message": "Nu se găsește niciun text lizibil pe această pagină",
+    "description": "Toast when no content"
+  },
+  "btnReadSelection": {
+    "message": "Click pentru a citi cu voce tare",
+    "description": "Tooltip to read selected text"
+  }
+}

@@ -1357,5 +1357,37 @@
   },
   "optLayoutSideBySide": {
     "message": "左右対照 (2カラム)"
+  },
+  "transLangEn": {
+    "message": "英語",
+    "description": ""
+  },
+  "transLangZh": {
+    "message": "中国語",
+    "description": ""
+  },
+  "transLangJa": {
+    "message": "日本語",
+    "description": ""
+  },
+  "transSwapAutoError": {
+    "message": "自動言語は入れ替えられません",
+    "description": ""
+  },
+  "transClipboardError": {
+    "message": "クリップボードの許可をお願いします",
+    "description": ""
+  },
+  "transCopyFailed": {
+    "message": "コピー失敗",
+    "description": ""
+  },
+  "noTextFound": {
+    "message": "このページには読めるテキストは見当たりません",
+    "description": "Toast when no content"
+  },
+  "btnReadSelection": {
+    "message": "音声で読むにはクリックしてください",
+    "description": "Tooltip to read selected text"
   }
 }

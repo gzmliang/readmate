@@ -1379,5 +1379,13 @@
   },
   "optLayoutSideBySide": {
     "message": "Side-by-Side (Columns)"
+  },
+  "noTextFound": {
+    "message": "No readable text found on this page",
+    "description": "Toast when no content"
+  },
+  "btnReadSelection": {
+    "message": "Click to read aloud",
+    "description": "Tooltip to read selected text"
   }
 }

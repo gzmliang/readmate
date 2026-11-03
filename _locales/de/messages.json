@@ -1307,5 +1307,37 @@
   },
   "optLayoutSideBySide": {
     "message": "Nebeneinander (Spalten)"
+  },
+  "transLangEn": {
+    "message": "Englisch",
+    "description": ""
+  },
+  "transLangZh": {
+    "message": "Chinesisch",
+    "description": ""
+  },
+  "transLangJa": {
+    "message": "Japanisch",
+    "description": ""
+  },
+  "transSwapAutoError": {
+    "message": "Auto-Sprache kann nicht getauscht werden",
+    "description": ""
+  },
+  "transClipboardError": {
+    "message": "Bitte erteilen Sie die Erlaubnis des Klemmbretts",
+    "description": ""
+  },
+  "transCopyFailed": {
+    "message": "Kopie fehlgeschlagen",
+    "description": ""
+  },
+  "noTextFound": {
+    "message": "Auf dieser Seite findet sich kein lesbarer Text",
+    "description": "Toast when no content"
+  },
+  "btnReadSelection": {
+    "message": "Klicken Sie, um laut vorzulesen",
+    "description": "Tooltip to read selected text"
   }
 }
