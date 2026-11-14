@@ -894,7 +894,7 @@
     "message": "继续阅读"
   },
   "rdrRecentNote": {
-    "message": "出于隐私考虑，书稿本身不保存 —— 重新选一次同一个文件，就会自动跳回您上次停下的位置。"
+    "message": "打开过的书会缓存在本机，书架点开即可继续阅读；不会上传到任何服务器。"
   },
   "rdrPrevChapter": {
     "message": "上一章"
@@ -1387,5 +1387,41 @@
   "btnReadSelection": {
     "message": "点击朗读",
     "description": "Tooltip to read selected text"
+  },
+  "rdrTocClose": {
+    "message": "关闭目录"
+  },
+  "rdrShelfTitle": {
+    "message": "我的书架"
+  },
+  "rdrShelfUsage": {
+    "message": "本地已存 {n} 本 · 占用 {size}"
+  },
+  "rdrShelfOffline": {
+    "message": "已缓存"
+  },
+  "rdrDeleteConfirmTitle": {
+    "message": "删除这本书？"
+  },
+  "rdrDeleteConfirmDesc": {
+    "message": "将从本机删除缓存的正文与阅读进度，磁盘上的原文件不会受影响。"
+  },
+  "rdrDeleted": {
+    "message": "已从书架删除"
+  },
+  "rdrRename": {
+    "message": "重命名"
+  },
+  "rdrRenameTitle": {
+    "message": "重命名书名"
+  },
+  "rdrRenamePlaceholder": {
+    "message": "书名"
+  },
+  "rdrSave": {
+    "message": "保存"
+  },
+  "rdrReimport": {
+    "message": "从文件重新导入"
   }
 }

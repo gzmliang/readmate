@@ -840,7 +840,7 @@
     "message": "Продолжить чтение"
   },
   "rdrRecentNote": {
-    "message": "Текст книги не сохраняется (ради приватности) — выберите тот же файл снова, чтобы вернуться к последнему месту."
+    "message": "Открытые книги сохраняются на этом устройстве, поэтому полка открывает их мгновенно. Ничего не отправляется на сервер."
   },
   "rdrPrevChapter": {
     "message": "Назад"
@@ -1339,5 +1339,41 @@
   "btnReadSelection": {
     "message": "Нажмите, чтобы читать вслух",
     "description": "Tooltip to read selected text"
+  },
+  "rdrTocClose": {
+    "message": "Закрыть содержание"
+  },
+  "rdrShelfTitle": {
+    "message": "Мои книги"
+  },
+  "rdrShelfUsage": {
+    "message": "На этом устройстве сохранено книг: {n} · {size}"
+  },
+  "rdrShelfOffline": {
+    "message": "Офлайн"
+  },
+  "rdrDeleteConfirmTitle": {
+    "message": "Удалить эту книгу?"
+  },
+  "rdrDeleteConfirmDesc": {
+    "message": "Локальная копия и прогресс чтения будут удалены с этого устройства. Исходный файл не изменяется."
+  },
+  "rdrDeleted": {
+    "message": "Удалено с полки"
+  },
+  "rdrRename": {
+    "message": "Переименовать"
+  },
+  "rdrRenameTitle": {
+    "message": "Переименовать книгу"
+  },
+  "rdrRenamePlaceholder": {
+    "message": "Название книги"
+  },
+  "rdrSave": {
+    "message": "Сохранить"
+  },
+  "rdrReimport": {
+    "message": "Повторно импортировать из файла"
   }
 }

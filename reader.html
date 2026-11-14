@@ -31,9 +31,13 @@
 </header>
 
 <aside id="rdr-toc" data-readmate-skip>
-  <h4 data-i18n="rdrTocTitle"></h4>
+  <div class="rdr-toc-head">
+    <h4 data-i18n="rdrTocTitle"></h4>
+    <button type="button" id="rdr-toc-close" class="rdr-toc-close" data-i18n-title="rdrTocClose">✕</button>
+  </div>
   <div id="rdr-toc-list"></div>
 </aside>
+<div id="rdr-toc-backdrop" data-readmate-skip hidden></div>
 
 <!-- ============ 书库（首页） ============ -->
 <div id="rdr-library" class="rdr-view" data-readmate-skip>
@@ -50,8 +54,9 @@
     </div>
 
     <div class="rdr-recent" id="rdr-recent-wrap">
-      <h4 data-i18n="rdrRecent"></h4>
+      <h4 data-i18n="rdrShelfTitle"></h4>
       <div id="rdr-recent-list"></div>
+      <div class="rdr-hint" id="rdr-shelf-usage"></div>
       <div class="rdr-hint" data-i18n="rdrRecentNote"></div>
     </div>
   </div>
@@ -135,6 +140,7 @@
 <script src="reader/epub.js"></script>
 <script src="reader/pdf-book.js"></script>
 <script src="reader/importer.js"></script>
+<script src="reader/bookshelf.js"></script>
 <script src="reader/reader.js"></script>
 </body>
 </html>

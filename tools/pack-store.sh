@@ -27,7 +27,7 @@ RUNTIME=(
   content.js content.css content-extractor.js
   number-normalizer.js reading-stats.js text-utils.js test-utils.js
   reader.html
-  reader/reader.js reader/reader.css reader/importer.js
+  reader/reader.js reader/reader.css reader/importer.js reader/bookshelf.js
   reader/zip-reader.js reader/epub.js reader/pdf-book.js
   translator.html translator.css translator.js
   popup/popup.html popup/popup.css popup/popup.js

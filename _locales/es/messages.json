@@ -840,7 +840,7 @@
     "message": "Seguir leyendo"
   },
   "rdrRecentNote": {
-    "message": "Por privacidad no se guarda el texto — vuelve a elegir el mismo archivo para regresar al punto donde lo dejaste."
+    "message": "Los libros que abres se guardan en este dispositivo para que el estante los abra al instante. No se envía nada a ningún servidor."
   },
   "rdrPrevChapter": {
     "message": "Anterior"
@@ -1339,5 +1339,41 @@
   "btnReadSelection": {
     "message": "Haz clic para leer en voz alta",
     "description": "Tooltip to read selected text"
+  },
+  "rdrTocClose": {
+    "message": "Cerrar el índice"
+  },
+  "rdrShelfTitle": {
+    "message": "Mis libros"
+  },
+  "rdrShelfUsage": {
+    "message": "{n} libros guardados en este dispositivo · {size}"
+  },
+  "rdrShelfOffline": {
+    "message": "Sin conexión"
+  },
+  "rdrDeleteConfirmTitle": {
+    "message": "¿Eliminar este libro?"
+  },
+  "rdrDeleteConfirmDesc": {
+    "message": "La copia local y el progreso de lectura se borrarán de este dispositivo. El archivo original no se modifica."
+  },
+  "rdrDeleted": {
+    "message": "Eliminado del estante"
+  },
+  "rdrRename": {
+    "message": "Renombrar"
+  },
+  "rdrRenameTitle": {
+    "message": "Renombrar libro"
+  },
+  "rdrRenamePlaceholder": {
+    "message": "Título del libro"
+  },
+  "rdrSave": {
+    "message": "Guardar"
+  },
+  "rdrReimport": {
+    "message": "Volver a importar del archivo"
   }
 }

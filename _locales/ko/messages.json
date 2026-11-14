@@ -840,7 +840,7 @@
     "message": "이어 읽기"
   },
   "rdrRecentNote": {
-    "message": "개인정보 보호를 위해 본문은 저장하지 않습니다. 같은 파일을 다시 선택하면 이전 위치로 돌아갑니다."
+    "message": "연 책은 이 기기에 저장되어 책장에서 즉시 열립니다. 서버로는 아무것도 전송되지 않습니다."
   },
   "rdrPrevChapter": {
     "message": "이전"
@@ -1339,5 +1339,41 @@
   "btnReadSelection": {
     "message": "소리 내어 읽기려면 클릭하세요",
     "description": "Tooltip to read selected text"
+  },
+  "rdrTocClose": {
+    "message": "목차 닫기"
+  },
+  "rdrShelfTitle": {
+    "message": "내 책장"
+  },
+  "rdrShelfUsage": {
+    "message": "이 기기에 {n}권 저장됨 · {size}"
+  },
+  "rdrShelfOffline": {
+    "message": "오프라인"
+  },
+  "rdrDeleteConfirmTitle": {
+    "message": "이 책을 삭제할까요?"
+  },
+  "rdrDeleteConfirmDesc": {
+    "message": "이 기기에 저장된 본문과 읽기 진행률이 삭제됩니다. 원본 파일은 변경되지 않습니다."
+  },
+  "rdrDeleted": {
+    "message": "책장에서 삭제했습니다"
+  },
+  "rdrRename": {
+    "message": "이름 바꾸기"
+  },
+  "rdrRenameTitle": {
+    "message": "책 이름 바꾸기"
+  },
+  "rdrRenamePlaceholder": {
+    "message": "책 제목"
+  },
+  "rdrSave": {
+    "message": "저장"
+  },
+  "rdrReimport": {
+    "message": "파일에서 다시 가져오기"
   }
 }

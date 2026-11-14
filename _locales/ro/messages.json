@@ -916,8 +916,7 @@
     "description": ""
   },
   "rdrRecentNote": {
-    "message": "Pentru confidențialitate, textul cărții nu este stocat — alege din nou același fișier pentru a reveni la locul unde te-ai oprit.",
-    "description": ""
+    "message": "Cărțile deschise sunt salvate pe acest dispozitiv, astfel încât raftul le deschide instant. Nimic nu este trimis către un server."
   },
   "rdrPrevChapter": {
     "message": "Anterior",
@@ -1534,5 +1533,41 @@
   "btnReadSelection": {
     "message": "Click pentru a citi cu voce tare",
     "description": "Tooltip to read selected text"
+  },
+  "rdrTocClose": {
+    "message": "Închide cuprinsul"
+  },
+  "rdrShelfTitle": {
+    "message": "Cărțile mele"
+  },
+  "rdrShelfUsage": {
+    "message": "{n} cărți salvate pe acest dispozitiv · {size}"
+  },
+  "rdrShelfOffline": {
+    "message": "Offline"
+  },
+  "rdrDeleteConfirmTitle": {
+    "message": "Ștergi această carte?"
+  },
+  "rdrDeleteConfirmDesc": {
+    "message": "Copia locală și progresul de lectură vor fi eliminate de pe acest dispozitiv. Fișierul original nu este modificat."
+  },
+  "rdrDeleted": {
+    "message": "Eliminată din raft"
+  },
+  "rdrRename": {
+    "message": "Redenumește"
+  },
+  "rdrRenameTitle": {
+    "message": "Redenumește cartea"
+  },
+  "rdrRenamePlaceholder": {
+    "message": "Titlul cărții"
+  },
+  "rdrSave": {
+    "message": "Salvează"
+  },
+  "rdrReimport": {
+    "message": "Reimportă din fișier"
   }
 }

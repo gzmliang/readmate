@@ -890,7 +890,7 @@
     "message": "続きを読む"
   },
   "rdrRecentNote": {
-    "message": "プライバシーのため本文は保存しません。同じファイルをもう一度選ぶと、前回の位置に戻ります。"
+    "message": "開いた本はこの端末に保存され、本棚からすぐに開けます。サーバーには一切送信しません。"
   },
   "rdrPrevChapter": {
     "message": "前へ"
@@ -1389,5 +1389,41 @@
   "btnReadSelection": {
     "message": "音声で読むにはクリックしてください",
     "description": "Tooltip to read selected text"
+  },
+  "rdrTocClose": {
+    "message": "目次を閉じる"
+  },
+  "rdrShelfTitle": {
+    "message": "マイ本棚"
+  },
+  "rdrShelfUsage": {
+    "message": "この端末に {n} 冊を保存 · {size}"
+  },
+  "rdrShelfOffline": {
+    "message": "オフライン"
+  },
+  "rdrDeleteConfirmTitle": {
+    "message": "この本を削除しますか？"
+  },
+  "rdrDeleteConfirmDesc": {
+    "message": "ローカルに保存した本文と読書位置をこの端末から削除します。元のファイルは変更されません。"
+  },
+  "rdrDeleted": {
+    "message": "本棚から削除しました"
+  },
+  "rdrRename": {
+    "message": "名前を変更"
+  },
+  "rdrRenameTitle": {
+    "message": "本の名前を変更"
+  },
+  "rdrRenamePlaceholder": {
+    "message": "書名"
+  },
+  "rdrSave": {
+    "message": "保存"
+  },
+  "rdrReimport": {
+    "message": "ファイルから再読み込み"
   }
 }

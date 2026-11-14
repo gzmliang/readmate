@@ -840,7 +840,7 @@
     "message": "Continuer la lecture"
   },
   "rdrRecentNote": {
-    "message": "Par respect de la vie privée, le texte n’est pas stocké — resélectionnez le même fichier pour revenir où vous vous êtes arrêté."
+    "message": "Les livres que vous ouvrez sont enregistrés sur cet appareil pour que la bibliothèque les ouvre instantanément. Rien n’est envoyé à un serveur."
   },
   "rdrPrevChapter": {
     "message": "Précédent"
@@ -1339,5 +1339,41 @@
   "btnReadSelection": {
     "message": "Cliquez pour lire à voix haute",
     "description": "Tooltip to read selected text"
+  },
+  "rdrTocClose": {
+    "message": "Fermer la table des matières"
+  },
+  "rdrShelfTitle": {
+    "message": "Mes livres"
+  },
+  "rdrShelfUsage": {
+    "message": "{n} livres enregistrés sur cet appareil · {size}"
+  },
+  "rdrShelfOffline": {
+    "message": "Hors ligne"
+  },
+  "rdrDeleteConfirmTitle": {
+    "message": "Supprimer ce livre ?"
+  },
+  "rdrDeleteConfirmDesc": {
+    "message": "La copie locale et la progression de lecture seront supprimées de cet appareil. Le fichier d’origine n’est pas modifié."
+  },
+  "rdrDeleted": {
+    "message": "Retiré de la bibliothèque"
+  },
+  "rdrRename": {
+    "message": "Renommer"
+  },
+  "rdrRenameTitle": {
+    "message": "Renommer le livre"
+  },
+  "rdrRenamePlaceholder": {
+    "message": "Titre du livre"
+  },
+  "rdrSave": {
+    "message": "Enregistrer"
+  },
+  "rdrReimport": {
+    "message": "Réimporter depuis le fichier"
   }
 }

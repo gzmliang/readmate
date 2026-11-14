@@ -840,7 +840,7 @@
     "message": "Weiterlesen"
   },
   "rdrRecentNote": {
-    "message": "Aus Datenschutzgründen wird der Buchtext nicht gespeichert — wähle dieselbe Datei erneut und du springst an die letzte Stelle."
+    "message": "Geöffnete Bücher werden auf diesem Gerät gespeichert, damit das Regal sie sofort öffnet. Es wird nichts an einen Server gesendet."
   },
   "rdrPrevChapter": {
     "message": "Zurück"
@@ -1339,5 +1339,41 @@
   "btnReadSelection": {
     "message": "Klicken Sie, um laut vorzulesen",
     "description": "Tooltip to read selected text"
+  },
+  "rdrTocClose": {
+    "message": "Inhaltsverzeichnis schließen"
+  },
+  "rdrShelfTitle": {
+    "message": "Meine Bücher"
+  },
+  "rdrShelfUsage": {
+    "message": "{n} Bücher auf diesem Gerät gespeichert · {size}"
+  },
+  "rdrShelfOffline": {
+    "message": "Offline"
+  },
+  "rdrDeleteConfirmTitle": {
+    "message": "Dieses Buch löschen?"
+  },
+  "rdrDeleteConfirmDesc": {
+    "message": "Die lokale Kopie und der Lesefortschritt werden von diesem Gerät entfernt. Die Originaldatei bleibt unberührt."
+  },
+  "rdrDeleted": {
+    "message": "Vom Regal entfernt"
+  },
+  "rdrRename": {
+    "message": "Umbenennen"
+  },
+  "rdrRenameTitle": {
+    "message": "Buch umbenennen"
+  },
+  "rdrRenamePlaceholder": {
+    "message": "Buchtitel"
+  },
+  "rdrSave": {
+    "message": "Speichern"
+  },
+  "rdrReimport": {
+    "message": "Aus Datei erneut importieren"
   }
 }

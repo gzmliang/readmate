@@ -4,7 +4,7 @@
 // 设计铁律（与本项目总纲一致）：
 //   1. 界面文案 100% 走 i18n 词典（T('key') 引用），本文件不含任何硬编码界面中文
 //   2. 一行不改老引擎：朗读/翻译/TTS/划词/生词本/AI 摘要 全部直接复用 content.js 的全局函数
-//   3. 只存阅读进度，不存用户书稿（用户选择 4B）
+//   3. 阅读进度 + 解析后的纯文本缓存都只存本机（见 reader/bookshelf.js），不上传任何服务器
 //
 // 老引擎协作要点：
 //   · startReading / stopReading / fetchTranslationsBatch / detectTextLanguage 均为 content.js 顶层函数
@@ -31,7 +31,7 @@
   };
   var MODES = ['original', 'stacked', 'columns', 'translated'];
   var TRANS_CACHE_MAX = 3000;
-  var RECENT_MAX = 30;
+  var RECENT_MAX = 200;
 
   /** 独立 HTML 自带的打印样式：章节另起一页，Ctrl+P 直接得到整本 PDF */
   var PRINT_CSS = [
@@ -150,6 +150,10 @@
   function entryOf(fp) { return fp ? progMap[fp] : null; }
   function saveProgress() {
     if (!book || !book.fingerprint) return;
+    // 🚨 书页被隐藏时 scrollHeight 会塌成 0，任何「迟到的保存」都会把进度写成 0%；
+    //    因此只在正文真正可见时才落盘（回书架那次保存是在隐藏之前调用的，不受影响）。
+    var readerEl = $('rdr-reader');
+    if (!readerEl || readerEl.hidden) return;
     var cur = entryOf(book.fingerprint) || {};
     progMap[book.fingerprint] = {
       title: book.title,
@@ -319,6 +323,9 @@
   // ============================================================
   function setView(v) {
     view = v;
+    // 🚨 必须「先存进度再隐藏正文」：一旦 rdr-reader 被 hidden，scrollHeight 塌成 0，
+    //    currentPct() 会算出 0，回书架再点开就从章首重读了（进度百分比丢失）。
+    if (v === 'library') saveProgress();
     root.setAttribute('data-view', v);
     var lib = $('rdr-library'), rdr = $('rdr-reader');
     if (lib) lib.hidden = (v !== 'library');
@@ -329,80 +336,240 @@
       closeToc();
       var p = $('rdr-panel'); if (p) p.classList.remove('open');
       var pb = $('rdr-panel-btn'); if (pb) pb.classList.remove('on');
-      saveProgress();
       document.title = T('rdrDocTitle');
       renderRecent();
     }
   }
 
+  function openToc() {
+    var toc = $('rdr-toc');
+    var back = $('rdr-toc-backdrop');
+    var btn = $('rdr-toc-btn');
+    if (toc) toc.classList.add('open');
+    if (back) back.hidden = false;
+    if (btn) btn.classList.add('on');
+  }
+
   function closeToc() {
     var toc = $('rdr-toc');
+    var back = $('rdr-toc-backdrop');
+    var btn = $('rdr-toc-btn');
     if (toc) toc.classList.remove('open');
+    if (back) back.hidden = true;
+    if (btn) btn.classList.remove('on');
+  }
+
+  function toggleToc() {
+    var toc = $('rdr-toc');
+    if (!toc) return;
+    if (toc.classList.contains('open')) closeToc(); else openToc();
   }
 
   // ============================================================
-  // 书库 / 最近阅读
+  // 书架（本地缓存 + 阅读进度）
   // ============================================================
-  function renderRecent() {
-    var list = $('rdr-recent-list');
-    var wrap = $('rdr-recent-wrap');
-    if (!list) return;
-    list.innerHTML = '';
-    var entries = Object.keys(progMap).map(function (k) {
-      var e = Object.assign({ fp: k }, progMap[k]);
-      return e;
-    }).sort(function (a, b) { return (b.updatedAt || 0) - (a.updatedAt || 0); }).slice(0, 8);
+  var shelfToken = 0;
 
-    if (!entries.length) {
-      if (wrap) wrap.hidden = true;
-      return;
-    }
-    if (wrap) wrap.hidden = false;
+  function fmtBytes(n) {
+    var b = Number(n) || 0;
+    if (b >= 1073741824) return (b / 1073741824).toFixed(1) + ' GB';
+    if (b >= 1048576) return (b / 1048576).toFixed(1) + ' MB';
+    if (b >= 1024) return Math.round(b / 1024) + ' KB';
+    return b + ' B';
+  }
 
-    entries.forEach(function (e) {
-      var item = document.createElement('div');
-      item.className = 'rdr-recent-item';
+  function setShelfUsage(count, bytes) {
+    var el = $('rdr-shelf-usage');
+    if (!el) return;
+    el.textContent = count ? T('rdrShelfUsage', { n: count, size: fmtBytes(bytes) }) : '';
+  }
 
-      var icon = document.createElement('div');
-      icon.className = 'rdr-ri-icon';
-      icon.textContent = e.format === 'md' ? '📝' : (e.format === 'epub' ? '📖' : (e.format === 'pdf' ? '📕' : '📄'));
+  function shelfIcon(format) {
+    if (format === 'md') return { icon: '📝', cls: 'rdr-fmt-md' };
+    if (format === 'epub') return { icon: '📖', cls: 'rdr-fmt-epub' };
+    if (format === 'pdf') return { icon: '📕', cls: 'rdr-fmt-pdf' };
+    return { icon: '📄', cls: 'rdr-fmt-txt' };
+  }
 
-      var main = document.createElement('div');
-      main.className = 'rdr-ri-main';
-      var t = document.createElement('div');
-      t.className = 'rdr-ri-title';
-      t.textContent = e.title || T('rdrUntitled');
-      var m = document.createElement('div');
-      m.className = 'rdr-ri-meta';
-      var parts = [];
-      parts.push(T('rdrChapterOf', { cur: (e.chapterIndex || 0) + 1, total: e.chapters || 1 }));
-      parts.push(T('rdrReadPct', { n: Math.round((e.pct || 0) * 100) }));
-      if (e.charCount) parts.push(T('rdrUnitChars', { n: e.charCount }));
-      m.textContent = parts.join(' · ') + ' · ' + T('rdrNeedReimport');
-      main.appendChild(t);
-      main.appendChild(m);
-
-      var del = document.createElement('div');
-      del.className = 'rdr-ri-del';
-      del.textContent = '✕';
-      del.title = T('rdrRemove');
-      del.addEventListener('click', function (ev) {
-        ev.stopPropagation();
-        delete progMap[e.fp];
-        var o = {}; o[LS.prog] = progMap; storeSet(o);
-        renderRecent();
-      });
-
-      item.appendChild(icon);
-      item.appendChild(main);
-      item.appendChild(del);
-      item.addEventListener('click', function () {
+  function openCachedBook(fp) {
+    var shelf = (typeof BookShelf !== 'undefined') ? BookShelf : null;
+    if (!shelf) return Promise.resolve();
+    return shelf.get(fp).then(function (b) {
+      if (!b || !b.chapters || !b.chapters.length) {
+        // 缓存被系统清理或已损坏：退回「重新选文件」，仍按指纹恢复进度
         toast(T('rdrNeedReimport'), true);
         setTimeout(hideToast, 3200);
         var input = $('rdr-file-input');
         if (input) input.click();
-      });
-      list.appendChild(item);
+        return;
+      }
+      return openBook(b, { fromCache: true });
+    });
+  }
+
+  function buildShelfItem(e, meta) {
+    var item = document.createElement('div');
+    item.className = 'rdr-shelf-item';
+    item.setAttribute('data-fp', e.fp);
+
+    var ic = shelfIcon(e.format);
+    var cover = document.createElement('div');
+    cover.className = 'rdr-si-cover ' + ic.cls;
+    cover.textContent = ic.icon;
+
+    var main = document.createElement('div');
+    main.className = 'rdr-si-main';
+    var t = document.createElement('div');
+    t.className = 'rdr-si-title';
+    var nameSpan = document.createElement('span');
+    nameSpan.textContent = e.title || T('rdrUntitled');
+    nameSpan.style.cssText = 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    t.appendChild(nameSpan);
+    if (meta) {
+      var badge = document.createElement('span');
+      badge.className = 'rdr-si-offline';
+      badge.textContent = T('rdrShelfOffline');
+      t.appendChild(badge);
+    }
+
+    var m = document.createElement('div');
+    m.className = 'rdr-si-meta';
+    var parts = [];
+    if (e.author) parts.push(e.author);
+    parts.push(T('rdrChapterOf', { cur: (e.chapterIndex || 0) + 1, total: e.chapters || 1 }));
+    parts.push(T('rdrReadPct', { n: Math.round((e.pct || 0) * 100) }));
+    if (!meta) parts.push(T('rdrNeedReimport'));
+    m.textContent = parts.join(' · ');
+
+    var bar = document.createElement('div');
+    bar.className = 'rdr-si-bar';
+    var fill = document.createElement('i');
+    fill.style.width = Math.round((e.pct || 0) * 100) + '%';
+    bar.appendChild(fill);
+
+    main.appendChild(t);
+    main.appendChild(m);
+    main.appendChild(bar);
+
+    var actions = document.createElement('div');
+    actions.className = 'rdr-si-actions';
+
+    var ren = document.createElement('button');
+    ren.type = 'button';
+    ren.className = 'rdr-si-btn';
+    ren.textContent = '✎';
+    ren.title = T('rdrRename');
+    ren.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      askRename(e);
+    });
+
+    var reimport = document.createElement('button');
+    reimport.type = 'button';
+    reimport.className = 'rdr-si-btn';
+    reimport.textContent = '↻';
+    reimport.title = T('rdrReimport');
+    reimport.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      var input = $('rdr-file-input');
+      if (input) input.click();
+    });
+
+    var del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'rdr-si-btn rdr-si-del';
+    del.textContent = '✕';
+    del.title = T('rdrRemove');
+    del.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      askDelete(e);
+    });
+
+    actions.appendChild(ren);
+    actions.appendChild(reimport);
+    actions.appendChild(del);
+
+    item.appendChild(cover);
+    item.appendChild(main);
+    item.appendChild(actions);
+
+    item.addEventListener('click', function () {
+      if (meta) openCachedBook(e.fp);
+      else {
+        toast(T('rdrPickSameFile', { name: e.title || T('rdrUntitled') }), true);
+        setTimeout(hideToast, 3200);
+        var input = $('rdr-file-input');
+        if (input) input.click();
+      }
+    });
+    return item;
+  }
+
+  function askDelete(e) {
+    showDialog({
+      title: T('rdrDeleteConfirmTitle'),
+      desc: T('rdrDeleteConfirmDesc'),
+      okText: T('rdrDelete'),
+      onOk: function () {
+        delete progMap[e.fp];
+        var o = {}; o[LS.prog] = progMap; storeSet(o);
+        var done = (typeof BookShelf !== 'undefined') ? BookShelf.remove(e.fp) : Promise.resolve();
+        Promise.resolve(done).then(function () {
+          toast(T('rdrDeleted'));
+          renderRecent();
+        });
+      },
+    });
+  }
+
+  function askRename(e) {
+    showDialog({
+      title: T('rdrRenameTitle'),
+      placeholder: T('rdrRenamePlaceholder'),
+      withInput: true,
+      value: e.title || '',
+      onOk: function (v) {
+        var name = String(v || '').trim();
+        if (!name) return;
+        var cur = progMap[e.fp] || {};
+        cur.title = name;
+        cur.updatedAt = Date.now();
+        progMap[e.fp] = cur;
+        var o = {}; o[LS.prog] = progMap; storeSet(o);
+        if (typeof BookShelf !== 'undefined') BookShelf.rename(e.fp, name);
+        if (book && book.fingerprint === e.fp) book.title = name;
+        toast(T('rdrSaved', { name: name }));
+        renderRecent();
+      },
+    });
+  }
+
+  function renderRecent() {
+    var list = $('rdr-recent-list');
+    var wrap = $('rdr-recent-wrap');
+    if (!list) return;
+    var token = ++shelfToken;
+    list.innerHTML = '';
+    var entries = Object.keys(progMap).map(function (k) {
+      return Object.assign({ fp: k }, progMap[k]);
+    }).sort(function (a, b) { return (b.updatedAt || 0) - (a.updatedAt || 0); });
+
+    if (!entries.length) {
+      if (wrap) wrap.hidden = true;
+      setShelfUsage(0, 0);
+      return;
+    }
+    if (wrap) wrap.hidden = false;
+
+    var shelf = (typeof BookShelf !== 'undefined') ? BookShelf : null;
+    var metaP = shelf ? shelf.metaAll() : Promise.resolve([]);
+    metaP.then(function (metas) {
+      if (token !== shelfToken) return;
+      var cached = {};
+      var bytes = 0;
+      (metas || []).forEach(function (m) { cached[m.fp] = m; bytes += m.size || 0; });
+      entries.forEach(function (e) { list.appendChild(buildShelfItem(e, cached[e.fp])); });
+      setShelfUsage(Object.keys(cached).length, bytes);
     });
   }
 
@@ -454,13 +621,18 @@
     });
   }
 
-  function openBook(b) {
+  function openBook(b, opts) {
+    opts = opts || {};
     book = b;
     totalChars = 0;
     charsBefore = [];
     for (var i = 0; i < b.chapters.length; i++) {
       charsBefore.push(totalChars);
       totalChars += b.chapters[i].charCount || 0;
+    }
+    // 缓存正文到本机书架（从缓存打开的就不用再存一次）
+    if (!opts.fromCache && typeof BookShelf !== 'undefined' && b.fingerprint) {
+      try { BookShelf.put(b); } catch (e) {}
     }
     var saved = entryOf(b.fingerprint);
     var startChap = (saved && saved.chapterIndex < b.chapters.length) ? saved.chapterIndex : 0;
@@ -904,6 +1076,58 @@
     modal.innerHTML = '';
   }
 
+  /** 通用小对话框（确认删除 / 重命名），复用 #rdr-modal 容器 */
+  function showDialog(opts) {
+    opts = opts || {};
+    var modal = $('rdr-modal');
+    if (!modal) return;
+    modal.innerHTML = '';
+    var card = document.createElement('div');
+    card.className = 'rdr-card';
+    var h3 = document.createElement('h3');
+    h3.textContent = opts.title || '';
+    card.appendChild(h3);
+    if (opts.desc) {
+      var p = document.createElement('p');
+      p.className = 'rdr-cardsub';
+      p.textContent = opts.desc;
+      card.appendChild(p);
+    }
+    var input = null;
+    if (opts.withInput) {
+      input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'rdr-dialog-field';
+      input.value = opts.value || '';
+      if (opts.placeholder) input.placeholder = opts.placeholder;
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); submit(); }
+      });
+      card.appendChild(input);
+    }
+    var actions = document.createElement('div');
+    actions.className = 'rdr-actions';
+    var cancel = document.createElement('button');
+    cancel.className = 'rdr-btn';
+    cancel.textContent = T('rdrCancel');
+    cancel.addEventListener('click', closeModal);
+    var ok = document.createElement('button');
+    ok.className = 'rdr-btn primary';
+    ok.textContent = opts.okText || T('rdrSave');
+    ok.addEventListener('click', submit);
+    actions.appendChild(cancel);
+    actions.appendChild(ok);
+    card.appendChild(actions);
+    modal.appendChild(card);
+    modal.hidden = false;
+    function submit() {
+      var v = input ? input.value : '';
+      closeModal();
+      if (opts.onOk) opts.onOk(v);
+    }
+    if (input) setTimeout(function () { input.focus(); input.select(); }, 40);
+  }
+
   function modalProgress(card) {
     var old = card.querySelector('.rdr-prog-wrap');
     if (old) old.remove();
@@ -1137,9 +1361,20 @@
 
     // ---- 顶栏 ----
     var tocBtn = $('rdr-toc-btn');
-    if (tocBtn) tocBtn.addEventListener('click', function () {
+    if (tocBtn) tocBtn.addEventListener('click', toggleToc);
+    var tocClose = $('rdr-toc-close');
+    if (tocClose) tocClose.addEventListener('click', function (e) {
+      if (e && e.stopPropagation) e.stopPropagation();
+      closeToc();
+    });
+    var tocBackdrop = $('rdr-toc-backdrop');
+    if (tocBackdrop) tocBackdrop.addEventListener('click', closeToc);
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
       var toc = $('rdr-toc');
-      if (toc) toc.classList.toggle('open');
+      if (toc && toc.classList.contains('open')) { closeToc(); return; }
+      var modal = $('rdr-modal');
+      if (modal && !modal.hidden) { closeModal(); }
     });
     var panelBtn = $('rdr-panel-btn');
     if (panelBtn) panelBtn.addEventListener('click', function () {
@@ -1327,6 +1562,11 @@
     buildStandaloneHtml: function () { return buildHtmlFile(true); },
     loadFromQuery: loadFromQuery,
     importFile: importFile,
+    openCachedBook: openCachedBook,
+    getShelfMeta: function () {
+      return (typeof BookShelf !== 'undefined') ? BookShelf.metaAll() : Promise.resolve([]);
+    },
+    shelf: (typeof BookShelf !== 'undefined') ? BookShelf : null,
     print: startPrint,
   };
 
