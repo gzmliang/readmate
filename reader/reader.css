@@ -347,6 +347,12 @@ html[data-view="library"] #rdr-library-btn { margin-left:auto; }
   #rdr-panel { right:8px; left:8px; width:auto; bottom:84px; }
   #rdr-library { padding:28px 14px 60px; }
   #rdr-library h1 { font-size:21px; }
+  .rdr-shelf-item { padding:10px 10px; gap:10px; }
+  .rdr-shelf-item .rdr-si-cover { width:34px; height:44px; font-size:17px; }
+  .rdr-shelf-item .rdr-si-title { font-size:14px; }
+  .rdr-shelf-item .rdr-si-meta { font-size:11.5px; }
+  .rdr-shelf-item .rdr-si-btn { width:26px; height:26px; }
+  #rdr-toc { width:86vw; padding:22px 14px 50px; }
 }
 
 /* ---------- 打印（直接 Ctrl+P 或导出本章 PDF） ---------- */
